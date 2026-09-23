@@ -1,12 +1,20 @@
 {
   "name": "pcp",
-  "version": "1.0.0",
-  "description": "Pre-call prep for wealth advisors and professional-services firms: a short intake, public-source research, then a structured pre-call brief for each person you are about to meet.",
+  "version": "2.0.0",
+  "description": "Pre-call prep: eight one-time calibration questions, public-source OSINT/SOCMINT with a coverage ledger, a six-dimension behavioral read, and ONE 3-page PDF (2-page brief + 1-page meeting script). Every fact cited.",
   "author": {
     "name": "Talyx AI",
     "url": "https://talyx.ai"
   },
   "homepage": "https://talyx.ai",
   "license": "LicenseRef-Talyx-Free-Use",
-  "keywords": ["pre-call-prep", "meeting-prep", "wealth-advisors", "professional-services", "research", "brief"]
+  "keywords": [
+    "pre-call-prep",
+    "meeting-prep",
+    "osint",
+    "behavioral-read",
+    "pdf",
+    "sales",
+    "advisors"
+  ]
 }

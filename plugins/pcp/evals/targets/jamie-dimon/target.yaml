@@ -1,0 +1,4 @@
+# frozen eval target -- public professional record only; never edit after baseline is recorded
+target: {kind: person, name: "Jamie Dimon", org: "JPMorgan Chase", title: "Chairman and CEO", urls: ["https://www.jpmorganchase.com/about/our-leadership"]}
+meeting: {objective: "First introduction; earn a second meeting", format: intro, date: 2026-10-15}
+profile_override: {domain: general, research.depth: standard, socmint.scope: professional, jurisdiction: us}
