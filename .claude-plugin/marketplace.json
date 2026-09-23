@@ -1,0 +1,27 @@
+{
+  "name": "talyx",
+  "owner": {
+    "name": "Talyx AI",
+    "url": "https://talyx.ai"
+  },
+  "metadata": {
+    "description": "Free Claude Code plug-ins from Talyx AI for advisors and professional-services firms.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "pcp",
+      "description": "Pre-call prep: a short intake, public-source research, then a structured pre-call brief for each person you are about to meet.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Talyx AI",
+        "url": "https://talyx.ai"
+      },
+      "homepage": "https://talyx.ai",
+      "license": "LicenseRef-Talyx-Free-Use",
+      "category": "productivity",
+      "keywords": ["pre-call-prep", "meeting-prep", "wealth-advisors", "professional-services"],
+      "source": "./plugins/pcp"
+    }
+  ]
+}
