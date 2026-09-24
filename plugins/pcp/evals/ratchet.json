@@ -1,1 +1,1 @@
-{"policy": "floor_is_best_ever_never_regress", "baseline": {"measured": false, "note": "run the 5 frozen targets with plugin v1.0.0 (git 037929dd0) and record duf_pp per target here before any 20x claim"}, "floors": {}}
+{"policy": "floor_is_best_ever_never_regress", "baseline": {"measured": false, "note": "run the 5 frozen targets with the current plugin and record duf_pp per target here before any improvement claim"}, "floors": {}}

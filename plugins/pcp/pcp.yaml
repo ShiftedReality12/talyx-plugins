@@ -107,15 +107,15 @@ calibration:
     - id: CAL-1
       text: Ask all eight questions only when ~/.pcp/profile.yaml is missing, invalid, or --recalibrate is passed. Otherwise read it silently.
       test: Delete the profile and run -- the run must ask. Run again -- it must not.
-      basis: principal 2026-09-23 "8 rapid one-time questions"
+      basis: design choice, 8 rapid one-time questions
     - id: CAL-2
       text: A skipped answer takes the first (Recommended) option and is stored with defaulted:true; the PDF footer shows the profile line.
       test: Skip Q5 -- profile shows research.depth standard, defaulted true; footer reads "standard".
-      basis: doctrine 5 (verify at value level)
+      basis: verify at value level
     - id: CAL-3
       text: The improve loop may PROPOSE a profile change (one line, with the debrief evidence) but never applies one without a yes.
       test: Three debriefs with facts_used > 80% must produce a proposal, and the profile must be unchanged until answered.
-      basis: principal 2026-09-23 (no silent adaptation)
+      basis: design choice, no silent adaptation
 
 # ------------------------------------------------------------------------------------------------
 # 1. STAGES -- input contract + context contract + instruction rows, per stage, dependency-ordered.
@@ -152,11 +152,11 @@ stages:
       - {name: coverage, fields: [families_attempted, families_total, hits_by_family, failed_urls, status]}
     rows:
       - {id: S2-1, text: "Public sources only. Nothing behind a login, no paid data the user has not supplied, no scraping.", test: "A LinkedIn login wall counts as a failed URL and appears in coverage.failed_urls.", basis: original plugin v1}
-      - {id: S2-2, text: "Every claim carries url, retrieved_at, tag DIRECT|SEARCH, and confidence C1 (primary, dated) | C2 (reputable secondary) | C3 (single weak source) | C4 (inferred).", test: "A claim missing any field is dropped by eval.py claims and counted in coverage.dropped.", basis: internal command confidence ladder}
-      - {id: S2-3, text: "A claim that hits an exclusion is dropped BEFORE the writer sees it and counted in coverage.excluded; the brief's guardrails say a topic was left out, never which fact.", test: "Seed a claim tagged exclusion health -- it must not appear in any output file.", basis: original plugin v1 + doctrine 3}
-      - {id: S2-4, text: "Coverage is a required output: families_attempted/families_total and hits per family. A run without coverage is not a run.", test: "Disable WebFetch -- coverage must show 0/N attempted and status LIMITED, never FULL.", basis: SILENT TRUNCATION rule}
+      - {id: S2-2, text: "Every claim carries url, retrieved_at, tag DIRECT|SEARCH, and confidence C1 (primary, dated) | C2 (reputable secondary) | C3 (single weak source) | C4 (inferred).", test: "A claim missing any field is dropped by eval.py claims and counted in coverage.dropped.", basis: a confidence ladder}
+      - {id: S2-3, text: "A claim that hits an exclusion is dropped BEFORE the writer sees it and counted in coverage.excluded; the brief's guardrails say a topic was left out, never which fact.", test: "Seed a claim tagged exclusion health -- it must not appear in any output file.", basis: original plugin v1 + every rule carries a falsification test}
+      - {id: S2-4, text: "Coverage is a required output: families_attempted/families_total and hits per family. A run without coverage is not a run.", test: "Disable WebFetch -- coverage must show 0/N attempted and status LIMITED, never FULL.", basis: never truncate silently}
       - {id: S2-5, text: "Status FULL requires >= 1 C1/C2 claim in >= research.full_threshold[depth] families; else LIMITED, stamped on page 1.", test: "Remove all C1/C2 claims from one family below threshold -- status flips to LIMITED.", basis: original plugin FULL/LIMITED, made numeric}
-      - {id: S2-6, text: "Run the counter-evidence family last: search for what would contradict the strategic read.", test: "With depth standard or deep, coverage must show family F12 attempted.", basis: ACH discipline (hid-deal-qualify)}
+      - {id: S2-6, text: "Run the counter-evidence family last: search for what would contradict the strategic read.", test: "With depth standard or deep, coverage must show family F12 attempted.", basis: analysis of competing hypotheses}
 
   - id: S3
     name: Behavioral read
@@ -172,9 +172,9 @@ stages:
       - {name: read.json, fields: [dimension, band, evidence_tier, observation_ids, meeting_meaning]}
     rows:
       - {id: S3-1, text: "Score each of the six dimensions only from observation_ids in claims.jsonl; a band with fewer observations than its tier minimum is reported as 'no read' -- never guessed from role.", test: "A target with only role-archetype claims must render every dimension as tier low and the script must contain no influence sequence.", basis: rubric v1.1 evidence tiers}
-      - {id: S3-2, text: "Evidence tier gates script depth: low -> opener + questions; medium -> + framing; high -> + influence sequence (only if authority_level high).", test: "Delete one corroborating claim -- the tier must drop and the influence sequence must disappear on re-run.", basis: internal command Apex gate}
-      - {id: S3-3, text: "Every band phrase on the page is a rubric row in pcp.yaml; no band phrase is written in prose.", test: "Grep the brief for a band phrase not in rubric.*.meaning -- concordance fails.", basis: NO HAND-EDITING rule}
-      - {id: S3-4, text: "Depth deep adds an ACH mini: <= 3 hypotheses about what the target wants from this meeting, each with the claim that would disconfirm it.", test: "Depth standard -- no ACH block; depth deep -- ACH block with a disconfirming claim id per hypothesis.", basis: hid-deal-qualify}
+      - {id: S3-2, text: "Evidence tier gates script depth: low -> opener + questions; medium -> + framing; high -> + influence sequence (only if authority_level high).", test: "Delete one corroborating claim -- the tier must drop and the influence sequence must disappear on re-run.", basis: an evidence gate}
+      - {id: S3-3, text: "Every band phrase on the page is a rubric row in pcp.yaml; no band phrase is written in prose.", test: "Grep the brief for a band phrase not in rubric.*.meaning -- concordance fails.", basis: generated files are never hand-edited}
+      - {id: S3-4, text: "Depth deep adds an ACH mini: <= 3 hypotheses about what the target wants from this meeting, each with the claim that would disconfirm it.", test: "Depth standard -- no ACH block; depth deep -- ACH block with a disconfirming claim id per hypothesis.", basis: analysis of competing hypotheses}
 
   - id: S4
     name: Brief + script
@@ -194,8 +194,8 @@ stages:
     rows:
       - {id: S4-1, text: "Every fact in the brief cites a claim id [n]; the Sources block lists only cited claims. A fact with no citation is a defect, not a style choice.", test: "eval.py duf reports unbound > 0 -- the run must rewrite before render.", basis: DUF metric definition}
       - {id: S4-2, text: "Every sentence passes the swap test against caller.offer_one_line and the target: if another target's name would leave it true, delete it.", test: "A brief with a sentence containing no claim id and no target-specific noun fails checks.swap.", basis: original plugin check 1, tightened to sentence}
-      - {id: S4-3, text: "Render ONLY through format/talyx_pdf.py with --max-pages 3; never emit Markdown or HTML as the deliverable.", test: "The output directory contains exactly one .pdf and no .md/.html after a run.", basis: principal 2026-09-23 "PDF only"}
-      - {id: S4-4, text: "If the tightest density rung still overflows 3 pages, the run FAILS with the section word counts; it never truncates or spills.", test: "Feed a 900-word section -- the engine must exit non-zero naming the section.", basis: SILENT TRUNCATION rule}
+      - {id: S4-3, text: "Render ONLY through format/talyx_pdf.py with --max-pages 3; never emit Markdown or HTML as the deliverable.", test: "The output directory contains exactly one .pdf and no .md/.html after a run.", basis: design choice, PDF only}
+      - {id: S4-4, text: "If the tightest density rung still overflows 3 pages, the run FAILS with the section word counts; it never truncates or spills.", test: "Feed a 900-word section -- the engine must exit non-zero naming the section.", basis: never truncate silently}
       - {id: S4-5, text: "The PDF footer carries: profile line, research status, duf_pp, coverage fraction.", test: "Extract page-3 footer text -- all four fields present.", basis: coverage as a required output}
 
   - id: S5
@@ -208,9 +208,9 @@ stages:
       budget_words: 800
       excluded: ["everything else"]
     rows:
-      - {id: S5-1, text: "A change to pcp.yaml lands only if eval.py ratchet passes: every frozen target's duf_pp >= its floor AND all checks pass. The floor is the best ever seen and only rises.", test: "Lower a family weight so a target's duf_pp drops -- ratchet must exit non-zero and name the target.", basis: principal 2026-09-23 "floor = best-ever"}
+      - {id: S5-1, text: "A change to pcp.yaml lands only if eval.py ratchet passes: every frozen target's duf_pp >= its floor AND all checks pass. The floor is the best ever seen and only rises.", test: "Lower a family weight so a target's duf_pp drops -- ratchet must exit non-zero and name the target.", basis: design choice, floor = best ever}
       - {id: S5-2, text: "Debrief fields: facts_used[claim ids], questions_landed[ids], band_accuracy{dim: hit|miss}, outcome. Nothing else is asked.", test: "The debrief template has exactly four fields.", basis: path of least resistance}
-      - {id: S5-3, text: "improve proposes row diffs (family weights, question templates, band phrases) as a patch with basis: debrief_id; it never edits SKILL.md and never lands a diff itself.", test: "Run improve -- the only file written is evals/proposals/<date>.patch.", basis: NO HAND-EDITING; M6}
+      - {id: S5-3, text: "improve proposes row diffs (family weights, question templates, band phrases) as a patch with basis: debrief_id; it never edits SKILL.md and never lands a diff itself.", test: "Run improve -- the only file written is evals/proposals/<date>.patch.", basis: generated files are never hand-edited}
 
 # ------------------------------------------------------------------------------------------------
 # 2. SOURCE FAMILIES -- the collection plan. enabled_by_* are filters over profile answers.
@@ -252,8 +252,8 @@ retention:
   eu: delete claims.jsonl after render
 
 # ------------------------------------------------------------------------------------------------
-# 3. RUBRIC -- six dimensions (Apex behavioral rubric shape), evidence tiers, and the ONLY
-#    human-authored band phrases in the product. Fresh, generic phrasing; nothing vault-internal.
+# 3. RUBRIC -- six dimensions (behavioral rubric shape), evidence tiers, and the ONLY
+#    human-authored band phrases in the product. Fresh, generic phrasing; generic phrasing only.
 # ------------------------------------------------------------------------------------------------
 rubric:
   version: 2.0.0-public
@@ -365,4 +365,4 @@ eval:
   frozen_targets_dir: evals/targets
   ratchet_file: evals/ratchet.json
   policy: floor_is_best_ever_never_regress
-  baseline_required_before_claims: true   # ">20x" is reported as baseline -> current with both commands, never asserted
+  baseline_required_before_claims: true   # an improvement claim is reported as baseline -> current with both commands, never asserted

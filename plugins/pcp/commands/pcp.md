@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:e3aa4c7bd431) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:955f9b4c32cc) by render_skill.py -- edit pcp.yaml, never this file -->
 ---
 description: Prepare for a meeting. Calibrates once, researches from public sources, reads behaviour, and writes ONE 3-page PDF (2-page brief + 1-page script).
 argument-hint: "[intake.csv | \"Full Name, Organisation\"] [--recalibrate] [--profile <name>] [--out <dir>]"

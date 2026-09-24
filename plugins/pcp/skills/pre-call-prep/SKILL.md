@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:e3aa4c7bd431) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:955f9b4c32cc) by render_skill.py -- edit pcp.yaml, never this file -->
 ---
 name: pre-call-prep
 description: >
