@@ -160,7 +160,7 @@ def improve(debriefs, out_dir=None):
     out_dir = pathlib.Path(out_dir) if out_dir else pathlib.Path(debriefs[0]).resolve().parent
     out = out_dir / f"pcp-proposals-{dt.date.today().isoformat()}.patch"
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text("\n".join(props) or "# no proposals\n")
+    out.write_text("\n".join(props) + "\n" if props else "# no proposals\n")
     print("wrote", out, f"({len(props)} proposals) -- a maintainer applies them to pcp.yaml only if the ratchet holds")
     return out
 

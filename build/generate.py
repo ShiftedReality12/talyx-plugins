@@ -18,8 +18,8 @@ Emits (host contracts per the vendors' docs, verified 2026-09-25):
   plugins/pcp/commands/pcp.toml              /pcp for Gemini CLI ({{args}})
   plugins/pcp/skills/pre-call-prep/SKILL.md  the skill, rendered from pcp.yaml
   plugins/pcp/skills/*/agents/openai.yaml    Codex / ChatGPT per-skill presentation
-  plugins/pcp/skills/*/scripts|assets        shared files copied byte-for-byte from build/shared/
-  adapters/{gemini,m365-copilot}/*           chat-host instructions + knowledge file (no scripts there)
+  plugins/pcp/skills/pre-call-prep/scripts|assets   renderer copied byte-for-byte from the talyx-pdf skill
+  adapters/chat/{instructions.txt,pcp-knowledge.md} Gemini Gem / M365 Copilot (no scripts there)
   dist/perplexity/<skill>.zip                one upload per skill (not in --check; ignored by git)
 
 Usage:
@@ -40,7 +40,6 @@ import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "build" / "plugin.source.json"
-SHARED = ROOT / "build" / "shared"
 DIST = ROOT / "dist"
 PLUGIN_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
 META = ("name", "version", "description", "author", "homepage", "repository", "license", "keywords")
@@ -374,10 +373,6 @@ def render_command_toml(R, sha):
 
 # ── chat adapters (hosts that take instructions + a knowledge file, and run no scripts) ────────────
 
-CHAT_HOSTS = {
-    "gemini": {"instructions": "gem-instructions.txt", "knowledge": "pcp-knowledge.md"},
-    "m365-copilot": {"instructions": "agent-instructions.txt", "knowledge": "pcp-knowledge.md"},
-}
 
 CHAT_INSTRUCTIONS = """You are Talyx Pre-call Prep. Before a meeting you research the named person, company or deal from public sources only and write one cited brief plus a one-page meeting script.
 
@@ -454,7 +449,7 @@ def check_registry(R):
 
 def check_ladder(R):
     """pcp.yaml's page ladder and the renderer's LADDER are one parameter in two files -- values must match."""
-    text = (SHARED / "talyx-pdf" / "scripts" / "talyx_pdf.py").read_text()
+    text = (ROOT / "plugins" / "pcp" / "skills" / "talyx-pdf" / "scripts" / "talyx_pdf.py").read_text()
     code = [dict(name=m[0], body_pt=float(m[1]), line_height=float(m[2]), para_gap_pt=int(m[3]), sec_gap_pt=int(m[4]))
             for m in re.findall(r'dict\(name="(\w+)",\s*body_pt=([\d.]+),\s*lh=([\d.]+),\s*para=(\d+),\s*sec=(\d+)\)', text)]
     reg = [dict(r, body_pt=float(r["body_pt"]), line_height=float(r["line_height"])) for r in R["page_budget"]["ladder"]]
@@ -478,14 +473,14 @@ def render(src, plugin, R, sha):
     }
     for skill in src["skills"]:
         files[plugin / "skills" / skill["name"] / "agents" / "openai.yaml"] = openai_skill_yaml(skill)
-    for shared, skills in src["shared"].items():
-        for f in sorted(p for p in (SHARED / shared).rglob("*") if p.is_file() and p.name != ".DS_Store" and "__pycache__" not in p.parts):
+    for owner, skills in src["shared"].items():
+        base = plugin / "skills" / owner
+        for f in sorted(p for d in ("scripts", "assets") for p in (base / d).rglob("*")
+                        if p.is_file() and p.name != ".DS_Store" and "__pycache__" not in p.parts):
             for skill in skills:
-                files[plugin / "skills" / skill / f.relative_to(SHARED / shared)] = f.read_bytes()
-    knowledge = render_chat_knowledge(src, R, sha)
-    for host, names in CHAT_HOSTS.items():
-        files[ROOT / "adapters" / host / names["instructions"]] = CHAT_INSTRUCTIONS.format(knowledge=names["knowledge"])
-        files[ROOT / "adapters" / host / names["knowledge"]] = knowledge
+                files[plugin / "skills" / skill / f.relative_to(base)] = f.read_bytes()
+    files[ROOT / "adapters" / "chat" / "instructions.txt"] = CHAT_INSTRUCTIONS.format(knowledge="pcp-knowledge.md")
+    files[ROOT / "adapters" / "chat" / "pcp-knowledge.md"] = render_chat_knowledge(src, R, sha)
     return files
 
 

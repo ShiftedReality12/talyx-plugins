@@ -55,7 +55,7 @@
     }
   ],
   "shared": {
-    "_comment": "Files copied byte-for-byte from build/shared/<name>/ into each listed skill. --check fails on any difference.",
-    "talyx-pdf": ["pre-call-prep", "talyx-pdf"]
+    "_comment": "The talyx-pdf skill owns the renderer: its scripts/ and assets/ are copied byte-for-byte into each listed skill so every skill folder stays self-contained. --check fails on any difference.",
+    "talyx-pdf": ["pre-call-prep"]
   }
 }

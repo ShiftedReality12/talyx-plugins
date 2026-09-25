@@ -60,8 +60,8 @@ class BuildTests(unittest.TestCase):
 
     def test_hand_edit_of_any_host_file_fails_check(self):
         for rel in sorted(HOST_FILES) + ["plugins/pcp/skills/pre-call-prep/SKILL.md",
-                                          "plugins/pcp/skills/talyx-pdf/scripts/talyx_pdf.py",
-                                          "adapters/gemini/pcp-knowledge.md"]:
+                                          "plugins/pcp/skills/pre-call-prep/scripts/talyx_pdf.py",
+                                          "adapters/chat/pcp-knowledge.md"]:
             with self.subTest(rel):
                 path = self.root / rel
                 original = path.read_bytes()
@@ -175,7 +175,7 @@ class BuildTests(unittest.TestCase):
 
     def test_payload_carries_no_development_material(self):
         installed = self.installed_copy()
-        forbidden = {"build", "tests", "evals", "dist", "adapters", ".git", "__pycache__", "plugin.source.json"}
+        forbidden = {"build", "tests", "evals", "dist", "adapters", ".git", ".github", "__pycache__", "plugin.source.json"}
         for path in installed.rglob("*"):
             self.assertFalse(forbidden & set(path.relative_to(installed).parts), path)
         self.assertEqual({p.name for p in (installed / "skills").iterdir()}, {"pre-call-prep", "talyx-pdf"})

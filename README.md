@@ -22,7 +22,7 @@ One repository serves every host; each host reads its own catalog or manifest.
 | Gemini CLI | clone, then `gemini extensions install ./plugins/pcp` | not yet verified |
 | Devin | `devin plugins install talyx-ai/talyx-plugins#plugins/pcp` | not yet verified |
 | Perplexity | upload `dist/perplexity/pre-call-prep.zip` (built by `build/generate.py`) | not yet verified |
-| Gemini Apps (Gem), Microsoft 365 Copilot | chat adaptations without scripts or PDF: see [adapters/](adapters) | not yet verified |
+| Gemini Apps (Gem), Microsoft 365 Copilot | chat adaptation without scripts or PDF: see [adapters/chat](adapters/chat) | not yet verified |
 
 "Verified" means installed through that host's own CLI and exercised. Every other row is generated to
 the host's published contract and still needs a run in that host. See [plugins/pcp/README.md](plugins/pcp/README.md)
@@ -40,8 +40,8 @@ plugins/pcp/                      the installable plug-in -- the only folder a h
   commands/pcp.md, pcp.toml       /pcp (Markdown for Claude/Cursor/Grok, TOML for Gemini)
   skills/pre-call-prep/           self-contained skill: SKILL.md, pcp.yaml, scripts/, assets/
   skills/talyx-pdf/               self-contained Markdown -> PDF skill
-adapters/                         Gemini Gem + Microsoft 365 Copilot instructions and knowledge file
-build/                            plugin.source.json + generate.py, the shared renderer, schemas
+adapters/chat/                    Gemini Gem + Microsoft 365 Copilot: instructions + knowledge file
+build/                            plugin.source.json + generate.py (+ the Agent Plugins schema the tests use)
 evals/                            maintainer instrument: controls, frozen targets, ratchet
 tests/                            packaging, portability and saved-setup tests
 ```

@@ -4,7 +4,7 @@ A free plug-in from [Talyx AI](https://talyx.ai). Type `/pcp` before a meeting a
 PDF**: a 2-page pre-call brief and a 1-page meeting script on the person, company or deal you are about
 to meet, built from public sources, every fact cited. Runs in Claude Code, Claude desktop, Codex,
 ChatGPT desktop, Grok, Cursor, Gemini CLI, Devin and Perplexity -- see the
-[repository README](../../README.md) for install commands and which hosts are verified.
+repository README (https://github.com/talyx-ai/talyx-plugins) for install commands and which hosts are verified.
 
 ## What it does
 
@@ -49,7 +49,7 @@ What that means per host:
 | Claude Code, Grok, Cursor, Gemini CLI, Devin | saved on first run, reused after |
 | Codex / ChatGPT desktop | reading works in the sandbox; the first save writes outside the workspace, so approve that one write when asked |
 | Claude desktop (Cowork), Perplexity | these run the skill in a sandbox whose home folder may not persist; if it does not, the questions come back in a new session |
-| Gemini Gem, Microsoft 365 Copilot | no files: the assistant gives you a *Saved setup* block to paste into the knowledge file ([adapters](../../adapters)) |
+| Gemini Gem, Microsoft 365 Copilot | no files: the assistant gives you a *Saved setup* block to paste into the knowledge file (`adapters/chat` in the source repository) |
 
 ## Licence
 

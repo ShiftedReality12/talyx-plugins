@@ -220,7 +220,8 @@ def run(a):
             print(json.dumps(dict(ok=True, pages=pages, rung=rung["name"], path=str(out), max_pages=a.max_pages)))
             return 0
     longest = word_report(brief_md) + (word_report(pathlib.Path(a.script).read_text()) if a.script else [])
-    print(json.dumps(dict(ok=False, pages=last[1], rung=last[0], max_pages=a.max_pages, path=str(out),
+    out.unlink(missing_ok=True)   # no deliverable exists: never leave an over-length PDF to be picked up
+    print(json.dumps(dict(ok=False, pages=last[1], rung=last[0], max_pages=a.max_pages, path=None,
                           reason="overflow at tightest rung -- cut these sections", longest_sections=longest)))
     return 2
 
