@@ -145,7 +145,10 @@ class BuildTests(unittest.TestCase):
             self.assertTrue((self.plugin / interface[key]).is_file(), key)
 
     def test_gemini_command_is_valid_toml_with_args_placeholder(self):
-        import tomllib
+        try:
+            import tomllib
+        except ModuleNotFoundError:   # Python 3.10
+            import tomli as tomllib
         doc = tomllib.loads((self.plugin / "commands/pcp.toml").read_text())
         self.assertIn("{{args}}", doc["prompt"])
         self.assertNotIn("$ARGUMENTS", doc["prompt"])

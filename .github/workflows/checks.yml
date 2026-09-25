@@ -1,0 +1,47 @@
+name: checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  gates:
+    name: tests + generated files (Python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.12", "3.14"]   # oldest we promise (3.10), common, newest stable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install -r tests/requirements.txt
+      - name: generated host files match their sources; skills are portable
+        run: python build/generate.py --check
+      - name: packaging, portability and saved-setup tests
+        run: python -m unittest discover -s tests -v
+      - name: the brief counter is proven able to fail
+        run: python evals/pcp_eval.py self-test
+
+  render:
+    name: PDF renders from the installed skill layout
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: renderer setup, as a user would run it
+        run: python plugins/pcp/skills/pre-call-prep/scripts/talyx_pdf.py --setup && python -m playwright install-deps chromium
+      - name: render a 3-page-capped brief + script and check the result
+        run: |
+          python plugins/pcp/skills/pre-call-prep/scripts/talyx_pdf.py --brief evals/fixtures/control_12.md \
+            --script evals/fixtures/control_12.md --out out/check.pdf --max-pages 3 | tee result.json
+          python -c "import json; r = json.load(open('result.json')); assert r['ok'] and r['pages'] <= 3, r"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rendered-pdf
+          path: out/check.pdf

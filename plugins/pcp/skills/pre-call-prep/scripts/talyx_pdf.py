@@ -82,7 +82,7 @@ def body_html(txt):
             if para or table: flush()
             bullets.append(re.sub(r"^\s*[-*]\s+", "", s)); continue
         if re.match(r"^###\s+", s):
-            flush(); out.append(f'<div class="sub">{inl(re.sub(r"^###\s+", "", s))}</div>'); continue
+            flush(); out.append('<div class="sub">' + inl(re.sub(r"^###\s+", "", s)) + '</div>'); continue
         if bullets or table: flush()
         para.append(s.strip())
     flush()
