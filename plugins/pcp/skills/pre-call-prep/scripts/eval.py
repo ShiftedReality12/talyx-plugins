@@ -3,11 +3,13 @@
 
   duf <brief.md> [script.md] [--pages N]   decision-useful facts: bound / unbound / dropped / duf_pp (+ coverage)
   checks <brief.md> [script.md] [--all|--swap|--quotes|--custom-q|--sections|--budgets|--never-say|--outcome|--exclusions]
+  improve <debrief.yaml>... [--out DIR]    propose row diffs as pcp-proposals-<date>.patch beside the debrief (never lands)
 
-Maintainer commands (self-test, ratchet, improve) live in the source repository: evals/pcp_eval.py.
+Maintainer commands (self-test, ratchet) live in the source repository: evals/pcp_eval.py.
 Exit 0 = pass. Non-zero = fail, with the reason and the population on stdout. Every number prints its denominator.
 """
 import argparse
+import datetime as dt
 import json
 import pathlib
 import re
@@ -141,6 +143,28 @@ def checks(brief_md, script_md="", which="all", target_nouns=()):
     return fails
 
 
+# ---------------------------------------------------------------- improve ------------------------------------
+def improve(debriefs, out_dir=None):
+    """Debriefs -> proposed pcp.yaml row diffs. Writes one patch file and nothing else; never edits the skill."""
+    props = []
+    for p in debriefs:
+        d = yaml.safe_load(pathlib.Path(p).read_text())
+        used = set(d.get("facts_used", []))
+        fam_hits = d.get("facts_by_family", {})  # optional: {F1: [ids]}
+        for fam, ids in fam_hits.items():
+            if ids and not (used & set(ids)):
+                props.append(f"# basis: {p}\n- family {fam}: weight -0.1 (0 of {len(ids)} facts used)")
+        for dim, hit in d.get("band_accuracy", {}).items():
+            if hit == "miss":
+                props.append(f"# basis: {p}\n- rubric {dim}: review signals (band missed in the room)")
+    out_dir = pathlib.Path(out_dir) if out_dir else pathlib.Path(debriefs[0]).resolve().parent
+    out = out_dir / f"pcp-proposals-{dt.date.today().isoformat()}.patch"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text("\n".join(props) or "# no proposals\n")
+    print("wrote", out, f"({len(props)} proposals) -- a maintainer applies them to pcp.yaml only if the ratchet holds")
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -148,6 +172,7 @@ def main():
     c = sub.add_parser("checks"); c.add_argument("brief"); c.add_argument("script", nargs="?"); c.add_argument("--target-nouns", default="")
     for w in ["swap", "quotes", "custom-q", "sections", "budgets", "never-say", "outcome", "exclusions", "all"]:
         c.add_argument(f"--{w}", action="store_true")
+    i = sub.add_parser("improve"); i.add_argument("debriefs", nargs="+"); i.add_argument("--out")
     a = ap.parse_args()
 
     if a.cmd == "duf":
@@ -158,6 +183,9 @@ def main():
         f = checks(pathlib.Path(a.brief).read_text(), pathlib.Path(a.script).read_text() if a.script else "", which,
                    [n.strip() for n in a.target_nouns.split(",")])
         print(f"checks ({which}): {len(f)} failures"); [print(" -", x) for x in f]; sys.exit(1 if f else 0)
+
+    if a.cmd == "improve":
+        improve(a.debriefs, a.out)
 
 
 if __name__ == "__main__":

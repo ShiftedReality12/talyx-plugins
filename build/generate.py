@@ -145,6 +145,8 @@ Run `python3 scripts/profile.py inspect [--profile <name>] [--recalibrate]`. It 
 holds only what still has to be asked. The saved profile is per user and is reused by every later run.
 
 - `status: complete` -- use `effective` and `profile_line` silently. Ask nothing.
+- `status: recalibrate` (`--recalibrate`) -- ask every listed question, showing each saved `current`
+  answer as the default, then apply as below.
 - `status: missing` or `incomplete` -- STOP before intake: never research with an incomplete profile and
   never put a placeholder where a calibration answer belongs. Ask ONLY the listed `questions`, using {tools}.
   If you cannot get answers in this session (for example a non-interactive run), end the run by listing
@@ -205,8 +207,10 @@ again. Deliver the PDF path and the footer line, then delete `brief.md` and `scr
 ## Debrief and ratchet
 
 After the call, offer the four fields in `assets/debrief-template.yaml` and save the answers as
-`debrief.yaml` beside the PDF. Never ask for more. Maintainers feed debriefs to the registry loop in the
-source repository (`evals/pcp_eval.py improve`, then `ratchet`); an installed copy never edits itself."""
+`debrief.yaml` beside the PDF. Never ask for more. Then `python3 scripts/eval.py improve <debrief.yaml>`
+writes proposed registry changes beside the debrief as `pcp-proposals-<date>.patch`; it never edits the
+skill. Proposals land only through the maintainers' ratchet (`evals/pcp_eval.py ratchet` in the source
+repository)."""
 
 RENDER_CHAT = """## Deliver
 
@@ -338,8 +342,8 @@ skill's folder, and every `scripts/` path below is relative to that folder. Neve
 another copy: an older install elsewhere is not this plug-in. Then follow the skill exactly, in stage order.
 
 0. **Calibrate** -- run the skill's `scripts/profile.py inspect` (pass `--recalibrate` / `--profile <name>` if
-   given). Ask only the questions it lists, save them with `scripts/profile.py apply`; when it reports
-   complete, ask nothing. Do not start step 1 until the profile is complete.
+   given). Ask exactly the questions it lists (all of them with `--recalibrate`, none when it reports
+   complete) and save them with `scripts/profile.py apply`. Do not start step 1 until the profile is complete.
 1. **Intake** -- resolve the input (CSV path, `"Name, Org"`, or ask). Confirm the objective. Never start
    without a full name and an organisation.
 2. **Collect** -- run the enabled source families; write `claims.jsonl` and the coverage ledger. Drop excluded
@@ -347,7 +351,8 @@ another copy: an older install elsewhere is not this plug-in. Then follow the sk
 3. **Read** -- score six dimensions from claim ids only; set the evidence tier.
 4. **Brief + script** -- write `brief.md` (B1-B9) and `script.md` (P1-P7) in the output folder; run
    `scripts/eval.py checks` and `scripts/eval.py duf`; rewrite until clean; render with
-   `scripts/talyx_pdf.py --max-pages 3`. Deliver the PDF path and the footer line.
+   `scripts/talyx_pdf.py --max-pages 3`. Deliver the PDF path and the footer line. Delete `brief.md`/`script.md`
+   after a clean render.
 5. **Debrief** -- offer the four-field debrief template; never ask for more.
 
 Say what was NOT found (coverage) before what was.

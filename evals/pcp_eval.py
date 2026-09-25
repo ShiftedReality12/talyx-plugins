@@ -3,10 +3,10 @@
 
   self-test                 positive + negative controls: the counter is proven able to fail
   ratchet [--record]        every frozen target's duf_pp >= its floor; --record raises floors
-  improve <debrief.yaml>... propose row diffs as evals/proposals/<date>.patch (never lands)
+  improve <debrief.yaml>... runtime scripts/eval.py improve, writing to evals/proposals/ (never lands)
 
 Concordance (generated files match pcp.yaml) is `python3 build/generate.py --check`.
-The duf/checks logic is imported from the installed skill's scripts/eval.py -- one implementation.
+The duf/checks/improve logic is imported from the installed skill's scripts/eval.py -- one implementation.
 """
 import argparse
 import datetime as dt
@@ -18,17 +18,18 @@ import sys
 import yaml
 
 HERE = pathlib.Path(__file__).resolve().parent
-SKILL = HERE.parent / "plugins/pcp/skills/pre-call-prep"
+REPO = HERE.parent
+SKILL = REPO / "plugins/pcp/skills/pre-call-prep"
 _spec = importlib.util.spec_from_file_location("pcp_eval_runtime", SKILL / "scripts/eval.py")
 ev = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(ev)
 R = ev.R
+E = {k: REPO / R["eval"][k] for k in ("positive_control", "negative_control", "frozen_targets_dir", "ratchet_file")}
 
 
 def self_test():
-    fx = HERE / "fixtures"
-    pos = ev.duf((fx / "control_12.md").read_text())
-    neg = ev.duf((fx / "control_broken.md").read_text())
+    pos = ev.duf(E["positive_control"].read_text())
+    neg = ev.duf(E["negative_control"].read_text())
     ok = True
     print("positive control:", json.dumps(pos))
     if not (pos["bound"] == 12 and pos["unbound"] == 0 and pos["dropped"] == 0 and pos["ok"]):
@@ -36,7 +37,7 @@ def self_test():
     print("negative control:", json.dumps(neg))
     if not (neg["unbound"] == 3 and neg["dropped"] == 1 and not neg["ok"]):
         print("FAIL negative control expected unbound 3 / dropped 1 / ok False"); ok = False
-    f = ev.checks((fx / "control_broken.md").read_text())
+    f = ev.checks(E["negative_control"].read_text())
     print("negative control checks:", len(f), "failures:", *[" - " + x for x in f], sep="\n")
     if not any(x.startswith("C7") for x in f) or not any(x.startswith("C9") for x in f):
         print("FAIL negative control must trip C7 (never_say) and C9 (exclusions)"); ok = False
@@ -44,9 +45,9 @@ def self_test():
 
 
 def ratchet(record=False):
-    rf = HERE / "ratchet.json"
+    rf = E["ratchet_file"]
     floors = json.loads(rf.read_text()) if rf.exists() else {"policy": R["eval"]["policy"], "floors": {}}
-    tdir = HERE / "targets"
+    tdir = E["frozen_targets_dir"]
     runs = sorted(tdir.glob("*/latest/brief.md"))
     if not runs:
         print(f"ratchet: 0 rendered frozen targets under {tdir} (baseline not yet measured) -- nothing to compare; exit 2")
@@ -65,27 +66,13 @@ def ratchet(record=False):
             floors["floors"][tid] = {"duf_pp": rep["duf_pp"], "recorded": dt.date.today().isoformat()}
     if record:
         rf.write_text(json.dumps(floors, indent=2))
-        print("floors written", rf.relative_to(HERE))
+        print("floors written", rf.relative_to(REPO))
     print(f"ratchet population: {len(runs)} targets, {len(bad)} regress")
     return 1 if bad else 0
 
 
 def improve(debriefs):
-    props = []
-    for p in debriefs:
-        d = yaml.safe_load(pathlib.Path(p).read_text())
-        used = set(d.get("facts_used", []))
-        fam_hits = d.get("facts_by_family", {})  # optional: {F1: [ids]}
-        for fam, ids in fam_hits.items():
-            if ids and not (used & set(ids)):
-                props.append(f"# basis: {p}\n- family {fam}: weight -0.1 (0 of {len(ids)} facts used)")
-        for dim, hit in d.get("band_accuracy", {}).items():
-            if hit == "miss":
-                props.append(f"# basis: {p}\n- rubric {dim}: review signals (band missed in the room)")
-    out = HERE / "proposals" / f"{dt.date.today().isoformat()}.patch"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text("\n".join(props) or "# no proposals\n")
-    print("wrote", out.relative_to(HERE), f"({len(props)} proposals) -- apply to pcp.yaml by hand-review, then `pcp_eval.py ratchet`")
+    return ev.improve(debriefs, HERE / "proposals")
 
 
 def main():

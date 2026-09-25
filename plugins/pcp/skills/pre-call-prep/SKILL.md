@@ -2,7 +2,7 @@
 name: pre-call-prep
 description: "Prepare for an upcoming meeting with a named person, company or deal. One-time calibration saved per user, public-source OSINT/SOCMINT collection with a coverage ledger, a six-dimension behavioral read, and ONE 3-page PDF: a 2-page brief plus a 1-page meeting script. Use when the user mentions pre-call prep, meeting prep, call preparation, researching someone before a meeting, talking points, or shares an intake list. Do not use for general research unrelated to a meeting, or for notes on a meeting that has already happened."
 ---
-<!-- GENERATED from pcp.yaml (sha256:8f52b61a92e6) by build/generate.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:811cbbfcd5b0) by build/generate.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v2.1.0)
 
@@ -29,6 +29,8 @@ Run `python3 scripts/profile.py inspect [--profile <name>] [--recalibrate]`. It 
 holds only what still has to be asked. The saved profile is per user and is reused by every later run.
 
 - `status: complete` -- use `effective` and `profile_line` silently. Ask nothing.
+- `status: recalibrate` (`--recalibrate`) -- ask every listed question, showing each saved `current`
+  answer as the default, then apply as below.
 - `status: missing` or `incomplete` -- STOP before intake: never research with an incomplete profile and
   never put a placeholder where a calibration answer belongs. Ask ONLY the listed `questions`, using the host's structured-question tool when it has one (Claude `AskUserQuestion`, Gemini `ask_user`, Codex `request_user_input`), as many questions per call as the tool allows, first option recommended; a free-text question goes in plain chat. Without such a tool, ask them in one chat message with numbered options.
   If you cannot get answers in this session (for example a non-interactive run), end the run by listing
@@ -166,7 +168,7 @@ Profile line (footer of every PDF): `role · domain · depth · jurisdiction`.
   _Fails when:_ eval.py duf reports unbound > 0 -- the run must rewrite before render.
 - **S4-2** Every sentence passes the swap test against caller.offer_one_line and the target: if another target's name would leave it true, delete it.  
   _Fails when:_ A brief with a sentence containing no claim id and no target-specific noun fails checks.swap.
-- **S4-3** Render ONLY through scripts/talyx_pdf.py with --max-pages 3; never emit Markdown or HTML as the deliverable.  
+- **S4-3** Render ONLY through scripts/talyx_pdf.py with --max-pages 3; never emit Markdown or HTML as the deliverable (the only exception is S4-6, labelled DRAFT -- NOT RENDERED).  
   _Fails when:_ The output directory contains exactly one .pdf and no .md/.html after a run.
 - **S4-4** If the tightest density rung still overflows 3 pages, the run FAILS with the section word counts; it never truncates or spills.  
   _Fails when:_ Feed a 900-word section -- the engine must exit non-zero naming the section.
@@ -188,12 +190,12 @@ Profile line (footer of every PDF): `role · domain · depth · jurisdiction`.
 
 **Rows:**
 
-- **S5-1** A change to pcp.yaml lands only if eval.py ratchet passes: every frozen target's duf_pp >= its floor AND all checks pass. The floor is the best ever seen and only rises.  
+- **S5-1** A change to pcp.yaml lands only if evals/pcp_eval.py ratchet (source repository) passes: every frozen target's duf_pp >= its floor AND all checks pass. The floor is the best ever seen and only rises.  
   _Fails when:_ Lower a family weight so a target's duf_pp drops -- ratchet must exit non-zero and name the target.
 - **S5-2** Debrief fields: facts_used[claim ids], questions_landed[ids], band_accuracy{dim: hit|miss}, outcome. Nothing else is asked.  
   _Fails when:_ The debrief template has exactly four fields.
 - **S5-3** improve proposes row diffs (family weights, question templates, band phrases) as a patch with basis: debrief_id; it never edits SKILL.md and never lands a diff itself.  
-  _Fails when:_ Run improve -- the only file written is evals/proposals/<date>.patch.
+  _Fails when:_ Run scripts/eval.py improve on a debrief -- the only file written is pcp-proposals-<date>.patch beside it.
 
 ## Source families
 
@@ -304,8 +306,10 @@ again. Deliver the PDF path and the footer line, then delete `brief.md` and `scr
 ## Debrief and ratchet
 
 After the call, offer the four fields in `assets/debrief-template.yaml` and save the answers as
-`debrief.yaml` beside the PDF. Never ask for more. Maintainers feed debriefs to the registry loop in the
-source repository (`evals/pcp_eval.py improve`, then `ratchet`); an installed copy never edits itself.
+`debrief.yaml` beside the PDF. Never ask for more. Then `python3 scripts/eval.py improve <debrief.yaml>`
+writes proposed registry changes beside the debrief as `pcp-proposals-<date>.patch`; it never edits the
+skill. Proposals land only through the maintainers' ratchet (`evals/pcp_eval.py ratchet` in the source
+repository).
 
 ## About
 

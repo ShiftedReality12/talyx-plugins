@@ -150,6 +150,50 @@ class ProfileTests(unittest.TestCase):
         self.assertEqual((code, out["code"]), (1, "WRITE_DENIED"), out)
         self.assertFalse(self.path.exists())
 
+    def test_recalibrate_has_its_own_status_so_complete_never_suppresses_it(self):
+        self.apply(ANSWERS)
+        _, seen = self.run_profile("inspect", "--recalibrate")
+        self.assertEqual(seen["status"], "recalibrate")
+        self.assertEqual(self.run_profile("inspect")[1]["status"], "complete")
+
+    def test_profile_written_by_v2_0_0_is_read_without_asking_again(self):
+        # tests/fixtures/v2.0.0-profile.yaml was written by the v2.0.0 skill itself in a live run
+        legacy = (ROOT / "tests/fixtures/v2.0.0-profile.yaml").read_bytes()
+        self.path.parent.mkdir(parents=True)
+        self.path.write_bytes(legacy)
+        _, seen = self.run_profile("inspect")
+        self.assertEqual((seen["status"], seen["missing"], seen["migrated_from"]), ("complete", [], "v2.0.0"))
+        self.assertEqual(seen["profile_line"], "principal · general · standard · us")
+        self.assertIn("working session", seen["effective"]["meeting.win_definition"])
+        code, out = self.run_profile("apply", "--answers-file", "-", "--base-sha256", seen["sha256"], answers={"Q5": "deep"})
+        self.assertEqual(code, 0, out)
+        self.assertEqual(out["effective"]["research.depth"], "deep")
+        self.assertEqual(out["effective"]["domain"], "general")
+        self.assertEqual(Path(out["backup"]).read_bytes(), legacy)
+        self.assertEqual(yaml.safe_load(self.path.read_text())["pcp_profile_format"], 1)
+
+    def test_v2_0_0_value_that_is_no_longer_an_option_is_asked_not_kept(self):
+        legacy = yaml.safe_load((ROOT / "tests/fixtures/v2.0.0-profile.yaml").read_text())
+        legacy["domain"] = "banking"
+        self.path.parent.mkdir(parents=True)
+        self.path.write_text(yaml.safe_dump(legacy))
+        _, seen = self.run_profile("inspect")
+        self.assertEqual((seen["status"], seen["missing"]), ("incomplete", ["Q2"]))
+
+    def test_improve_writes_only_a_patch_beside_the_debrief(self):
+        out = self.tmp / "call"
+        out.mkdir()
+        (out / "debrief.yaml").write_text(yaml.safe_dump({"facts_used": [1], "questions_landed": [],
+                                                          "band_accuracy": {"dominance": "miss"}, "outcome": "no"}))
+        before = {p for p in SKILL.rglob("*") if "__pycache__" not in p.parts}
+        r = subprocess.run([sys.executable, str(SKILL / "scripts/eval.py"), "improve", str(out / "debrief.yaml")],
+                           cwd=self.tmp, capture_output=True, text=True, timeout=30)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        patches = list(out.glob("pcp-proposals-*.patch"))
+        self.assertEqual(len(patches), 1)
+        self.assertIn("rubric dominance", patches[0].read_text())
+        self.assertEqual({p for p in SKILL.rglob("*") if "__pycache__" not in p.parts}, before)
+
     def test_profile_file_is_private(self):
         self.apply(ANSWERS)
         self.assertEqual(self.path.stat().st_mode & 0o777, 0o600)

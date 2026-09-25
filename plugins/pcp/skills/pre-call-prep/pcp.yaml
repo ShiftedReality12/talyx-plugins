@@ -195,7 +195,7 @@ stages:
     rows:
       - {id: S4-1, text: "Every fact in the brief cites a claim id [n]; the Sources block lists only cited claims. A fact with no citation is a defect, not a style choice.", test: "eval.py duf reports unbound > 0 -- the run must rewrite before render.", basis: DUF metric definition}
       - {id: S4-2, text: "Every sentence passes the swap test against caller.offer_one_line and the target: if another target's name would leave it true, delete it.", test: "A brief with a sentence containing no claim id and no target-specific noun fails checks.swap.", basis: "original plugin check 1, tightened to sentence"}
-      - {id: S4-3, text: "Render ONLY through scripts/talyx_pdf.py with --max-pages 3; never emit Markdown or HTML as the deliverable.", test: "The output directory contains exactly one .pdf and no .md/.html after a run.", basis: "design choice, PDF only"}
+      - {id: S4-3, text: "Render ONLY through scripts/talyx_pdf.py with --max-pages 3; never emit Markdown or HTML as the deliverable (the only exception is S4-6, labelled DRAFT -- NOT RENDERED).", test: "The output directory contains exactly one .pdf and no .md/.html after a run.", basis: "design choice, PDF only"}
       - {id: S4-4, text: "If the tightest density rung still overflows 3 pages, the run FAILS with the section word counts; it never truncates or spills.", test: "Feed a 900-word section -- the engine must exit non-zero naming the section.", basis: never truncate silently}
       - {id: S4-5, text: "The PDF footer carries: profile line, research status, duf_pp, coverage fraction.", test: "Extract page-3 footer text -- all four fields present.", basis: coverage as a required output}
       - {id: S4-6, text: "If the renderer cannot run on this host (no Python, or the user declines `scripts/talyx_pdf.py --setup`), say so before delivering and hand over brief.md + script.md headed DRAFT -- NOT RENDERED; never call them the PDF and never delete them.", test: "Run with Playwright absent and decline setup -- the reply names both drafts, says not rendered, and claims no PDF.", basis: refusal is not delivery; never present a substitute as the deliverable}
@@ -210,9 +210,9 @@ stages:
       budget_words: 800
       excluded: ["everything else"]
     rows:
-      - {id: S5-1, text: "A change to pcp.yaml lands only if eval.py ratchet passes: every frozen target's duf_pp >= its floor AND all checks pass. The floor is the best ever seen and only rises.", test: "Lower a family weight so a target's duf_pp drops -- ratchet must exit non-zero and name the target.", basis: "design choice, floor = best ever"}
+      - {id: S5-1, text: "A change to pcp.yaml lands only if evals/pcp_eval.py ratchet (source repository) passes: every frozen target's duf_pp >= its floor AND all checks pass. The floor is the best ever seen and only rises.", test: "Lower a family weight so a target's duf_pp drops -- ratchet must exit non-zero and name the target.", basis: "design choice, floor = best ever"}
       - {id: S5-2, text: "Debrief fields: facts_used[claim ids], questions_landed[ids], band_accuracy{dim: hit|miss}, outcome. Nothing else is asked.", test: "The debrief template has exactly four fields.", basis: path of least resistance}
-      - {id: S5-3, text: "improve proposes row diffs (family weights, question templates, band phrases) as a patch with basis: debrief_id; it never edits SKILL.md and never lands a diff itself.", test: "Run improve -- the only file written is evals/proposals/<date>.patch.", basis: generated files are never hand-edited}
+      - {id: S5-3, text: "improve proposes row diffs (family weights, question templates, band phrases) as a patch with basis: debrief_id; it never edits SKILL.md and never lands a diff itself.", test: "Run scripts/eval.py improve on a debrief -- the only file written is pcp-proposals-<date>.patch beside it.", basis: generated files are never hand-edited}
 
 # ------------------------------------------------------------------------------------------------
 # 2. SOURCE FAMILIES -- the collection plan. enabled_by_* are filters over profile answers.

@@ -48,8 +48,36 @@ def profile_path(cal):
     return pathlib.Path(os.environ.get("PCP_PROFILE") or cal["profile_path"]).expanduser()
 
 
-def read(path):
-    """-> (raw bytes or None, parsed doc or None, reason if unreadable)."""
+def _get(doc, dotted):
+    for part in dotted.split("."):
+        if not isinstance(doc, dict) or part not in doc:
+            return None
+        doc = doc[part]
+    return doc
+
+
+def from_v2_0(doc, questions):
+    """pcp v2.0.0 had the model write the `sets` fields themselves (caller.role, domain, research.depth ...)
+    as nested YAML. Read them back through the same `sets` rows -> answers. Values that are not current
+    options are dropped, so those questions are simply asked again."""
+    flagged = doc.get("defaulted") if isinstance(doc.get("defaulted"), dict) else {}
+    answers = {}
+    for qid, q in questions.items():
+        if q.get("free_text"):
+            parts = [_get(doc, f) for f, rule in q["sets"].items() if rule == "text"]
+            parts = [s.strip() for s in dict.fromkeys(x for x in parts if isinstance(x, str) and x.strip())]
+            if parts:
+                answers[qid] = {"value": "; ".join(parts), "defaulted": False}
+            continue
+        field = next((f for f, rule in q["sets"].items() if rule == "value"), None)
+        value = _get(doc, field) if field else None
+        if value in [o["value"] for o in q["options"]]:
+            answers[qid] = {"value": value, "defaulted": bool(flagged.get(field) or flagged.get(qid))}
+    return answers
+
+
+def read(path, questions=None):
+    """-> (raw bytes or None, parsed doc or None, reason if unreadable). A v2.0.0 profile is converted."""
     if not path.exists():
         return None, None, None
     raw = path.read_bytes()
@@ -57,6 +85,10 @@ def read(path):
         doc = yaml.safe_load(raw)
     except yaml.YAMLError as exc:
         return raw, None, f"not valid YAML: {exc}".splitlines()[0]
+    if isinstance(doc, dict) and "pcp_profile_format" not in doc and questions:
+        answers = from_v2_0(doc, questions)
+        if answers:
+            return raw, {"pcp_profile_format": FORMAT, "profiles": {DEFAULT_PROFILE: {"answers": answers}}, "_from": "v2.0.0"}, None
     if not isinstance(doc, dict) or doc.get("pcp_profile_format") != FORMAT or not isinstance(doc.get("profiles"), dict):
         return raw, None, f"not a pcp profile (expected pcp_profile_format: {FORMAT} and a profiles mapping)"
     for name, entry in doc["profiles"].items():
@@ -130,8 +162,8 @@ def question_view(q, current=None):
 def inspect(name, recalibrate=False):
     cal, questions = load_calibration()
     path = profile_path(cal)
-    raw, doc, bad = read(path)
-    base = {"path": str(path), "profile": name, "sha256": digest(raw)}
+    raw, doc, bad = read(path, questions)
+    base = {"path": str(path), "profile": name, "sha256": digest(raw), "migrated_from": (doc or {}).get("_from")}
     if bad:
         return {**base, "status": "invalid", "reason": bad, "questions": [question_view(q) for q in questions.values()]}
     answers = ((doc or {}).get("profiles", {}).get(name) or {}).get("answers", {})
@@ -144,6 +176,8 @@ def inspect(name, recalibrate=False):
     ask = list(questions) if recalibrate else missing
     eff = effective(questions, answers)
     status = "missing" if not answers else ("incomplete" if missing else "complete")
+    if recalibrate:
+        status = "recalibrate"
     return {**base, "status": status, "missing": missing, "stale": stale,
             "unknown": sorted(set(answers) - set(questions)),
             "questions": [question_view(questions[q], answers.get(q, {}).get("value") if recalibrate else None) for q in ask],
@@ -167,7 +201,7 @@ def atomic_write(path, text):
 def apply(name, answers_json, base_sha, replace_invalid=False):
     cal, questions = load_calibration()
     path = profile_path(cal)
-    raw, doc, bad = read(path)
+    raw, doc, bad = read(path, questions)
     expected = None if base_sha in (None, "none", "") else base_sha
     if digest(raw) != expected:
         raise Rejected("STALE", "the profile changed since inspect (or --base-sha256 is wrong); inspect again",
@@ -199,6 +233,9 @@ def _write(path, name, stored, raw, doc, bad, replace_invalid):
         backup = path.with_name(f"{path.name}.invalid-{dt.datetime.now().strftime('%Y%m%dT%H%M%S')}")
         backup.write_bytes(raw)
         doc = None
+    if doc and doc.pop("_from", None):   # first write after a v2.0.0 profile: keep the original beside it
+        backup = path.with_name(f"{path.name}.v2.0.0")
+        backup.write_bytes(raw)
     doc = doc or {"pcp_profile_format": FORMAT, "profiles": {}}
     entry = doc["profiles"].setdefault(name, {"answers": {}})
     entry.setdefault("answers", {}).update(stored)

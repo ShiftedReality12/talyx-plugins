@@ -2,7 +2,7 @@
 description: "Prepare for a meeting. Calibrates once per user, researches from public sources, reads behaviour, and writes ONE 3-page PDF (2-page brief + 1-page script)."
 argument-hint: "[intake.csv | \"Full Name, Organisation\"] [--recalibrate] [--profile <name>] [--out <dir>]"
 ---
-<!-- GENERATED from pcp.yaml (sha256:8f52b61a92e6) by build/generate.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:811cbbfcd5b0) by build/generate.py -- edit pcp.yaml, never this file -->
 
 # /pcp: pre-call prep
 
@@ -13,8 +13,8 @@ skill's folder, and every `scripts/` path below is relative to that folder. Neve
 another copy: an older install elsewhere is not this plug-in. Then follow the skill exactly, in stage order.
 
 0. **Calibrate** -- run the skill's `scripts/profile.py inspect` (pass `--recalibrate` / `--profile <name>` if
-   given). Ask only the questions it lists, save them with `scripts/profile.py apply`; when it reports
-   complete, ask nothing. Do not start step 1 until the profile is complete.
+   given). Ask exactly the questions it lists (all of them with `--recalibrate`, none when it reports
+   complete) and save them with `scripts/profile.py apply`. Do not start step 1 until the profile is complete.
 1. **Intake** -- resolve the input (CSV path, `"Name, Org"`, or ask). Confirm the objective. Never start
    without a full name and an organisation.
 2. **Collect** -- run the enabled source families; write `claims.jsonl` and the coverage ledger. Drop excluded
@@ -22,7 +22,8 @@ another copy: an older install elsewhere is not this plug-in. Then follow the sk
 3. **Read** -- score six dimensions from claim ids only; set the evidence tier.
 4. **Brief + script** -- write `brief.md` (B1-B9) and `script.md` (P1-P7) in the output folder; run
    `scripts/eval.py checks` and `scripts/eval.py duf`; rewrite until clean; render with
-   `scripts/talyx_pdf.py --max-pages 3`. Deliver the PDF path and the footer line.
+   `scripts/talyx_pdf.py --max-pages 3`. Deliver the PDF path and the footer line. Delete `brief.md`/`script.md`
+   after a clean render.
 5. **Debrief** -- offer the four-field debrief template; never ask for more.
 
 Say what was NOT found (coverage) before what was.

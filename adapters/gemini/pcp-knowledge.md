@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:8f52b61a92e6) by build/generate.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:811cbbfcd5b0) by build/generate.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v2.1.0)
 
@@ -138,7 +138,7 @@ Profile line (heading of every brief): `role · domain · depth · jurisdiction`
   _Fails when:_ eval.py duf reports unbound > 0 -- the run must rewrite before render.
 - **S4-2** Every sentence passes the swap test against caller.offer_one_line and the target: if another target's name would leave it true, delete it.  
   _Fails when:_ A brief with a sentence containing no claim id and no target-specific noun fails checks.swap.
-- **S4-3** Render ONLY through scripts/talyx_pdf.py with --max-pages 3; never emit Markdown or HTML as the deliverable.  
+- **S4-3** Render ONLY through scripts/talyx_pdf.py with --max-pages 3; never emit Markdown or HTML as the deliverable (the only exception is S4-6, labelled DRAFT -- NOT RENDERED).  
   _Fails when:_ The output directory contains exactly one .pdf and no .md/.html after a run.
 - **S4-4** If the tightest density rung still overflows 3 pages, the run FAILS with the section word counts; it never truncates or spills.  
   _Fails when:_ Feed a 900-word section -- the engine must exit non-zero naming the section.
@@ -160,12 +160,12 @@ Profile line (heading of every brief): `role · domain · depth · jurisdiction`
 
 **Rows:**
 
-- **S5-1** A change to pcp.yaml lands only if eval.py ratchet passes: every frozen target's duf_pp >= its floor AND all checks pass. The floor is the best ever seen and only rises.  
+- **S5-1** A change to pcp.yaml lands only if evals/pcp_eval.py ratchet (source repository) passes: every frozen target's duf_pp >= its floor AND all checks pass. The floor is the best ever seen and only rises.  
   _Fails when:_ Lower a family weight so a target's duf_pp drops -- ratchet must exit non-zero and name the target.
 - **S5-2** Debrief fields: facts_used[claim ids], questions_landed[ids], band_accuracy{dim: hit|miss}, outcome. Nothing else is asked.  
   _Fails when:_ The debrief template has exactly four fields.
 - **S5-3** improve proposes row diffs (family weights, question templates, band phrases) as a patch with basis: debrief_id; it never edits SKILL.md and never lands a diff itself.  
-  _Fails when:_ Run improve -- the only file written is evals/proposals/<date>.patch.
+  _Fails when:_ Run scripts/eval.py improve on a debrief -- the only file written is pcp-proposals-<date>.patch beside it.
 
 ## Source families
 
