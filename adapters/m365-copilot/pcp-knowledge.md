@@ -1,7 +1,3 @@
----
-name: pre-call-prep
-description: "Prepare for an upcoming meeting with a named person, company or deal. One-time calibration saved per user, public-source OSINT/SOCMINT collection with a coverage ledger, a six-dimension behavioral read, and ONE 3-page PDF: a 2-page brief plus a 1-page meeting script. Use when the user mentions pre-call prep, meeting prep, call preparation, researching someone before a meeting, talking points, or shares an intake list. Do not use for general research unrelated to a meeting, or for notes on a meeting that has already happened."
----
 <!-- GENERATED from pcp.yaml (sha256:8f52b61a92e6) by build/generate.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v2.1.0)
@@ -11,41 +7,17 @@ Every stage declares its inputs before its behaviour, reads only its listed cont
 that each carry a falsification test. Every fact traces to a public source. Nothing is invented.
 The deliverable is one 3-page PDF. Nothing else is emitted.
 
-## Running this skill
-
-- **Paths.** Every `scripts/`, `assets/` and `pcp.yaml` path here is relative to this skill's folder -- the
-  folder containing this SKILL.md. Resolve it to an absolute path before running anything. Never write
-  into the skill folder: working files (`claims.jsonl`, `brief.md`, `script.md`) and the PDF go in the
-  output folder (`--out <dir>`, default the user's current working folder).
-- **Runtime.** Python 3.10+ with PyYAML. The PDF step also needs Playwright + Chromium + pypdf; if
-  `scripts/talyx_pdf.py` reports them missing, ask the user before running
-  `python3 scripts/talyx_pdf.py --setup` (it installs packages). Row S4-6 covers a host that cannot render.
-- **Arguments.** `"Full Name, Organisation"` or a CSV path (template: `assets/intake-template.csv`),
-  plus optional `--recalibrate`, `--profile <name>`, `--out <dir>`.
-
 ## Stage 0: Calibrate (once per user)
 
-Run `python3 scripts/profile.py inspect [--profile <name>] [--recalibrate]`. It prints JSON; `questions`
-holds only what still has to be asked. The saved profile is per user and is reused by every later run.
+This host runs no scripts. The saved setup is the **Saved setup** block at the end of this knowledge file.
 
-- `status: complete` -- use `effective` and `profile_line` silently. Ask nothing.
-- `status: missing` or `incomplete` -- STOP before intake: never research with an incomplete profile and
-  never put a placeholder where a calibration answer belongs. Ask ONLY the listed `questions`, using the host's structured-question tool when it has one (Claude `AskUserQuestion`, Gemini `ask_user`, Codex `request_user_input`), as many questions per call as the tool allows, first option recommended; a free-text question goes in plain chat. Without such a tool, ask them in one chat message with numbered options.
-  If you cannot get answers in this session (for example a non-interactive run), end the run by listing
-  the questions and saying the prep has not started. Write the answers as
-  a JSON object `{"Q1": "<option value or label>", ..., "Q8": "<free text>"}` (null = skipped) to a
-  temporary file in the output folder, then run
-  `python3 scripts/profile.py apply --answers-file <file> --base-sha256 <sha256 from inspect, or none> [--profile <name>]`
-  and delete the file. Use the `effective` block it returns.
-- `status: invalid` -- tell the user their saved setup cannot be read and ask whether to redo it. On yes,
-  ask every question and apply with `--replace-invalid` (the old file is kept as a backup).
-- `ok: false` from apply -- fix what it names (an answer that is not an option: map it to an option or
-  ask again; `STALE`: inspect again). `WRITE_DENIED` means the host's sandbox blocked the user's setup
-  file: run the same apply again with the host's permission to write outside the workspace (Codex asks
-  the user to approve); if that is refused, use the answers for this run and say they were not saved.
-  Never write the profile file by hand.
-- Python unavailable -- ask the questions, use the answers for this run only, and tell the user they
-  were not saved.
+- Every question has a saved answer there -- use them silently. Ask nothing.
+- Otherwise ask ONLY the unanswered questions, using the host's structured-question tool when it has one (Claude `AskUserQuestion`, Gemini `ask_user`, Codex `request_user_input`), as many questions per call as the tool allows, first option recommended; a free-text question goes in plain chat. Without such a tool, ask them in one chat message with numbered options. A skipped question takes its first
+  (Recommended) option, marked defaulted. Then output the complete updated **Saved setup** block in
+  the same YAML shape -- each answer as `Q1: {value: <option value or your text>, defaulted: false}` under
+  `profiles: default: answers:` -- and tell the user to replace the block in this knowledge file with it, so the
+  next conversation does not ask again. Never claim it was saved: only the user can update the file.
+- `--recalibrate` asks every question again, showing the saved answer.
 
 | # | Chip | Question | Options | Sets |
 |---|---|---|---|---|
@@ -67,7 +39,7 @@ holds only what still has to be asked. The saved profile is per user and is reus
 - **CAL-4** The profile is written only by `scripts/profile.py apply`. An unreadable profile is never overwritten without the user's yes, and then the old file is kept as a backup.  
   _Fails when:_ Corrupt the profile -- inspect reports invalid, and apply exits non-zero with the file bytes unchanged.
 
-Profile line (footer of every PDF): `role · domain · depth · jurisdiction`.
+Profile line (heading of every brief): `role · domain · depth · jurisdiction`.
 
 ## Stage 1: Intake
 
@@ -290,23 +262,29 @@ Never say: "Does that make sense?"; "Is this helpful?"; "No pressure"; "You'd kn
 | C9 | exclusions | `scripts/eval.py checks --exclusions` | no excluded topic keyword appears in the body |
 | C10 | pages | `scripts/talyx_pdf.py --max-pages 3` | rendered page count == 3 |
 
-## Render
+## Deliver
 
-```
-python3 scripts/talyx_pdf.py --brief <out>/brief.md --script <out>/script.md --title "<Name> -- <Org>" \
-    --subtitle "Pre-call brief · <meeting date>" --footer "<profile line> · <status> · duf_pp <x> · coverage <a>/<b>" \
-    --max-pages 3 --out <out>/<date>-<slug>.pdf
-```
+This host has no PDF renderer and cannot run the checks as code. Apply every check in the table above
+yourself before answering, and say they were self-checked, not machine-run. Deliver ONE document: the
+brief (B1-B9) then the meeting script (P1-P7), headed with the profile line, status and coverage. Say
+plainly that it is not the Talyx PDF; the plug-in version renders that.
 
-Read the JSON it prints: `ok: false` means there is no deliverable yet -- cut the named sections and render
-again. Deliver the PDF path and the footer line, then delete `brief.md` and `script.md`.
+## Debrief
 
-## Debrief and ratchet
-
-After the call, offer the four fields in `assets/debrief-template.yaml` and save the answers as
-`debrief.yaml` beside the PDF. Never ask for more. Maintainers feed debriefs to the registry loop in the
-source repository (`evals/pcp_eval.py improve`, then `ratchet`); an installed copy never edits itself.
+After the call, ask for the four debrief fields -- facts used (claim ids), questions that landed, band
+accuracy per dimension (hit or miss), outcome -- and nothing else.
 
 ## About
 
 Made by Talyx AI, https://talyx.ai. Free to use under the licence in the plug-in's `LICENSE` file.
+
+## Saved setup
+
+Replace this block with the one the assistant gives you after calibration.
+
+```yaml
+pcp_profile_format: 1
+profiles:
+  default:
+    answers: {}
+```

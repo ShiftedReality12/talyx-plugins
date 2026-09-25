@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """talyx_pdf.py -- portable Talyx house-style (masthead-alt) Markdown -> PDF, with a hard page gate.
 
-Self-contained: this file + assets/archivo-variable.woff2 + assets/talyx-logo-navy-base64.txt.
+Self-contained: scripts/talyx_pdf.py + ../assets/archivo-variable.woff2 + ../assets/talyx-logo-navy-base64.txt (skill layout).
 Needs: playwright (+ chromium) and pypdf or pymupdf for the page count.  `python3 talyx_pdf.py --setup` installs them.
 
 Markdown it understands (minimal, generic):
@@ -27,7 +27,7 @@ import sys
 import tempfile
 
 HERE = pathlib.Path(__file__).resolve().parent
-ASSETS = HERE / "assets"
+ASSETS = HERE.parent / "assets"   # skill layout: scripts/ and assets/ are siblings
 ACCENT, INK, HAIR, MIDNIGHT = "#1C3A66", "#000000", "#E8EAED", "#0F2744"
 
 LADDER = [

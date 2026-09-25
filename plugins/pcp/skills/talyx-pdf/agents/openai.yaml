@@ -1,0 +1,4 @@
+interface:
+  display_name: "Talyx PDF"
+  short_description: "Render Markdown to a Talyx house-style PDF with a page limit"
+  default_prompt: "Render this brief as a Talyx PDF, two pages maximum."

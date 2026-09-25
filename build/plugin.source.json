@@ -1,0 +1,61 @@
+{
+  "_comment": "SINGLE SOURCE OF TRUTH for plug-in identity in every host manifest and catalog. Skill content comes from plugins/pcp/skills/pre-call-prep/pcp.yaml. Never edit a generated file: edit these, run `python3 build/generate.py`, then `python3 -m unittest discover -s tests`.",
+  "name": "pcp",
+  "version": "2.1.0",
+  "description": "Pre-call prep: one-time calibration saved per user, public-source OSINT/SOCMINT with a coverage ledger, a six-dimension behavioral read, and ONE 3-page PDF (2-page brief + 1-page meeting script). Every fact cited.",
+  "author": {
+    "name": "Talyx AI",
+    "url": "https://talyx.ai"
+  },
+  "homepage": "https://talyx.ai",
+  "repository": "https://github.com/talyx-ai/talyx-plugins",
+  "license": "LicenseRef-Talyx-Free-Use",
+  "keywords": ["pre-call-prep", "meeting-prep", "osint", "behavioral-read", "pdf", "sales", "advisors"],
+  "category": "productivity",
+  "marketplace": {
+    "name": "talyx",
+    "displayName": "Talyx",
+    "owner": {
+      "name": "Talyx AI",
+      "url": "https://talyx.ai"
+    },
+    "description": "Free plug-ins from Talyx AI for advisors and professional-services firms.",
+    "policy": {
+      "installation": "AVAILABLE",
+      "authentication": "ON_USE"
+    }
+  },
+  "interface": {
+    "displayName": "Talyx Pre-call Prep",
+    "developerName": "Talyx AI",
+    "shortDescription": "One cited 3-page brief and meeting script before any call",
+    "longDescription": "Calibrates once, then researches the person, company or deal you are about to meet from public sources only, writes a coverage ledger, reads six behavioural dimensions from cited evidence, and renders one 3-page PDF: a 2-page brief and a 1-page meeting script. Every fact carries a source.",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "defaultPrompt": [
+      "Prep me for my call with Jane Doe at Acme Capital.",
+      "Recalibrate my pre-call prep settings."
+    ],
+    "websiteURL": "https://talyx.ai",
+    "logo": "./assets/logo-icon-light-512.png",
+    "logoDark": "./assets/logo-icon-dark-512.png"
+  },
+  "skills": [
+    {
+      "name": "pre-call-prep",
+      "displayName": "Pre-call prep",
+      "shortDescription": "Research a counterpart and write a cited 3-page brief + script",
+      "defaultPrompt": "Prep me for my meeting with Jane Doe at Acme Capital."
+    },
+    {
+      "name": "talyx-pdf",
+      "displayName": "Talyx PDF",
+      "shortDescription": "Render Markdown to a Talyx house-style PDF with a page limit",
+      "defaultPrompt": "Render this brief as a Talyx PDF, two pages maximum."
+    }
+  ],
+  "shared": {
+    "_comment": "Files copied byte-for-byte from build/shared/<name>/ into each listed skill. --check fails on any difference.",
+    "talyx-pdf": ["pre-call-prep", "talyx-pdf"]
+  }
+}
