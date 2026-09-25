@@ -2,7 +2,7 @@
 """generate.py -- every host file for the pcp plug-in, from two sources.
 
   build/plugin.source.json                       identity: name, version, author, catalog, interface, skills
-  plugins/pcp/skills/pre-call-prep/pcp.yaml      content: questions, stages, families, rubric, page budget, checks
+  plugins/pcp/skills/pcp/pcp.yaml      content: questions, stages, families, rubric, page budget, checks
 
 Never edit a generated file. Edit a source, run this, run the tests.
 
@@ -14,11 +14,10 @@ Emits (host contracts per the vendors' docs, verified 2026-09-25):
   plugins/pcp/.claude-plugin/plugin.json     Claude (Devin and Grok also read it)
   plugins/pcp/.cursor-plugin/plugin.json     Cursor plug-in format, so commands/ loads
   plugins/pcp/gemini-extension.json          Gemini CLI extension
-  plugins/pcp/commands/pcp.md                /pcp for Claude, Cursor, Grok ($ARGUMENTS)
-  plugins/pcp/commands/pcp.toml              /pcp for Gemini CLI ({{args}})
-  plugins/pcp/skills/pre-call-prep/SKILL.md  the skill, rendered from pcp.yaml
+  plugins/pcp/commands/pcp.toml              /pcp for Gemini CLI ({{args}}); every other host invokes the skill
+  plugins/pcp/skills/pcp/SKILL.md  the skill, rendered from pcp.yaml
   plugins/pcp/skills/*/agents/openai.yaml    Codex / ChatGPT per-skill presentation
-  plugins/pcp/skills/pre-call-prep/scripts|assets   renderer copied byte-for-byte from the talyx-pdf skill
+  plugins/pcp/skills/pcp/scripts|assets   renderer copied byte-for-byte from the talyx-pdf skill
   adapters/chat/{instructions.txt,pcp-knowledge.md} Gemini Gem / M365 Copilot (no scripts there)
   dist/perplexity/<skill>.zip                one upload per skill (not in --check; ignored by git)
 
@@ -49,7 +48,7 @@ PERPLEXITY = {"files": 100, "bytes": 10 * 1024 * 1024}     # upload UI limit (st
 def load():
     src = {k: v for k, v in json.loads(SOURCE.read_text()).items() if not k.startswith("_")}
     plugin = ROOT / "plugins" / src["name"]
-    reg_path = plugin / "skills" / "pre-call-prep" / "pcp.yaml"
+    reg_path = plugin / "skills" / "pcp" / "pcp.yaml"
     raw = reg_path.read_bytes()
     return src, plugin, yaml.safe_load(raw), hashlib.sha256(raw).hexdigest()[:12]
 
@@ -113,10 +112,16 @@ def _context(ctx):
             f"Budget: {ctx['budget_words']} words. Not read: {', '.join(ctx['excluded'])}.")
 
 
-QUESTION_TOOLS = ("the host's structured-question tool when it has one (Claude `AskUserQuestion`, Gemini "
-                  "`ask_user`, Codex `request_user_input`), as many questions per call as the tool allows, "
-                  "first option recommended; a free-text question goes in plain chat. Without such a tool, "
-                  "ask them in one chat message with numbered options")
+QUESTION_TOOLS = """the host's structured-question tool, first option marked recommended:
+  - Claude `AskUserQuestion` and Gemini `ask_user`: up to 4 questions per call, 2-4 options each.
+  - Codex `request_user_input`: up to 3 questions per call and only 2-3 options each; it adds an "Other"
+    free-text choice itself. For a 4-option question show the first 3 and name the 4th in the question
+    text ("or choose Other and type: <label>"). If it answers "unavailable in Default mode", ask in chat
+    instead and tell the user once that Codex shows these as a form in Plan mode, or after
+    `codex features enable default_mode_request_user_input`.
+  - Keep headers to 12 characters; you may shorten option labels, but apply the option `value`.
+  - A free-text question (no options) always goes in plain chat.
+  - No such tool: ask them all in one chat message with numbered options"""
 
 RUNNING_PLUGIN = """## Running this skill
 
@@ -127,8 +132,12 @@ RUNNING_PLUGIN = """## Running this skill
 - **Runtime.** Python 3.10+ with PyYAML. The PDF step also needs Playwright + Chromium + pypdf; if
   `scripts/talyx_pdf.py` reports them missing, ask the user before running
   `python3 scripts/talyx_pdf.py --setup` (it installs packages). Row S4-6 covers a host that cannot render.
-- **Arguments.** `"Full Name, Organisation"` or a CSV path (template: `assets/intake-template.csv`),
-  plus optional `--recalibrate`, `--profile <name>`, `--out <dir>`."""
+- **Arguments.** `$ARGUMENTS` -- `"Full Name, Organisation"` or a CSV path (template:
+  `assets/intake-template.csv`), plus optional `--recalibrate`, `--profile <name>`, `--out <dir>`. If that
+  placeholder was not filled in (hosts other than Claude), read them from the user's message.
+- **One copy.** Use only this skill's folder. Never search the disk for another pcp install: an older copy
+  elsewhere is not this plug-in.
+- **Say first** what was not found (coverage) before what was -- row S4-7."""
 
 STAGE0_PLUGIN = """## Stage 0: Calibrate (once per user)
 
@@ -237,7 +246,8 @@ def render_skill(src, R, sha, mode="plugin"):
         block += ["**Rows:**", "", _rows(s["rows"]), ""]
         stages.append("\n".join(block))
     # frontmatter must be the first bytes of the file or hosts ignore it -- the marker goes after it
-    head = (f"---\nname: {R['skill']['name']}\ndescription: {json.dumps(R['skill']['description'])}\n---\n{R['render_header'].format(sha=sha)}\n\n"
+    head = (f"---\nname: {R['skill']['name']}\ndescription: {json.dumps(R['skill']['description'])}\n"
+            f"argument-hint: {json.dumps(R['skill']['argument_hint'])}\n---\n{R['render_header'].format(sha=sha)}\n\n"
             if mode == "plugin" else f"{R['render_header'].format(sha=sha)}\n\n")
     running = RUNNING_PLUGIN + "\n\n" if mode == "plugin" else ""
     tail = RENDER_PLUGIN.format(pages=pb["total_pages"]) if mode == "plugin" else RENDER_CHAT
@@ -312,40 +322,11 @@ Made by Talyx AI, https://talyx.ai. Free to use under the licence in the plug-in
 """
 
 
-def command_body(args_token):
-    return f"""# /pcp: pre-call prep
-
-Input from the user: `{args_token}`
-
-First load the `pre-call-prep` skill from THIS plug-in with your skill tool -- loading it tells you the
-skill's folder, and every `scripts/` path below is relative to that folder. Never search the disk for
-another copy: an older install elsewhere is not this plug-in. Then follow the skill exactly, in stage order.
-
-0. **Calibrate** -- run the skill's `scripts/profile.py inspect` (pass `--recalibrate` / `--profile <name>` if
-   given). Ask exactly the questions it lists (all of them with `--recalibrate`, none when it reports
-   complete) and save them with `scripts/profile.py apply`. Do not start step 1 until the profile is complete.
-1. **Intake** -- resolve the input (CSV path, `"Name, Org"`, or ask). Confirm the objective. Never start
-   without a full name and an organisation.
-2. **Collect** -- run the enabled source families; write `claims.jsonl` and the coverage ledger. Drop excluded
-   claims before writing.
-3. **Read** -- score six dimensions from claim ids only; set the evidence tier.
-4. **Brief + script** -- write `brief.md` (B1-B9) and `script.md` (P1-P7) in the output folder; run
-   `scripts/eval.py checks` and `scripts/eval.py duf`; rewrite until clean; render with
-   `scripts/talyx_pdf.py --max-pages 3`. Deliver the PDF path and the footer line. Delete `brief.md`/`script.md`
-   after a clean render.
-5. **Debrief** -- offer the four-field debrief template; never ask for more.
-
-Say what was NOT found (coverage) before what was.
-"""
-
-
-def render_command_md(R, sha):
-    return (f"---\ndescription: {json.dumps(R['skill']['command_description'])}\nargument-hint: {json.dumps(R['skill']['argument_hint'])}\n---\n"
-            f"{R['render_header'].format(sha=sha)}\n\n{command_body('$ARGUMENTS')}")
-
-
 def render_command_toml(R, sha):
-    body = command_body("{{args}}")
+    """Gemini CLI only: a /pcp slash command that activates the skill. Every other host invokes the skill itself."""
+    body = (f"Input from the user: {{{{args}}}}\n\n"
+            f"Activate the `{R['skill']['name']}` skill from THIS extension and follow it exactly, in stage order, "
+            f"with that input as its arguments. Use only this extension's copy of the skill.\n")
     assert '"""' not in body and "\\" not in body
     return (f"# {R['render_header'].format(sha=sha)}\n"
             f"description = {json.dumps(R['skill']['command_description'])}\n"
@@ -448,9 +429,8 @@ def render(src, plugin, R, sha):
         plugin / ".claude-plugin" / "plugin.json": dump(meta(src)),
         plugin / ".cursor-plugin" / "plugin.json": dump(meta(src)),
         plugin / "gemini-extension.json": dump({k: src[k] for k in ("name", "version", "description")}),
-        plugin / "commands" / "pcp.md": render_command_md(R, sha),
         plugin / "commands" / "pcp.toml": render_command_toml(R, sha),
-        plugin / "skills" / "pre-call-prep" / "SKILL.md": render_skill(src, R, sha),
+        plugin / "skills" / "pcp" / "SKILL.md": render_skill(src, R, sha),
     }
     for skill in src["skills"]:
         files[plugin / "skills" / skill["name"] / "agents" / "openai.yaml"] = openai_skill_yaml(skill)

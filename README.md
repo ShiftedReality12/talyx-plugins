@@ -21,12 +21,14 @@ One repository serves every host; each host reads its own catalog or manifest.
 | Cursor | Team marketplace from this repository, or copy `plugins/pcp` to `~/.cursor/plugins/local/pcp` | not yet verified |
 | Gemini CLI | clone, then `gemini extensions install ./plugins/pcp` | not yet verified |
 | Devin | `devin plugins install talyx-ai/talyx-plugins#plugins/pcp` | not yet verified |
-| Perplexity | upload `dist/perplexity/pre-call-prep.zip` (built by `build/generate.py`) | not yet verified |
+| Perplexity | upload `dist/perplexity/pcp.zip` (built by `build/generate.py`) | not yet verified |
 | Gemini Apps (Gem), Microsoft 365 Copilot | chat adaptation without scripts or PDF: see [adapters/chat](adapters/chat) | not yet verified |
 
 "Verified" means installed through that host's own CLI and exercised. Every other row is generated to
 the host's published contract and still needs a run in that host. See [plugins/pcp/README.md](plugins/pcp/README.md)
 for use, the saved setup and per-host limits.
+
+Run it: `/pcp:pcp` in Claude, `/pcp` in Cursor, Grok and Gemini, `$pcp` in Codex, or just ask for pre-call prep.
 
 ## Repository layout
 
@@ -37,8 +39,8 @@ for use, the saved setup and per-host limits.
 plugins/pcp/                      the installable plug-in -- the only folder a host installs
   plugin.json                     Agent Plugins 1.0.0 manifest (+ OpenAI interface)
   .claude-plugin/ .cursor-plugin/ gemini-extension.json   host manifests
-  commands/pcp.md, pcp.toml       /pcp (Markdown for Claude/Cursor/Grok, TOML for Gemini)
-  skills/pre-call-prep/           self-contained skill: SKILL.md, pcp.yaml, scripts/, assets/
+  commands/pcp.toml               /pcp for Gemini CLI (every other host invokes the skill directly)
+  skills/pcp/                     the entry point: SKILL.md, pcp.yaml, scripts/, assets/
   skills/talyx-pdf/               self-contained Markdown -> PDF skill
 adapters/chat/                    Gemini Gem + Microsoft 365 Copilot: instructions + knowledge file
 build/                            plugin.source.json + generate.py (+ the Agent Plugins schema the tests use)
@@ -51,7 +53,7 @@ tests/                            packaging, portability and saved-setup tests
 Two sources; everything else is generated.
 
 - `build/plugin.source.json` -- name, version, author, catalogs, the OpenAI interface, the skill list.
-- `plugins/pcp/skills/pre-call-prep/pcp.yaml` -- questions, stages, source families, rubric, page budget, checks.
+- `plugins/pcp/skills/pcp/pcp.yaml` -- questions, stages, source families, rubric, page budget, checks.
 
 ```text
 python3 build/generate.py                   # write every host file, check skills, build dist/ ZIPs

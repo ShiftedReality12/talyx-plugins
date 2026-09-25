@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:a3435083da1d) by build/generate.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:ed8f7487e097) by build/generate.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v2.1.0)
 
@@ -12,7 +12,16 @@ The deliverable is one 3-page PDF. Nothing else is emitted.
 This host runs no scripts. The saved setup is the **Saved setup** block at the end of this knowledge file.
 
 - Every question has a saved answer there -- use them silently. Ask nothing.
-- Otherwise ask ONLY the unanswered questions, using the host's structured-question tool when it has one (Claude `AskUserQuestion`, Gemini `ask_user`, Codex `request_user_input`), as many questions per call as the tool allows, first option recommended; a free-text question goes in plain chat. Without such a tool, ask them in one chat message with numbered options. A skipped question takes its first
+- Otherwise ask ONLY the unanswered questions, using the host's structured-question tool, first option marked recommended:
+  - Claude `AskUserQuestion` and Gemini `ask_user`: up to 4 questions per call, 2-4 options each.
+  - Codex `request_user_input`: up to 3 questions per call and only 2-3 options each; it adds an "Other"
+    free-text choice itself. For a 4-option question show the first 3 and name the 4th in the question
+    text ("or choose Other and type: <label>"). If it answers "unavailable in Default mode", ask in chat
+    instead and tell the user once that Codex shows these as a form in Plan mode, or after
+    `codex features enable default_mode_request_user_input`.
+  - Keep headers to 12 characters; you may shorten option labels, but apply the option `value`.
+  - A free-text question (no options) always goes in plain chat.
+  - No such tool: ask them all in one chat message with numbered options. A skipped question takes its first
   (Recommended) option, marked defaulted. Then output the complete updated **Saved setup** block in
   the same YAML shape -- each answer as `Q1: {value: <option value or your text>, defaulted: false}` under
   `profiles: default: answers:` -- and tell the user to replace the block in this knowledge file with it, so the

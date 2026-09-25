@@ -15,7 +15,7 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL = ROOT / "plugins/pcp/skills/pre-call-prep"
+SKILL = ROOT / "plugins/pcp/skills/pcp"
 ALL = ["Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "Q8"]
 ANSWERS = {"Q1": "Founder / principal (Recommended)", "Q2": "wealth", "Q3": "person", "Q4": "intro",
            "Q5": "fast", "Q6": "professional", "Q7": "us", "Q8": "We prepare advisors; a win is a second meeting."}

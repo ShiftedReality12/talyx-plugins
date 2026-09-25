@@ -17,7 +17,7 @@ render_header: "<!-- GENERATED from pcp.yaml (sha256:{sha}) by build/generate.py
 
 # The skill's own metadata, as hosts show it. Rendered into SKILL.md frontmatter and commands/pcp.md (+ .toml).
 skill:
-  name: pre-call-prep
+  name: pcp
   description: >-
     Prepare for an upcoming meeting with a named person, company or deal. One-time calibration saved per
     user, public-source OSINT/SOCMINT collection with a coverage ledger, a six-dimension behavioral read,
