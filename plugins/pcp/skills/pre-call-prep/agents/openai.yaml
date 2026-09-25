@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pre-call prep"
+  short_description: "Research a counterpart and write a cited 3-page brief + script"
+  default_prompt: "Prep me for my meeting with Jane Doe at Acme Capital."

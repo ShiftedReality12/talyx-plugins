@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """talyx_pdf.py -- portable Talyx house-style (masthead-alt) Markdown -> PDF, with a hard page gate.
 
-Self-contained: this file + assets/archivo-variable.woff2 + assets/talyx-logo-navy-base64.txt.
+Self-contained: scripts/talyx_pdf.py + ../assets/archivo-variable.woff2 + ../assets/talyx-logo-navy-base64.txt (skill layout).
 Needs: playwright (+ chromium) and pypdf or pymupdf for the page count.  `python3 talyx_pdf.py --setup` installs them.
 
 Markdown it understands (minimal, generic):
@@ -27,7 +27,7 @@ import sys
 import tempfile
 
 HERE = pathlib.Path(__file__).resolve().parent
-ASSETS = HERE / "assets"
+ASSETS = HERE.parent / "assets"   # skill layout: scripts/ and assets/ are siblings
 ACCENT, INK, HAIR, MIDNIGHT = "#1C3A66", "#000000", "#E8EAED", "#0F2744"
 
 LADDER = [
@@ -82,7 +82,7 @@ def body_html(txt):
             if para or table: flush()
             bullets.append(re.sub(r"^\s*[-*]\s+", "", s)); continue
         if re.match(r"^###\s+", s):
-            flush(); out.append(f'<div class="sub">{inl(re.sub(r"^###\s+", "", s))}</div>'); continue
+            flush(); out.append('<div class="sub">' + inl(re.sub(r"^###\s+", "", s)) + '</div>'); continue
         if bullets or table: flush()
         para.append(s.strip())
     flush()
@@ -220,7 +220,8 @@ def run(a):
             print(json.dumps(dict(ok=True, pages=pages, rung=rung["name"], path=str(out), max_pages=a.max_pages)))
             return 0
     longest = word_report(brief_md) + (word_report(pathlib.Path(a.script).read_text()) if a.script else [])
-    print(json.dumps(dict(ok=False, pages=last[1], rung=last[0], max_pages=a.max_pages, path=str(out),
+    out.unlink(missing_ok=True)   # no deliverable exists: never leave an over-length PDF to be picked up
+    print(json.dumps(dict(ok=False, pages=last[1], rung=last[0], max_pages=a.max_pages, path=None,
                           reason="overflow at tightest rung -- cut these sections", longest_sections=longest)))
     return 2
 

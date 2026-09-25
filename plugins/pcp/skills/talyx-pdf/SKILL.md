@@ -9,15 +9,17 @@ description: >
 
 # talyx-pdf
 
-One command, one PDF, one page gate.
+One command, one PDF, one page gate. `scripts/` and `assets/` are relative to this skill's folder (the
+folder containing this SKILL.md); resolve it to an absolute path before running.
 
 ```
-python3 format/talyx_pdf.py --input <doc.md> --out <doc.pdf> [--title "..."] [--subtitle "..."] \
+python3 scripts/talyx_pdf.py --input <doc.md> --out <doc.pdf> [--title "..."] [--subtitle "..."] \
     [--footer "..."] [--max-pages N]
-python3 format/talyx_pdf.py --brief <brief.md> --script <script.md> --out <x.pdf> --max-pages 3
+python3 scripts/talyx_pdf.py --brief <brief.md> --script <script.md> --out <x.pdf> --max-pages 3
 ```
 
-First run on a machine: `python3 format/talyx_pdf.py --setup` (installs Playwright + Chromium + pypdf).
+First run on a machine needs Playwright + Chromium + pypdf. If the command reports them missing, ask the
+user before running `python3 scripts/talyx_pdf.py --setup`, which installs them.
 
 ## Markdown contract
 

@@ -1,12 +1,9 @@
----
-description: "Prepare for a meeting. Calibrates once per user, researches from public sources, reads behaviour, and writes ONE 3-page PDF (2-page brief + 1-page script)."
-argument-hint: "[intake.csv | \"Full Name, Organisation\"] [--recalibrate] [--profile <name>] [--out <dir>]"
----
-<!-- GENERATED from pcp.yaml (sha256:811cbbfcd5b0) by build/generate.py -- edit pcp.yaml, never this file -->
-
+# <!-- GENERATED from pcp.yaml (sha256:811cbbfcd5b0) by build/generate.py -- edit pcp.yaml, never this file -->
+description = "Prepare for a meeting. Calibrates once per user, researches from public sources, reads behaviour, and writes ONE 3-page PDF (2-page brief + 1-page script)."
+prompt = """
 # /pcp: pre-call prep
 
-Input from the user: `$ARGUMENTS`
+Input from the user: `{{args}}`
 
 First load the `pre-call-prep` skill from THIS plug-in with your skill tool -- loading it tells you the
 skill's folder, and every `scripts/` path below is relative to that folder. Never search the disk for
@@ -27,3 +24,4 @@ another copy: an older install elsewhere is not this plug-in. Then follow the sk
 5. **Debrief** -- offer the four-field debrief template; never ask for more.
 
 Say what was NOT found (coverage) before what was.
+"""

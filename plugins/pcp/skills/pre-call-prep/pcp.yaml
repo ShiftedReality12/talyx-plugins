@@ -1,8 +1,8 @@
-# pcp.yaml — THE registry for the pcp plug-in (v2.0.0).
+# pcp.yaml — THE registry for the pcp plug-in. Version lives in build/plugin.source.json.
 #
 # Every parameter, instruction, question, source family, rubric band and page budget lives here and
-# nowhere else. skills/pre-call-prep/SKILL.md and commands/pcp.md are GENERATED from this file by
-# render_skill.py; eval.py `concordance` fails if they drift. A behaviour that is not a row here does
+# nowhere else. SKILL.md, commands/pcp.md, commands/pcp.toml and the chat adapters are GENERATED from
+# this file by build/generate.py; `build/generate.py --check` fails if they drift. A behaviour that is not a row here does
 # not exist. Every `always` carries a `test:` (how it can be seen to fail). Every row carries `basis:`.
 #
 # Three contracts this file enforces, in order (dependency order, not discovery order):
@@ -13,14 +13,11 @@
 #   3. INSTRUCTION CONTRACT -- each instruction is a row {id, text, test, basis}. No row without a
 #                            test reaches SKILL.md. Rows change only via a ratchet-passing edit here.
 
-registry_version: 2.0.0
-generated_files:
-  - skills/pre-call-prep/SKILL.md
-  - commands/pcp.md
-render_header: "<!-- GENERATED from pcp.yaml (sha256:{sha}) by render_skill.py -- edit pcp.yaml, never this file -->"
+render_header: "<!-- GENERATED from pcp.yaml (sha256:{sha}) by build/generate.py -- edit pcp.yaml, never this file -->"
 
 # ------------------------------------------------------------------------------------------------
-# 0. CALIBRATION -- asked ONCE (two AskUserQuestion calls of 4), stored at ~/.pcp/profile.yaml.
+# 0. CALIBRATION -- asked ONCE per user, saved by scripts/profile.py at profile_path (user-global).
+#    profile.py reads these questions as its schema: add a question here and only that one is asked.
 #    Every question writes >= 1 row (`sets`). A question that sets nothing is a defect.
 # ------------------------------------------------------------------------------------------------
 calibration:
@@ -32,68 +29,68 @@ calibration:
       header: Your role
       question: Who is making the call?
       options:
-        - {label: Founder / principal (Recommended), value: principal, description: You own the relationship and the offer.}
-        - {label: Sales / BD, value: sales, description: You open and advance deals for your firm.}
-        - {label: Advisor / relationship manager, value: advisor, description: Wealth, legal, accounting or other professional advisor.}
-        - {label: Investor / allocator, value: investor, description: You deploy capital or diligence managers.}
+        - {label: "Founder / principal (Recommended)", value: principal, description: "You own the relationship and the offer."}
+        - {label: "Sales / BD", value: sales, description: "You open and advance deals for your firm."}
+        - {label: "Advisor / relationship manager", value: advisor, description: "Wealth, legal, accounting or other professional advisor."}
+        - {label: "Investor / allocator", value: investor, description: "You deploy capital or diligence managers."}
       sets: {caller.role: value, caller.authority_level: "principal->high, sales->medium, advisor->medium, investor->high"}
       consumed_by: [script.influence_depth, brief.value_next_step]
     - id: Q2
       header: Domain
       question: Where do your targets mostly live?
       options:
-        - {label: General professional (Recommended), value: general, description: No domain assumptions; broadest source set.}
-        - {label: Wealth management, value: wealth, description: Advisors, RIAs, family offices; adds BrokerCheck/IAPD registers.}
-        - {label: Private equity / VC, value: pe, description: GPs, LPs, portfolio companies; adds fund/portfolio news families.}
-        - {label: Enterprise / SaaS, value: saas, description: Buyers and champions in technology companies.}
+        - {label: "General professional (Recommended)", value: general, description: "No domain assumptions; broadest source set."}
+        - {label: "Wealth management", value: wealth, description: "Advisors, RIAs, family offices; adds BrokerCheck/IAPD registers."}
+        - {label: "Private equity / VC", value: pe, description: "GPs, LPs, portfolio companies; adds fund/portfolio news families."}
+        - {label: "Enterprise / SaaS", value: saas, description: "Buyers and champions in technology companies."}
       sets: {domain: value}
       consumed_by: [families.registers, brief.vocab, guardrails.forbidden_claims]
     - id: Q3
       header: Target kind
       question: Who do you usually prep for?
       options:
-        - {label: A person (Recommended), value: person, description: One named counterpart.}
-        - {label: A company or team, value: company, description: An account; people come second.}
-        - {label: A deal or transaction, value: deal, description: A live process with several parties.}
-        - {label: Mixed, value: mixed, description: Decide per run from the intake.}
+        - {label: "A person (Recommended)", value: person, description: "One named counterpart."}
+        - {label: "A company or team", value: company, description: "An account; people come second."}
+        - {label: "A deal or transaction", value: deal, description: "A live process with several parties."}
+        - {label: "Mixed", value: mixed, description: "Decide per run from the intake."}
       sets: {target.kind_default: value}
       consumed_by: [families.enabled_by_kind]
     - id: Q4
       header: Meeting
       question: What is the typical call?
       options:
-        - {label: First intro (cold or warm) (Recommended), value: intro, description: Earn the second meeting.}
-        - {label: Discovery / qualification, value: discovery, description: Learn enough to decide fit.}
-        - {label: Pitch / close, value: close, description: Move to a decision.}
-        - {label: Relationship / renewal, value: relationship, description: Deepen an existing relationship.}
+        - {label: "First intro (cold or warm) (Recommended)", value: intro, description: "Earn the second meeting."}
+        - {label: "Discovery / qualification", value: discovery, description: "Learn enough to decide fit."}
+        - {label: "Pitch / close", value: close, description: "Move to a decision."}
+        - {label: "Relationship / renewal", value: relationship, description: "Deepen an existing relationship."}
       sets: {meeting.format_default: value}
       consumed_by: [script.beats, brief.discovery_questions.mix]
     - id: Q5
       header: Depth
       question: Research depth versus speed?
       options:
-        - {label: Standard -- 12 families, about 8 minutes (Recommended), value: standard, description: Full public footprint, counter-evidence pass on.}
-        - {label: Fast -- 6 families, about 3 minutes, value: fast, description: Identity, org, voice, news, registers, social. No counter-evidence.}
-        - {label: Deep -- all families + competing hypotheses, value: deep, description: Adds ACH mini and second-order network pass.}
+        - {label: "Standard -- 12 families, about 8 minutes (Recommended)", value: standard, description: "Full public footprint, counter-evidence pass on."}
+        - {label: "Fast -- 6 families, about 3 minutes", value: fast, description: "Identity, org, voice, news, registers, social. No counter-evidence."}
+        - {label: "Deep -- all families + competing hypotheses", value: deep, description: "Adds ACH mini and second-order network pass."}
       sets: {research.depth: value}
       consumed_by: [families.enabled_by_depth, research.full_threshold, rubric.ach]
     - id: Q6
       header: SOCMINT
       question: Public social footprint -- how far?
       options:
-        - {label: Professional only (Recommended), value: professional, description: Public bios, talks, podcasts, LinkedIn-public posts.}
-        - {label: Plus public X / Bluesky / Substack, value: social, description: Public posts on open networks; no logins, no scraping.}
-        - {label: None, value: none, description: No social family at all.}
+        - {label: "Professional only (Recommended)", value: professional, description: "Public bios, talks, podcasts, LinkedIn-public posts."}
+        - {label: "Plus public X / Bluesky / Substack", value: social, description: "Public posts on open networks; no logins, no scraping."}
+        - {label: "None", value: none, description: "No social family at all."}
       sets: {socmint.scope: value}
       consumed_by: [families.socmint]
     - id: Q7
       header: Compliance
       question: Jurisdiction and compliance posture?
       options:
-        - {label: US (Recommended), value: us, description: Public professional record; standard exclusions.}
-        - {label: UK / EU (GDPR strict), value: eu, description: Adds minimisation -- claims.jsonl deleted after render.}
-        - {label: Regulated sales (FINRA / FCA style), value: regulated, description: Adds performance-claim and promissory-language guardrails.}
-        - {label: APAC, value: apac, description: Standard exclusions; formal-register openers.}
+        - {label: "US (Recommended)", value: us, description: "Public professional record; standard exclusions."}
+        - {label: "UK / EU (GDPR strict)", value: eu, description: "Adds minimisation -- claims.jsonl deleted after render."}
+        - {label: "Regulated sales (FINRA / FCA style)", value: regulated, description: "Adds performance-claim and promissory-language guardrails."}
+        - {label: "APAC", value: apac, description: "Standard exclusions; formal-register openers."}
       sets: {jurisdiction: value}
       consumed_by: [exclusions, guardrails.never_say, retention]
     - id: Q8
@@ -105,8 +102,8 @@ calibration:
       consumed_by: [checks.swap_test, eval.duf_binding]
   rules:
     - id: CAL-1
-      text: Ask all eight questions only when ~/.pcp/profile.yaml is missing, invalid, or --recalibrate is passed. Otherwise read it silently.
-      test: Delete the profile and run -- the run must ask. Run again -- it must not.
+      text: Ask only the questions `scripts/profile.py inspect` lists as missing -- all of them on first use or with --recalibrate, none once the profile is complete. Otherwise read it silently.
+      test: Point PCP_PROFILE at an empty path -- inspect lists all eight. Apply them -- inspect lists none. Add a Q9 here -- inspect lists only Q9.
       basis: design choice, 8 rapid one-time questions
     - id: CAL-2
       text: A skipped answer takes the first (Recommended) option and is stored with defaulted:true; the PDF footer shows the profile line.
@@ -116,6 +113,10 @@ calibration:
       text: The improve loop may PROPOSE a profile change (one line, with the debrief evidence) but never applies one without a yes.
       test: Three debriefs with facts_used > 80% must produce a proposal, and the profile must be unchanged until answered.
       basis: design choice, no silent adaptation
+    - id: CAL-4
+      text: The profile is written only by `scripts/profile.py apply`. An unreadable profile is never overwritten without the user's yes, and then the old file is kept as a backup.
+      test: Corrupt the profile -- inspect reports invalid, and apply exits non-zero with the file bytes unchanged.
+      basis: validated writer, one source for the saved setup
 
 # ------------------------------------------------------------------------------------------------
 # 1. STAGES -- input contract + context contract + instruction rows, per stage, dependency-ordered.
@@ -125,7 +126,7 @@ stages:
     name: Intake
     inputs:
       - {name: arguments, type: "path.csv | 'Full Name, Organisation' | empty", source: $ARGUMENTS, required: true, fallback: ask the required intake fields in one message}
-      - {name: profile, type: yaml, source: ~/.pcp/profile.yaml, required: true, fallback: run calibration}
+      - {name: profile, type: yaml, source: scripts/profile.py inspect, required: true, fallback: run calibration}
       - {name: meeting.objective, type: text, source: intake row or one question, required: true, fallback: "ask: What do you want to walk out of this meeting with?"}
       - {name: target.kind, type: "person|company|deal", source: intake or profile.target.kind_default, required: true, fallback: person}
     context:
@@ -155,7 +156,7 @@ stages:
       - {id: S2-2, text: "Every claim carries url, retrieved_at, tag DIRECT|SEARCH, and confidence C1 (primary, dated) | C2 (reputable secondary) | C3 (single weak source) | C4 (inferred).", test: "A claim missing any field is dropped by eval.py claims and counted in coverage.dropped.", basis: a confidence ladder}
       - {id: S2-3, text: "A claim that hits an exclusion is dropped BEFORE the writer sees it and counted in coverage.excluded; the brief's guardrails say a topic was left out, never which fact.", test: "Seed a claim tagged exclusion health -- it must not appear in any output file.", basis: original plugin v1 + every rule carries a falsification test}
       - {id: S2-4, text: "Coverage is a required output: families_attempted/families_total and hits per family. A run without coverage is not a run.", test: "Disable WebFetch -- coverage must show 0/N attempted and status LIMITED, never FULL.", basis: never truncate silently}
-      - {id: S2-5, text: "Status FULL requires >= 1 C1/C2 claim in >= research.full_threshold[depth] families; else LIMITED, stamped on page 1.", test: "Remove all C1/C2 claims from one family below threshold -- status flips to LIMITED.", basis: original plugin FULL/LIMITED, made numeric}
+      - {id: S2-5, text: "Status FULL requires >= 1 C1/C2 claim in >= research.full_threshold[depth] families; else LIMITED, stamped on page 1.", test: "Remove all C1/C2 claims from one family below threshold -- status flips to LIMITED.", basis: "original plugin FULL/LIMITED, made numeric"}
       - {id: S2-6, text: "Run the counter-evidence family last: search for what would contradict the strategic read.", test: "With depth standard or deep, coverage must show family F12 attempted.", basis: analysis of competing hypotheses}
 
   - id: S3
@@ -181,7 +182,7 @@ stages:
     inputs:
       - {name: claims.jsonl, type: jsonl, source: S2, required: true, fallback: none}
       - {name: read.json, type: json, source: S3, required: true, fallback: none}
-      - {name: profile, type: yaml, source: ~/.pcp/profile.yaml, required: true, fallback: none}
+      - {name: profile, type: yaml, source: scripts/profile.py inspect, required: true, fallback: none}
       - {name: page_budget, type: rows, source: pcp.yaml brief + script, required: true, fallback: none}
     context:
       order: ["brief sections with word budgets", "script beats", "claims (C1/C2 first)", "read.json", "profile.caller", "guardrails"]
@@ -190,27 +191,28 @@ stages:
     outputs:
       - {name: brief.md, note: "pages 1-2"}
       - {name: script.md, note: "page 3"}
-      - {name: "<out>/<date>-<slug>.pdf", note: "ONE 3-page PDF via format/talyx_pdf.py --max-pages 3"}
+      - {name: "<out>/<date>-<slug>.pdf", note: "ONE 3-page PDF via scripts/talyx_pdf.py --max-pages 3"}
     rows:
       - {id: S4-1, text: "Every fact in the brief cites a claim id [n]; the Sources block lists only cited claims. A fact with no citation is a defect, not a style choice.", test: "eval.py duf reports unbound > 0 -- the run must rewrite before render.", basis: DUF metric definition}
-      - {id: S4-2, text: "Every sentence passes the swap test against caller.offer_one_line and the target: if another target's name would leave it true, delete it.", test: "A brief with a sentence containing no claim id and no target-specific noun fails checks.swap.", basis: original plugin check 1, tightened to sentence}
-      - {id: S4-3, text: "Render ONLY through format/talyx_pdf.py with --max-pages 3; never emit Markdown or HTML as the deliverable.", test: "The output directory contains exactly one .pdf and no .md/.html after a run.", basis: design choice, PDF only}
+      - {id: S4-2, text: "Every sentence passes the swap test against caller.offer_one_line and the target: if another target's name would leave it true, delete it.", test: "A brief with a sentence containing no claim id and no target-specific noun fails checks.swap.", basis: "original plugin check 1, tightened to sentence"}
+      - {id: S4-3, text: "Render ONLY through scripts/talyx_pdf.py with --max-pages 3; never emit Markdown or HTML as the deliverable (the only exception is S4-6, labelled DRAFT -- NOT RENDERED).", test: "The output directory contains exactly one .pdf and no .md/.html after a run.", basis: "design choice, PDF only"}
       - {id: S4-4, text: "If the tightest density rung still overflows 3 pages, the run FAILS with the section word counts; it never truncates or spills.", test: "Feed a 900-word section -- the engine must exit non-zero naming the section.", basis: never truncate silently}
       - {id: S4-5, text: "The PDF footer carries: profile line, research status, duf_pp, coverage fraction.", test: "Extract page-3 footer text -- all four fields present.", basis: coverage as a required output}
+      - {id: S4-6, text: "If the renderer cannot run on this host (no Python, or the user declines `scripts/talyx_pdf.py --setup`), say so before delivering and hand over brief.md + script.md headed DRAFT -- NOT RENDERED; never call them the PDF and never delete them.", test: "Run with Playwright absent and decline setup -- the reply names both drafts, says not rendered, and claims no PDF.", basis: refusal is not delivery; never present a substitute as the deliverable}
 
   - id: S5
     name: Debrief + ratchet
     inputs:
       - {name: debrief.yaml, type: yaml, source: "user, after the call (60 seconds, 4 fields)", required: false, fallback: skip loop}
-      - {name: ratchet.json, type: json, source: evals/ratchet.json, required: true, fallback: initialise empty}
+      - {name: ratchet.json, type: json, source: evals/ratchet.json in the source repository, required: true, fallback: initialise empty}
     context:
       order: ["ratchet floors", "debrief rows", "the pcp.yaml rows the debrief touches"]
       budget_words: 800
       excluded: ["everything else"]
     rows:
-      - {id: S5-1, text: "A change to pcp.yaml lands only if eval.py ratchet passes: every frozen target's duf_pp >= its floor AND all checks pass. The floor is the best ever seen and only rises.", test: "Lower a family weight so a target's duf_pp drops -- ratchet must exit non-zero and name the target.", basis: design choice, floor = best ever}
+      - {id: S5-1, text: "A change to pcp.yaml lands only if evals/pcp_eval.py ratchet (source repository) passes: every frozen target's duf_pp >= its floor AND all checks pass. The floor is the best ever seen and only rises.", test: "Lower a family weight so a target's duf_pp drops -- ratchet must exit non-zero and name the target.", basis: "design choice, floor = best ever"}
       - {id: S5-2, text: "Debrief fields: facts_used[claim ids], questions_landed[ids], band_accuracy{dim: hit|miss}, outcome. Nothing else is asked.", test: "The debrief template has exactly four fields.", basis: path of least resistance}
-      - {id: S5-3, text: "improve proposes row diffs (family weights, question templates, band phrases) as a patch with basis: debrief_id; it never edits SKILL.md and never lands a diff itself.", test: "Run improve -- the only file written is evals/proposals/<date>.patch.", basis: generated files are never hand-edited}
+      - {id: S5-3, text: "improve proposes row diffs (family weights, question templates, band phrases) as a patch with basis: debrief_id; it never edits SKILL.md and never lands a diff itself.", test: "Run scripts/eval.py improve on a debrief -- the only file written is pcp-proposals-<date>.patch beside it.", basis: generated files are never hand-edited}
 
 # ------------------------------------------------------------------------------------------------
 # 2. SOURCE FAMILIES -- the collection plan. enabled_by_* are filters over profile answers.
@@ -342,16 +344,16 @@ guardrails:
 # 5. CHECKS -- every brief passes all before render. Each check names the command that runs it.
 # ------------------------------------------------------------------------------------------------
 checks:
-  - {id: C1, name: swap,         cmd: "eval.py checks --swap",      passes_when: "no sentence in B1-B7 lacks both a [n] and a target-specific noun"}
-  - {id: C2, name: bound,        cmd: "eval.py duf",                passes_when: "unbound == 0 and every [n] in the body exists in B9 with url+tag+date"}
-  - {id: C3, name: quotes,       cmd: "eval.py checks --quotes",    passes_when: "every quoted string in B2 has a [n]"}
-  - {id: C4, name: custom_q,     cmd: "eval.py checks --custom-q",  passes_when: ">= 2 questions in B5 carry a [n]"}
-  - {id: C5, name: sections,     cmd: "eval.py checks --sections",  passes_when: "B1-B9 and P1-P7 present in order (P5 may be omitted per S3-2)"}
-  - {id: C6, name: budgets,      cmd: "eval.py checks --budgets",   passes_when: "no section exceeds its words by > 15%"}
-  - {id: C7, name: never_say,    cmd: "eval.py checks --never-say", passes_when: "no never_say phrase appears outside P7/B8"}
-  - {id: C8, name: outcome,      cmd: "eval.py checks --outcome",   passes_when: "B6 Bridge contains no method verbs from checks.method_verbs"}
-  - {id: C9, name: exclusions,   cmd: "eval.py checks --exclusions",passes_when: "no excluded topic keyword appears in the body"}
-  - {id: C10, name: pages,       cmd: "format/talyx_pdf.py --max-pages 3", passes_when: "rendered page count == 3"}
+  - {id: C1, name: swap,         cmd: "scripts/eval.py checks --swap",      passes_when: "no sentence in B1-B7 lacks both a [n] and a target-specific noun"}
+  - {id: C2, name: bound,        cmd: "scripts/eval.py duf",                passes_when: "unbound == 0 and every [n] in the body exists in B9 with url+tag+date"}
+  - {id: C3, name: quotes,       cmd: "scripts/eval.py checks --quotes",    passes_when: "every quoted string in B2 has a [n]"}
+  - {id: C4, name: custom_q,     cmd: "scripts/eval.py checks --custom-q",  passes_when: ">= 2 questions in B5 carry a [n]"}
+  - {id: C5, name: sections,     cmd: "scripts/eval.py checks --sections",  passes_when: "B1-B9 and P1-P7 present in order (P5 may be omitted per S3-2)"}
+  - {id: C6, name: budgets,      cmd: "scripts/eval.py checks --budgets",   passes_when: "no section exceeds its words by > 15%"}
+  - {id: C7, name: never_say,    cmd: "scripts/eval.py checks --never-say", passes_when: "no never_say phrase appears outside P7/B8"}
+  - {id: C8, name: outcome,      cmd: "scripts/eval.py checks --outcome",   passes_when: "B6 Bridge contains no method verbs from checks.method_verbs"}
+  - {id: C9, name: exclusions,   cmd: "scripts/eval.py checks --exclusions",passes_when: "no excluded topic keyword appears in the body"}
+  - {id: C10, name: pages,       cmd: "scripts/talyx_pdf.py --max-pages 3", passes_when: "rendered page count == 3"}
   - {method_verbs: ["we scrape", "we ingest", "our pipeline", "our model", "we crawl", "our algorithm"]}
 
 # ------------------------------------------------------------------------------------------------
