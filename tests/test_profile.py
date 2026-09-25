@@ -15,7 +15,7 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL = ROOT / "plugins/pcp/skills/pre-call-prep"
+SKILL = ROOT / "plugins/pcp/skills/pcp"
 ALL = ["Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "Q8"]
 ANSWERS = {"Q1": "Founder / principal (Recommended)", "Q2": "wealth", "Q3": "person", "Q4": "intro",
            "Q5": "fast", "Q6": "professional", "Q7": "us", "Q8": "We prepare advisors; a win is a second meeting."}
@@ -193,6 +193,16 @@ class ProfileTests(unittest.TestCase):
         self.assertEqual(len(patches), 1)
         self.assertIn("rubric dominance", patches[0].read_text())
         self.assertEqual({p for p in SKILL.rglob("*") if "__pycache__" not in p.parts}, before)
+
+    def test_profile_line_comes_from_the_registry(self):
+        """The footer's profile line is read from pcp.yaml calibration.profile_line."""
+        self.skill = self.tmp / "skill"
+        shutil.copytree(SKILL, self.skill)
+        self.apply(ANSWERS)
+        reg = yaml.safe_load((self.skill / "pcp.yaml").read_text())
+        reg["calibration"]["profile_line"] = ["jurisdiction", "caller.role"]
+        (self.skill / "pcp.yaml").write_text(yaml.safe_dump(reg, sort_keys=False))
+        self.assertEqual(self.run_profile("inspect")[1]["profile_line"], "us · principal")
 
     def test_profile_file_is_private(self):
         self.apply(ANSWERS)

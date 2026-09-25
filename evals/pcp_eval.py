@@ -19,7 +19,7 @@ import yaml
 
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parent
-SKILL = REPO / "plugins/pcp/skills/pre-call-prep"
+SKILL = REPO / "plugins/pcp/skills/pcp"
 _spec = importlib.util.spec_from_file_location("pcp_eval_runtime", SKILL / "scripts/eval.py")
 ev = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(ev)

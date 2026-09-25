@@ -1,5 +1,5 @@
 {
-  "_comment": "SINGLE SOURCE OF TRUTH for plug-in identity in every host manifest and catalog. Skill content comes from plugins/pcp/skills/pre-call-prep/pcp.yaml. Never edit a generated file: edit these, run `python3 build/generate.py`, then `python3 -m unittest discover -s tests`.",
+  "_comment": "SINGLE SOURCE OF TRUTH for plug-in identity in every host manifest and catalog. Skill content comes from plugins/pcp/skills/pcp/pcp.yaml. Never edit a generated file: edit these, run `python3 build/generate.py`, then `python3 -m unittest discover -s tests`.",
   "name": "pcp",
   "version": "2.1.0",
   "description": "Pre-call prep: one-time calibration saved per user, public-source OSINT/SOCMINT with a coverage ledger, a six-dimension behavioral read, and ONE 3-page PDF (2-page brief + 1-page meeting script). Every fact cited.",
@@ -10,7 +10,15 @@
   "homepage": "https://talyx.ai",
   "repository": "https://github.com/talyx-ai/talyx-plugins",
   "license": "LicenseRef-Talyx-Free-Use",
-  "keywords": ["pre-call-prep", "meeting-prep", "osint", "behavioral-read", "pdf", "sales", "advisors"],
+  "keywords": [
+    "pre-call-prep",
+    "meeting-prep",
+    "osint",
+    "behavioral-read",
+    "pdf",
+    "sales",
+    "advisors"
+  ],
   "category": "productivity",
   "marketplace": {
     "name": "talyx",
@@ -31,7 +39,10 @@
     "shortDescription": "One cited 3-page brief and meeting script before any call",
     "longDescription": "Calibrates once, then researches the person, company or deal you are about to meet from public sources only, writes a coverage ledger, reads six behavioural dimensions from cited evidence, and renders one 3-page PDF: a 2-page brief and a 1-page meeting script. Every fact carries a source.",
     "category": "Productivity",
-    "capabilities": ["Read", "Write"],
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
     "defaultPrompt": [
       "Prep me for my call with Jane Doe at Acme Capital.",
       "Recalibrate my pre-call prep settings."
@@ -42,8 +53,8 @@
   },
   "skills": [
     {
-      "name": "pre-call-prep",
-      "displayName": "Pre-call prep",
+      "name": "pcp",
+      "displayName": "Pre-call prep (pcp)",
       "shortDescription": "Research a counterpart and write a cited 3-page brief + script",
       "defaultPrompt": "Prep me for my meeting with Jane Doe at Acme Capital."
     },
@@ -56,6 +67,8 @@
   ],
   "shared": {
     "_comment": "The talyx-pdf skill owns the renderer: its scripts/ and assets/ are copied byte-for-byte into each listed skill so every skill folder stays self-contained. --check fails on any difference.",
-    "talyx-pdf": ["pre-call-prep"]
+    "talyx-pdf": [
+      "pcp"
+    ]
   }
 }

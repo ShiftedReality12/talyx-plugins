@@ -30,7 +30,11 @@ repository README (https://github.com/talyx-ai/talyx-plugins) for install comman
 /pcp "Full Name, Organisation" --profile investor     # a second saved setup, e.g. for another role
 ```
 
-Codex and ChatGPT: mention the **pre-call-prep** skill (`$pre-call-prep` in the CLI, `@` in the app).
+The entry point is the `pcp` skill: `/pcp:pcp` in Claude, `/pcp` in Cursor, Grok and Gemini, `$pcp` in
+Codex (or pick it with `@` in the Codex / ChatGPT app). You can also just ask: "prep me for my call with ...".
+
+Codex asks the setup questions as a form only in Plan mode, or everywhere after
+`codex features enable default_mode_request_user_input`; otherwise it asks them in chat.
 
 The first PDF on a machine needs Playwright, Chromium and pypdf. The skill asks before installing them
 (`python3 scripts/talyx_pdf.py --setup` from the skill folder).
@@ -54,4 +58,4 @@ What that means per host:
 ## Licence
 
 Free to use under `LICENSE`. Public professional record only; see the exclusions in
-`skills/pre-call-prep/pcp.yaml`. Contributors: see the repository README.
+`skills/pcp/pcp.yaml`. Contributors: see the repository README.

@@ -1,8 +1,9 @@
 ---
-name: pre-call-prep
+name: pcp
 description: "Prepare for an upcoming meeting with a named person, company or deal. One-time calibration saved per user, public-source OSINT/SOCMINT collection with a coverage ledger, a six-dimension behavioral read, and ONE 3-page PDF: a 2-page brief plus a 1-page meeting script. Use when the user mentions pre-call prep, meeting prep, call preparation, researching someone before a meeting, talking points, or shares an intake list. Do not use for general research unrelated to a meeting, or for notes on a meeting that has already happened."
+argument-hint: "[intake.csv | \"Full Name, Organisation\"] [--recalibrate] [--profile <name>] [--out <dir>]"
 ---
-<!-- GENERATED from pcp.yaml (sha256:811cbbfcd5b0) by build/generate.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:ed8f7487e097) by build/generate.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v2.1.0)
 
@@ -20,34 +21,41 @@ The deliverable is one 3-page PDF. Nothing else is emitted.
 - **Runtime.** Python 3.10+ with PyYAML. The PDF step also needs Playwright + Chromium + pypdf; if
   `scripts/talyx_pdf.py` reports them missing, ask the user before running
   `python3 scripts/talyx_pdf.py --setup` (it installs packages). Row S4-6 covers a host that cannot render.
-- **Arguments.** `"Full Name, Organisation"` or a CSV path (template: `assets/intake-template.csv`),
-  plus optional `--recalibrate`, `--profile <name>`, `--out <dir>`.
+- **Arguments.** `$ARGUMENTS` -- `"Full Name, Organisation"` or a CSV path (template:
+  `assets/intake-template.csv`), plus optional `--recalibrate`, `--profile <name>`, `--out <dir>`. If that
+  placeholder was not filled in (hosts other than Claude), read them from the user's message.
+- **One copy.** Use only this skill's folder. Never search the disk for another pcp install: an older copy
+  elsewhere is not this plug-in.
+- **Say first** what was not found (coverage) before what was -- row S4-7.
 
 ## Stage 0: Calibrate (once per user)
 
 Run `python3 scripts/profile.py inspect [--profile <name>] [--recalibrate]`. It prints JSON; `questions`
-holds only what still has to be asked. The saved profile is per user and is reused by every later run.
+holds exactly what to ask. The saved profile is per user and is reused by every later run. The rows
+below (CAL-1 to CAL-7) are the rules; this is how to follow them:
 
 - `status: complete` -- use `effective` and `profile_line` silently. Ask nothing.
-- `status: recalibrate` (`--recalibrate`) -- ask every listed question, showing each saved `current`
-  answer as the default, then apply as below.
-- `status: missing` or `incomplete` -- STOP before intake: never research with an incomplete profile and
-  never put a placeholder where a calibration answer belongs. Ask ONLY the listed `questions`, using the host's structured-question tool when it has one (Claude `AskUserQuestion`, Gemini `ask_user`, Codex `request_user_input`), as many questions per call as the tool allows, first option recommended; a free-text question goes in plain chat. Without such a tool, ask them in one chat message with numbered options.
-  If you cannot get answers in this session (for example a non-interactive run), end the run by listing
-  the questions and saying the prep has not started. Write the answers as
-  a JSON object `{"Q1": "<option value or label>", ..., "Q8": "<free text>"}` (null = skipped) to a
-  temporary file in the output folder, then run
-  `python3 scripts/profile.py apply --answers-file <file> --base-sha256 <sha256 from inspect, or none> [--profile <name>]`
-  and delete the file. Use the `effective` block it returns.
+- `status: missing`, `incomplete` or `recalibrate` -- ask the listed `questions` (with `recalibrate`, show
+  each saved `current` answer as the default), using the host's structured-question tool, first option marked recommended:
+  - Claude `AskUserQuestion` and Gemini `ask_user`: up to 4 questions per call, 2-4 options each.
+  - Codex `request_user_input`: up to 3 questions per call and only 2-3 options each; it adds an "Other"
+    free-text choice itself. For a 4-option question show the first 3 and name the 4th in the question
+    text ("or choose Other and type: <label>"). If it answers "unavailable in Default mode", ask in chat
+    instead and tell the user once that Codex shows these as a form in Plan mode, or after
+    `codex features enable default_mode_request_user_input`.
+  - Keep headers to 12 characters; you may shorten option labels, but apply the option `value`.
+  - A free-text question (no options) always goes in plain chat.
+  - No such tool: ask them all in one chat message with numbered options.
+- Then, however the answers were collected, save them: write a JSON object
+  `{"Q1": "<option value or label>", ..., "Q8": "<free text>"}` (null = skipped) to a temporary file in the
+  output folder, run
+  `python3 scripts/profile.py apply --answers-file <file> --base-sha256 <sha256 from inspect, or none> [--profile <name>]`,
+  delete the file, and use the `effective` block it returns.
 - `status: invalid` -- tell the user their saved setup cannot be read and ask whether to redo it. On yes,
   ask every question and apply with `--replace-invalid` (the old file is kept as a backup).
-- `ok: false` from apply -- fix what it names (an answer that is not an option: map it to an option or
-  ask again; `STALE`: inspect again). `WRITE_DENIED` means the host's sandbox blocked the user's setup
-  file: run the same apply again with the host's permission to write outside the workspace (Codex asks
-  the user to approve); if that is refused, use the answers for this run and say they were not saved.
-  Never write the profile file by hand.
-- Python unavailable -- ask the questions, use the answers for this run only, and tell the user they
-  were not saved.
+- `ok: false` from apply -- act on its `code`: `INVALID_ANSWER` map the answer to an option or ask again;
+  `REQUIRED` ask that free-text question; `STALE` inspect again; `WRITE_DENIED` see CAL-7.
+- Python unavailable -- ask the questions, use the answers for this run only, and say they were not saved.
 
 | # | Chip | Question | Options | Sets |
 |---|---|---|---|---|
@@ -68,8 +76,14 @@ holds only what still has to be asked. The saved profile is per user and is reus
   _Fails when:_ Three debriefs with facts_used > 80% must produce a proposal, and the profile must be unchanged until answered.
 - **CAL-4** The profile is written only by `scripts/profile.py apply`. An unreadable profile is never overwritten without the user's yes, and then the old file is kept as a backup.  
   _Fails when:_ Corrupt the profile -- inspect reports invalid, and apply exits non-zero with the file bytes unchanged.
+- **CAL-5** Never start intake while inspect reports missing or incomplete, and never put a placeholder where a calibration answer belongs. If answers cannot be collected in this session, end by listing the questions and saying the prep has not started.  
+  _Fails when:_ Run non-interactively with an empty profile -- the reply lists the questions, no research tool is called, and no [your offer] placeholder appears anywhere.
+- **CAL-6** --recalibrate asks every question inspect lists, showing each saved answer as the default, even when the profile is complete.  
+  _Fails when:_ With a complete profile, inspect --recalibrate reports status recalibrate and all eight questions with their current answers.
+- **CAL-7** If the host blocks writing the profile (WRITE_DENIED), retry the same apply with the host's permission to write outside the workspace; if that is refused, use the answers for this run only and say they were not saved.  
+  _Fails when:_ Make the profile folder read-only -- apply returns WRITE_DENIED as JSON, nothing is written, and the run says the answers were not saved.
 
-Profile line (footer of every PDF): `role · domain · depth · jurisdiction`.
+Profile line (footer of every PDF): `caller.role · domain · research.depth · jurisdiction`.
 
 ## Stage 1: Intake
 
@@ -176,6 +190,8 @@ Profile line (footer of every PDF): `role · domain · depth · jurisdiction`.
   _Fails when:_ Extract page-3 footer text -- all four fields present.
 - **S4-6** If the renderer cannot run on this host (no Python, or the user declines `scripts/talyx_pdf.py --setup`), say so before delivering and hand over brief.md + script.md headed DRAFT -- NOT RENDERED; never call them the PDF and never delete them.  
   _Fails when:_ Run with Playwright absent and decline setup -- the reply names both drafts, says not rendered, and claims no PDF.
+- **S4-7** When delivering, say what was NOT found first -- families with no usable source, failed URLs, LIMITED status -- then what was found.  
+  _Fails when:_ In a run with a failed URL, the delivery message names it and the coverage fraction before any finding.
 
 ## Stage 5: Debrief + ratchet
 

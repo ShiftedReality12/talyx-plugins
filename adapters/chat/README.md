@@ -8,7 +8,7 @@ These hosts take instructions plus a knowledge file and run no scripts, so this 
   setup* block. Replace the block at the end of your copy of `pcp-knowledge.md` and re-upload it; the
   next chat then asks nothing.
 
-Both files are generated from `plugins/pcp/skills/pre-call-prep/pcp.yaml` by `build/generate.py`.
+Both files are generated from `plugins/pcp/skills/pcp/pcp.yaml` by `build/generate.py`.
 Do not edit them by hand.
 
 | File | Where it goes |
