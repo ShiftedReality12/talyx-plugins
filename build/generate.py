@@ -147,7 +147,8 @@ below (CAL-1 to CAL-7) are the rules; this is how to follow them:
 
 - `status: complete` -- use `effective` and `profile_line` silently. Ask nothing.
 - `status: missing`, `incomplete` or `recalibrate` -- ask the listed `questions` (with `recalibrate`, show
-  each saved `current` answer as the default), using {tools}. Write the answers as a JSON object
+  each saved `current` answer as the default), using {tools}.
+- Then, however the answers were collected, save them: write a JSON object
   `{{"Q1": "<option value or label>", ..., "Q8": "<free text>"}}` (null = skipped) to a temporary file in the
   output folder, run
   `python3 scripts/profile.py apply --answers-file <file> --base-sha256 <sha256 from inspect, or none> [--profile <name>]`,

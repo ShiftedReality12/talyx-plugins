@@ -45,7 +45,8 @@ below (CAL-1 to CAL-7) are the rules; this is how to follow them:
     `codex features enable default_mode_request_user_input`.
   - Keep headers to 12 characters; you may shorten option labels, but apply the option `value`.
   - A free-text question (no options) always goes in plain chat.
-  - No such tool: ask them all in one chat message with numbered options. Write the answers as a JSON object
+  - No such tool: ask them all in one chat message with numbered options.
+- Then, however the answers were collected, save them: write a JSON object
   `{"Q1": "<option value or label>", ..., "Q8": "<free text>"}` (null = skipped) to a temporary file in the
   output folder, run
   `python3 scripts/profile.py apply --answers-file <file> --base-sha256 <sha256 from inspect, or none> [--profile <name>]`,
