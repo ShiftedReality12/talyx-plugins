@@ -194,22 +194,15 @@ class ProfileTests(unittest.TestCase):
         self.assertIn("rubric dominance", patches[0].read_text())
         self.assertEqual({p for p in SKILL.rglob("*") if "__pycache__" not in p.parts}, before)
 
-    def test_registry_values_drive_the_scripts(self):
-        """profile_line and the check thresholds are read from pcp.yaml, not restated in code."""
+    def test_profile_line_comes_from_the_registry(self):
+        """The footer's profile line is read from pcp.yaml calibration.profile_line."""
         self.skill = self.tmp / "skill"
         shutil.copytree(SKILL, self.skill)
         self.apply(ANSWERS)
         reg = yaml.safe_load((self.skill / "pcp.yaml").read_text())
         reg["calibration"]["profile_line"] = ["jurisdiction", "caller.role"]
-        reg["check_rules"]["custom_q_min_cited"] = 0
         (self.skill / "pcp.yaml").write_text(yaml.safe_dump(reg, sort_keys=False))
         self.assertEqual(self.run_profile("inspect")[1]["profile_line"], "us · principal")
-        brief = self.tmp / "brief.md"
-        brief.write_text("## B5 Discovery questions\nWhat changed?\n")
-        for skill, expect in ((SKILL, 1), (self.skill, 0)):
-            r = subprocess.run([sys.executable, str(skill / "scripts/eval.py"), "checks", str(brief), "--custom-q"],
-                               capture_output=True, text=True, timeout=30)
-            self.assertEqual(r.returncode, expect, r.stdout)
 
     def test_profile_file_is_private(self):
         self.apply(ANSWERS)

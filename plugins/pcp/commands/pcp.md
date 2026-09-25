@@ -2,7 +2,7 @@
 description: "Prepare for a meeting. Calibrates once per user, researches from public sources, reads behaviour, and writes ONE 3-page PDF (2-page brief + 1-page script)."
 argument-hint: "[intake.csv | \"Full Name, Organisation\"] [--recalibrate] [--profile <name>] [--out <dir>]"
 ---
-<!-- GENERATED from pcp.yaml (sha256:be81a2058643) by build/generate.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:9eb20bfdbc00) by build/generate.py -- edit pcp.yaml, never this file -->
 
 # /pcp: pre-call prep
 

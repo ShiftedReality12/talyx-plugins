@@ -383,22 +383,6 @@ checks:
   - {id: C9, name: exclusions,   cmd: "scripts/eval.py checks --exclusions",passes_when: "no excluded topic keyword appears in the body"}
   - {id: C10, name: pages,       cmd: "scripts/talyx_pdf.py --max-pages 3", passes_when: "rendered page count == 3"}
   - {method_verbs: ["we scrape", "we ingest", "our pipeline", "our model", "we crawl", "our algorithm"]}
-check_rules:   # every threshold and section list scripts/eval.py applies; nothing is hard-coded there
-  duf_body_sections: [B1, B2, B3, B4, B5, B6, B7, B8, P1, P2, P3, P4, P5, P6]   # a [n] here counts toward duf
-  swap_sections: [B1, B2, B3, B4, B5, B6, B7]
-  quote_section: B2
-  custom_q_section: B5
-  custom_q_min_cited: 2
-  optional_blocks: [P5]                 # may be omitted per S3-2
-  budget_tolerance: 0.15               # a section may exceed its word budget by at most this fraction
-  never_say_allowed_in: [B8, P7]
-  outcome_section: B6
-  exclusion_scan_skips: [B8, B9, P7]
-  exclusion_keywords:
-    health: [diagnos, illness, hospital]
-    family: [divorce, his wife, her husband, children]
-    political: [donated to, FEC, campaign contribution]
-    litigation: [lawsuit, sued, plaintiff]
 
 # ------------------------------------------------------------------------------------------------
 # 6. EVAL + RATCHET -- the instrument comes before the feature. duf_pp is the north star.

@@ -19,7 +19,6 @@ import yaml
 
 HERE = pathlib.Path(__file__).resolve().parent
 R = yaml.safe_load((HERE.parent / "pcp.yaml").read_text())
-K = R["check_rules"]
 
 CITE = re.compile(r"\[(\d+)\]")
 SRC_ROW = re.compile(r"^\s*(?:-|\d+\.)?\s*\[(\d+)\]\s*(.+?)\s+--\s+(\S+)\s+--\s+(DIRECT|SEARCH)\s+--\s+(C[1-4])\s+--\s+(\d{4}-\d{2}-\d{2})", re.M)
@@ -38,7 +37,7 @@ def _sections(md):
 
 
 def _body_ids(secs):
-    body = [k for k in secs if k in K["duf_body_sections"]]
+    body = [k for k in secs if re.match(r"B[1-8]$|P[1-6]$", k)]
     return body
 
 
@@ -90,7 +89,7 @@ def checks(brief_md, script_md="", which="all", target_nouns=()):
 
     if want("swap"):
         nouns = [n.lower() for n in target_nouns if n]
-        for k in [k for k in secs if k in K["swap_sections"]]:
+        for k in [k for k in secs if re.match(r"B[1-7]$", k)]:
             for s in _sentences(secs[k]):
                 if CITE.search(s):
                     continue
@@ -98,18 +97,16 @@ def checks(brief_md, script_md="", which="all", target_nouns=()):
                     continue
                 fails.append(f"C1 swap: {k}: uncited, non-specific sentence: '{s[:70]}...'")
     if want("quotes"):
-        qs = K["quote_section"]
-        for q in re.finditer(r"[“\"]([^”\"]{12,})[”\"]", secs.get(qs, "")):
-            tail = secs[qs][q.end(): q.end() + 40]
+        for q in re.finditer(r"[“\"]([^”\"]{12,})[”\"]", secs.get("B2", "")):
+            tail = secs["B2"][q.end(): q.end() + 40]
             if not CITE.search(tail):
-                fails.append(f"C3 quotes: {qs} quote without [n]: '{q.group(1)[:50]}'")
+                fails.append(f"C3 quotes: B2 quote without [n]: '{q.group(1)[:50]}'")
     if want("custom-q"):
-        cq, need_n = K["custom_q_section"], K["custom_q_min_cited"]
-        n = sum(1 for ln in secs.get(cq, "").splitlines() if "?" in ln and CITE.search(ln))
-        if n < need_n:
-            fails.append(f"C4 custom_q: {n}/{need_n} questions in {cq} carry a [n]")
+        n = sum(1 for ln in secs.get("B5", "").splitlines() if "?" in ln and CITE.search(ln))
+        if n < 2:
+            fails.append(f"C4 custom_q: {n}/2 questions in B5 carry a [n]")
     if want("sections"):
-        need = [s["id"] for s in R["brief"]["sections"]] + [b["id"] for b in R["script"]["blocks"] if b["id"] not in K["optional_blocks"]]
+        need = [s["id"] for s in R["brief"]["sections"]] + [b["id"] for b in R["script"]["blocks"] if b["id"] != "P5"]
         present = [k for k in secs if re.match(r"[BP]\d+$", k)]
         missing = [i for i in need if i not in present]
         order = [k for k in present if k in need]
@@ -121,11 +118,11 @@ def checks(brief_md, script_md="", which="all", target_nouns=()):
         for k, body in secs.items():
             if k in budgets:
                 w = len(body.split())
-                if w > budgets[k] * (1 + K["budget_tolerance"]):
-                    fails.append(f"C6 budgets: {k} {w} words > {budgets[k]} (+{K['budget_tolerance']:.0%})")
+                if w > budgets[k] * 1.15:
+                    fails.append(f"C6 budgets: {k} {w} words > {budgets[k]} (+15%)")
     if want("never-say"):
         for k, body in secs.items():
-            if k in K["never_say_allowed_in"]:
+            if k in ("B8", "P7"):
                 continue
             for p in R["guardrails"]["never_say"]:
                 if p.lower() in body.lower():
@@ -133,11 +130,12 @@ def checks(brief_md, script_md="", which="all", target_nouns=()):
     if want("outcome"):
         mv = next(c["method_verbs"] for c in R["checks"] if "method_verbs" in c)
         for v in mv:
-            if v.lower() in secs.get(K["outcome_section"], "").lower():
-                fails.append(f"C8 outcome: method verb '{v}' in {K['outcome_section']}")
+            if v.lower() in secs.get("B6", "").lower():
+                fails.append(f"C8 outcome: method verb '{v}' in B6")
     if want("exclusions"):
-        kws = K["exclusion_keywords"]
-        body = "\n".join(v for k, v in secs.items() if k not in K["exclusion_scan_skips"])
+        kws = {"health": ["diagnos", "illness", "hospital"], "family": ["divorce", "his wife", "her husband", "children"],
+               "political": ["donated to", "FEC", "campaign contribution"], "litigation": ["lawsuit", "sued", "plaintiff"]}
+        body = "\n".join(v for k, v in secs.items() if k not in ("B8", "B9", "P7"))
         for topic, words in kws.items():
             for w in words:
                 if w.lower() in body.lower():
