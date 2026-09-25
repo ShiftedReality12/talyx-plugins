@@ -227,6 +227,7 @@ stages:
       - {id: S4-4, text: "If the tightest density rung still overflows 3 pages, the run FAILS with the section word counts; it never truncates or spills.", test: "Feed a 900-word section -- the engine must exit non-zero naming the section.", basis: never truncate silently}
       - {id: S4-5, text: "The PDF footer carries: profile line, research status, duf_pp, coverage fraction.", test: "Extract page-3 footer text -- all four fields present.", basis: coverage as a required output}
       - {id: S4-6, text: "If the renderer cannot run on this host (no Python, or the user declines `scripts/talyx_pdf.py --setup`), say so before delivering and hand over brief.md + script.md headed DRAFT -- NOT RENDERED; never call them the PDF and never delete them.", test: "Run with Playwright absent and decline setup -- the reply names both drafts, says not rendered, and claims no PDF.", basis: refusal is not delivery; never present a substitute as the deliverable}
+      - {id: S4-7, text: "When delivering, say what was NOT found first -- families with no usable source, failed URLs, LIMITED status -- then what was found.", test: "In a run with a failed URL, the delivery message names it and the coverage fraction before any finding.", basis: "original /pcp command closing line; hosts that load only the skill (Codex, Devin, Perplexity, chat) never saw it"}
 
   - id: S5
     name: Debrief + ratchet

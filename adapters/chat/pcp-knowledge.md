@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:9eb20bfdbc00) by build/generate.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:a3435083da1d) by build/generate.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v2.1.0)
 
@@ -152,6 +152,8 @@ Profile line (heading of every brief): `caller.role · domain · research.depth 
   _Fails when:_ Extract page-3 footer text -- all four fields present.
 - **S4-6** If the renderer cannot run on this host (no Python, or the user declines `scripts/talyx_pdf.py --setup`), say so before delivering and hand over brief.md + script.md headed DRAFT -- NOT RENDERED; never call them the PDF and never delete them.  
   _Fails when:_ Run with Playwright absent and decline setup -- the reply names both drafts, says not rendered, and claims no PDF.
+- **S4-7** When delivering, say what was NOT found first -- families with no usable source, failed URLs, LIMITED status -- then what was found.  
+  _Fails when:_ In a run with a failed URL, the delivery message names it and the coverage fraction before any finding.
 
 ## Stage 5: Debrief + ratchet
 

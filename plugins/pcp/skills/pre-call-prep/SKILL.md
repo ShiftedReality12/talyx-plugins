@@ -2,7 +2,7 @@
 name: pre-call-prep
 description: "Prepare for an upcoming meeting with a named person, company or deal. One-time calibration saved per user, public-source OSINT/SOCMINT collection with a coverage ledger, a six-dimension behavioral read, and ONE 3-page PDF: a 2-page brief plus a 1-page meeting script. Use when the user mentions pre-call prep, meeting prep, call preparation, researching someone before a meeting, talking points, or shares an intake list. Do not use for general research unrelated to a meeting, or for notes on a meeting that has already happened."
 ---
-<!-- GENERATED from pcp.yaml (sha256:9eb20bfdbc00) by build/generate.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:a3435083da1d) by build/generate.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v2.1.0)
 
@@ -175,6 +175,8 @@ Profile line (footer of every PDF): `caller.role · domain · research.depth · 
   _Fails when:_ Extract page-3 footer text -- all four fields present.
 - **S4-6** If the renderer cannot run on this host (no Python, or the user declines `scripts/talyx_pdf.py --setup`), say so before delivering and hand over brief.md + script.md headed DRAFT -- NOT RENDERED; never call them the PDF and never delete them.  
   _Fails when:_ Run with Playwright absent and decline setup -- the reply names both drafts, says not rendered, and claims no PDF.
+- **S4-7** When delivering, say what was NOT found first -- families with no usable source, failed URLs, LIMITED status -- then what was found.  
+  _Fails when:_ In a run with a failed URL, the delivery message names it and the coverage fraction before any finding.
 
 ## Stage 5: Debrief + ratchet
 
