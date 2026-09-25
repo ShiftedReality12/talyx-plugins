@@ -36,11 +36,20 @@ jobs:
           python-version: "3.12"
       - name: renderer setup, as a user would run it
         run: python plugins/pcp/skills/pre-call-prep/scripts/talyx_pdf.py --setup && python -m playwright install-deps chromium
-      - name: render a 3-page-capped brief + script and check the result
+      - name: a real brief + script renders within the 3-page gate
         run: |
           python plugins/pcp/skills/pre-call-prep/scripts/talyx_pdf.py --brief evals/fixtures/control_12.md \
-            --script evals/fixtures/control_12.md --out out/check.pdf --max-pages 3 | tee result.json
+            --script evals/fixtures/control_script.md --out out/check.pdf --max-pages 3 | tee result.json
           python -c "import json; r = json.load(open('result.json')); assert r['ok'] and r['pages'] <= 3, r"
+      - name: the page gate refuses an overflowing document (must fail, never truncate)
+        run: |
+          set +e
+          python plugins/pcp/skills/pre-call-prep/scripts/talyx_pdf.py --brief evals/fixtures/control_12.md \
+            --script evals/fixtures/control_12.md --out out/overflow.pdf --max-pages 3 > overflow.json
+          code=$?
+          set -e
+          cat overflow.json
+          python -c "import json,sys; r = json.load(open('overflow.json')); assert $code == 2 and not r['ok'] and r['longest_sections'], r"
       - uses: actions/upload-artifact@v4
         with:
           name: rendered-pdf
