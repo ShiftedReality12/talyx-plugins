@@ -15,6 +15,21 @@
 
 render_header: "<!-- GENERATED from pcp.yaml (sha256:{sha}) by build/generate.py -- edit pcp.yaml, never this file -->"
 
+# The skill's own metadata, as hosts show it. Rendered into SKILL.md frontmatter and commands/pcp.md (+ .toml).
+skill:
+  name: pre-call-prep
+  description: >-
+    Prepare for an upcoming meeting with a named person, company or deal. One-time calibration saved per
+    user, public-source OSINT/SOCMINT collection with a coverage ledger, a six-dimension behavioral read,
+    and ONE 3-page PDF: a 2-page brief plus a 1-page meeting script. Use when the user mentions pre-call
+    prep, meeting prep, call preparation, researching someone before a meeting, talking points, or shares
+    an intake list. Do not use for general research unrelated to a meeting, or for notes on a meeting
+    that has already happened.
+  command_description: >-
+    Prepare for a meeting. Calibrates once per user, researches from public sources, reads behaviour, and
+    writes ONE 3-page PDF (2-page brief + 1-page script).
+  argument_hint: '[intake.csv | "Full Name, Organisation"] [--recalibrate] [--profile <name>] [--out <dir>]'
+
 # ------------------------------------------------------------------------------------------------
 # 0. CALIBRATION -- asked ONCE per user, saved by scripts/profile.py at profile_path (user-global).
 #    profile.py reads these questions as its schema: add a question here and only that one is asked.
@@ -22,6 +37,7 @@ render_header: "<!-- GENERATED from pcp.yaml (sha256:{sha}) by build/generate.py
 # ------------------------------------------------------------------------------------------------
 calibration:
   profile_path: ~/.pcp/profile.yaml
+  profile_line: [caller.role, domain, research.depth, jurisdiction]   # footer of every PDF, in this order
   reask_flag: --recalibrate
   profile_flag: --profile
   questions:
@@ -117,6 +133,18 @@ calibration:
       text: The profile is written only by `scripts/profile.py apply`. An unreadable profile is never overwritten without the user's yes, and then the old file is kept as a backup.
       test: Corrupt the profile -- inspect reports invalid, and apply exits non-zero with the file bytes unchanged.
       basis: validated writer, one source for the saved setup
+    - id: CAL-5
+      text: Never start intake while inspect reports missing or incomplete, and never put a placeholder where a calibration answer belongs. If answers cannot be collected in this session, end by listing the questions and saying the prep has not started.
+      test: Run non-interactively with an empty profile -- the reply lists the questions, no research tool is called, and no [your offer] placeholder appears anywhere.
+      basis: live run 2026-09-25 researched with an empty profile and wrote placeholders
+    - id: CAL-6
+      text: "--recalibrate asks every question inspect lists, showing each saved answer as the default, even when the profile is complete."
+      test: "With a complete profile, inspect --recalibrate reports status recalibrate and all eight questions with their current answers."
+      basis: "review 2026-09-25: 'complete -> ask nothing' suppressed --recalibrate"
+    - id: CAL-7
+      text: If the host blocks writing the profile (WRITE_DENIED), retry the same apply with the host's permission to write outside the workspace; if that is refused, use the answers for this run only and say they were not saved.
+      test: Make the profile folder read-only -- apply returns WRITE_DENIED as JSON, nothing is written, and the run says the answers were not saved.
+      basis: Codex workspace-write sandbox refuses writes to the home folder (probe 2026-09-25)
 
 # ------------------------------------------------------------------------------------------------
 # 1. STAGES -- input contract + context contract + instruction rows, per stage, dependency-ordered.
@@ -355,6 +383,22 @@ checks:
   - {id: C9, name: exclusions,   cmd: "scripts/eval.py checks --exclusions",passes_when: "no excluded topic keyword appears in the body"}
   - {id: C10, name: pages,       cmd: "scripts/talyx_pdf.py --max-pages 3", passes_when: "rendered page count == 3"}
   - {method_verbs: ["we scrape", "we ingest", "our pipeline", "our model", "we crawl", "our algorithm"]}
+check_rules:   # every threshold and section list scripts/eval.py applies; nothing is hard-coded there
+  duf_body_sections: [B1, B2, B3, B4, B5, B6, B7, B8, P1, P2, P3, P4, P5, P6]   # a [n] here counts toward duf
+  swap_sections: [B1, B2, B3, B4, B5, B6, B7]
+  quote_section: B2
+  custom_q_section: B5
+  custom_q_min_cited: 2
+  optional_blocks: [P5]                 # may be omitted per S3-2
+  budget_tolerance: 0.15               # a section may exceed its word budget by at most this fraction
+  never_say_allowed_in: [B8, P7]
+  outcome_section: B6
+  exclusion_scan_skips: [B8, B9, P7]
+  exclusion_keywords:
+    health: [diagnos, illness, hospital]
+    family: [divorce, his wife, her husband, children]
+    political: [donated to, FEC, campaign contribution]
+    litigation: [lawsuit, sued, plaintiff]
 
 # ------------------------------------------------------------------------------------------------
 # 6. EVAL + RATCHET -- the instrument comes before the feature. duf_pp is the north star.

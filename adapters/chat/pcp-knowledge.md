@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:811cbbfcd5b0) by build/generate.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:be81a2058643) by build/generate.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v2.1.0)
 
@@ -38,8 +38,14 @@ This host runs no scripts. The saved setup is the **Saved setup** block at the e
   _Fails when:_ Three debriefs with facts_used > 80% must produce a proposal, and the profile must be unchanged until answered.
 - **CAL-4** The profile is written only by `scripts/profile.py apply`. An unreadable profile is never overwritten without the user's yes, and then the old file is kept as a backup.  
   _Fails when:_ Corrupt the profile -- inspect reports invalid, and apply exits non-zero with the file bytes unchanged.
+- **CAL-5** Never start intake while inspect reports missing or incomplete, and never put a placeholder where a calibration answer belongs. If answers cannot be collected in this session, end by listing the questions and saying the prep has not started.  
+  _Fails when:_ Run non-interactively with an empty profile -- the reply lists the questions, no research tool is called, and no [your offer] placeholder appears anywhere.
+- **CAL-6** --recalibrate asks every question inspect lists, showing each saved answer as the default, even when the profile is complete.  
+  _Fails when:_ With a complete profile, inspect --recalibrate reports status recalibrate and all eight questions with their current answers.
+- **CAL-7** If the host blocks writing the profile (WRITE_DENIED), retry the same apply with the host's permission to write outside the workspace; if that is refused, use the answers for this run only and say they were not saved.  
+  _Fails when:_ Make the profile folder read-only -- apply returns WRITE_DENIED as JSON, nothing is written, and the run says the answers were not saved.
 
-Profile line (heading of every brief): `role · domain · depth · jurisdiction`.
+Profile line (heading of every brief): `caller.role · domain · research.depth · jurisdiction`.
 
 ## Stage 1: Intake
 

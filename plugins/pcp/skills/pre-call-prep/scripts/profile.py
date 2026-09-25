@@ -146,8 +146,8 @@ def effective(questions, answers):
     return out
 
 
-def profile_line(eff):
-    return " · ".join(str(eff.get(k, "?")) for k in ("caller.role", "domain", "research.depth", "jurisdiction"))
+def profile_line(eff, fields):
+    return " · ".join(str(eff.get(k, "?")) for k in fields)
 
 
 def question_view(q, current=None):
@@ -182,7 +182,7 @@ def inspect(name, recalibrate=False):
             "unknown": sorted(set(answers) - set(questions)),
             "questions": [question_view(questions[q], answers.get(q, {}).get("value") if recalibrate else None) for q in ask],
             "effective": eff, "defaulted": sorted(q for q in answers if answers[q].get("defaulted")),
-            "profile_line": profile_line(eff) if not missing else None}
+            "profile_line": profile_line(eff, cal["profile_line"]) if not missing else None}
 
 
 def atomic_write(path, text):
