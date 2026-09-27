@@ -1,9 +1,9 @@
 ---
 name: pcp
-description: "Prepare for an upcoming meeting with a named person, company or deal. Eight one-time calibration questions, public-source OSINT/SOCMINT collection with a coverage ledger, a six-dimension behavioral read, and ONE 3-page PDF: a 2-page brief plus a 1-page meeting script. Use when the user mentions pre-call prep, meeting prep, call preparation, researching someone before a meeting, talking points, or shares an intake list. Do not use for general research unrelated to a meeting, or for notes on a meeting that has already happened."
+description: "Prepare for an upcoming meeting with a named person, company or deal. One-time calibration saved per user, public-source OSINT/SOCMINT collection with a coverage ledger, a six-dimension behavioral read, and ONE 3-page PDF: a 2-page brief plus a 1-page meeting script. Use when the user mentions pre-call prep, meeting prep, call preparation, researching someone before a meeting, talking points, or shares an intake list. Do not use for general research unrelated to a meeting, or for notes on a meeting that has already happened."
 argument-hint: "[intake.csv | \"Full Name, Organisation\"] [--recalibrate] [--profile <name>] [--out <dir>]"
 ---
-<!-- GENERATED from pcp.yaml (sha256:952ac8d03934) by build/generate.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:ed8f7487e097) by build/generate.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v2.1.0)
 
@@ -20,7 +20,7 @@ The deliverable is one 3-page PDF. Nothing else is emitted.
   output folder (`--out <dir>`, default the user's current working folder).
 - **Runtime.** Python 3.10+ with PyYAML. The PDF step also needs Playwright + Chromium + pypdf; if
   `scripts/talyx_pdf.py` reports them missing, ask the user before running
-  `python3 scripts/talyx_pdf.py --setup` (it installs packages).
+  `python3 scripts/talyx_pdf.py --setup` (it installs packages). Row S4-6 covers a host that cannot render.
 - **Arguments.** `$ARGUMENTS` -- `"Full Name, Organisation"` or a CSV path (template:
   `assets/intake-template.csv`), plus optional `--recalibrate`, `--profile <name>`, `--out <dir>`. If that
   placeholder was not filled in (hosts other than Claude), read them from the user's message.
@@ -28,21 +28,34 @@ The deliverable is one 3-page PDF. Nothing else is emitted.
   elsewhere is not this plug-in.
 - **Say first** what was not found (coverage) before what was -- row S4-7.
 
-## Stage 0: Calibrate (once)
+## Stage 0: Calibrate (once per user)
 
-If `~/.pcp/profile.yaml` is missing or invalid, or `--recalibrate` is passed, ask these eight questions
-using the host's structured-question tool, first option marked recommended:
+Run `python3 scripts/profile.py inspect [--profile <name>] [--recalibrate]`. It prints JSON; `questions`
+holds exactly what to ask. The saved profile is per user and is reused by every later run. The rows
+below (CAL-1 to CAL-7) are the rules; this is how to follow them:
+
+- `status: complete` -- use `effective` and `profile_line` silently. Ask nothing.
+- `status: missing`, `incomplete` or `recalibrate` -- ask the listed `questions` (with `recalibrate`, show
+  each saved `current` answer as the default), using the host's structured-question tool, first option marked recommended:
   - Claude `AskUserQuestion` and Gemini `ask_user`: up to 4 questions per call, 2-4 options each.
   - Codex `request_user_input`: up to 3 questions per call and only 2-3 options each; it adds an "Other"
     free-text choice itself. For a 4-option question show the first 3 and name the 4th in the question
     text ("or choose Other and type: <label>"). If it answers "unavailable in Default mode", ask in chat
     instead and tell the user once that Codex shows these as a form in Plan mode, or after
     `codex features enable default_mode_request_user_input`.
-  - Keep headers to 12 characters; you may shorten option labels, but record the option `value`.
+  - Keep headers to 12 characters; you may shorten option labels, but apply the option `value`.
   - A free-text question (no options) always goes in plain chat.
   - No such tool: ask them all in one chat message with numbered options.
-
-Then write the profile and continue. Otherwise (the profile exists and no `--recalibrate`) read it silently.
+- Then, however the answers were collected, save them: write a JSON object
+  `{"Q1": "<option value or label>", ..., "Q8": "<free text>"}` (null = skipped) to a temporary file in the
+  output folder, run
+  `python3 scripts/profile.py apply --answers-file <file> --base-sha256 <sha256 from inspect, or none> [--profile <name>]`,
+  delete the file, and use the `effective` block it returns.
+- `status: invalid` -- tell the user their saved setup cannot be read and ask whether to redo it. On yes,
+  ask every question and apply with `--replace-invalid` (the old file is kept as a backup).
+- `ok: false` from apply -- act on its `code`: `INVALID_ANSWER` map the answer to an option or ask again;
+  `REQUIRED` ask that free-text question; `STALE` inspect again; `WRITE_DENIED` see CAL-7.
+- Python unavailable -- ask the questions, use the answers for this run only, and say they were not saved.
 
 | # | Chip | Question | Options | Sets |
 |---|---|---|---|---|
@@ -55,14 +68,22 @@ Then write the profile and continue. Otherwise (the profile exists and no `--rec
 | Q7 | Compliance | Jurisdiction and compliance posture? | US (Recommended) / UK / EU (GDPR strict) / Regulated sales (FINRA / FCA style) / APAC | jurisdiction |
 | Q8 | Your offer | In one line -- what do you offer, and what does a win in this meeting look like? (free text) | free text | caller.offer_one_line, meeting.win_definition |
 
-- **CAL-1** Ask all eight questions only when ~/.pcp/profile.yaml is missing, invalid, or --recalibrate is passed. Otherwise read it silently.  
-  _Fails when:_ Delete the profile and run -- the run must ask. Run again -- it must not.
+- **CAL-1** Ask only the questions `scripts/profile.py inspect` lists as missing -- all of them on first use or with --recalibrate, none once the profile is complete. Otherwise read it silently.  
+  _Fails when:_ Point PCP_PROFILE at an empty path -- inspect lists all eight. Apply them -- inspect lists none. Add a Q9 here -- inspect lists only Q9.
 - **CAL-2** A skipped answer takes the first (Recommended) option and is stored with defaulted:true; the PDF footer shows the profile line.  
   _Fails when:_ Skip Q5 -- profile shows research.depth standard, defaulted true; footer reads "standard".
 - **CAL-3** The improve loop may PROPOSE a profile change (one line, with the debrief evidence) but never applies one without a yes.  
   _Fails when:_ Three debriefs with facts_used > 80% must produce a proposal, and the profile must be unchanged until answered.
+- **CAL-4** The profile is written only by `scripts/profile.py apply`. An unreadable profile is never overwritten without the user's yes, and then the old file is kept as a backup.  
+  _Fails when:_ Corrupt the profile -- inspect reports invalid, and apply exits non-zero with the file bytes unchanged.
+- **CAL-5** Never start intake while inspect reports missing or incomplete, and never put a placeholder where a calibration answer belongs. If answers cannot be collected in this session, end by listing the questions and saying the prep has not started.  
+  _Fails when:_ Run non-interactively with an empty profile -- the reply lists the questions, no research tool is called, and no [your offer] placeholder appears anywhere.
+- **CAL-6** --recalibrate asks every question inspect lists, showing each saved answer as the default, even when the profile is complete.  
+  _Fails when:_ With a complete profile, inspect --recalibrate reports status recalibrate and all eight questions with their current answers.
+- **CAL-7** If the host blocks writing the profile (WRITE_DENIED), retry the same apply with the host's permission to write outside the workspace; if that is refused, use the answers for this run only and say they were not saved.  
+  _Fails when:_ Make the profile folder read-only -- apply returns WRITE_DENIED as JSON, nothing is written, and the run says the answers were not saved.
 
-Profile line (footer of every PDF): `role · domain · depth · jurisdiction`.
+Profile line (footer of every PDF): `caller.role · domain · research.depth · jurisdiction`.
 
 ## Stage 1: Intake
 
@@ -71,7 +92,7 @@ Profile line (footer of every PDF): `role · domain · depth · jurisdiction`.
 | Input | Type | Source | Required | Fallback |
 |---|---|---|---|---|
 | `arguments` | path.csv | 'Full Name, Organisation' | empty | $ARGUMENTS | yes | ask the required intake fields in one message |
-| `profile` | yaml | ~/.pcp/profile.yaml | yes | run calibration |
+| `profile` | yaml | scripts/profile.py inspect | yes | run calibration |
 | `meeting.objective` | text | intake row or one question | yes | ask: What do you want to walk out of this meeting with? |
 | `target.kind` | person|company|deal | intake or profile.target.kind_default | yes | person |
 
@@ -148,7 +169,7 @@ Profile line (footer of every PDF): `role · domain · depth · jurisdiction`.
 |---|---|---|---|---|
 | `claims.jsonl` | jsonl | S2 | yes | none |
 | `read.json` | json | S3 | yes | none |
-| `profile` | yaml | ~/.pcp/profile.yaml | yes | none |
+| `profile` | yaml | scripts/profile.py inspect | yes | none |
 | `page_budget` | rows | pcp.yaml brief + script | yes | none |
 
 **Context contract** -- read, in this order: brief sections with word budgets, script beats, claims (C1/C2 first), read.json, profile.caller, guardrails. Budget: 3000 words. Not read: rubric evidence lists, family query templates.
@@ -161,12 +182,14 @@ Profile line (footer of every PDF): `role · domain · depth · jurisdiction`.
   _Fails when:_ eval.py duf reports unbound > 0 -- the run must rewrite before render.
 - **S4-2** Every sentence passes the swap test against caller.offer_one_line and the target: if another target's name would leave it true, delete it.  
   _Fails when:_ A brief with a sentence containing no claim id and no target-specific noun fails checks.swap.
-- **S4-3** Render ONLY through scripts/talyx_pdf.py with --max-pages 3; never emit Markdown or HTML as the deliverable.  
+- **S4-3** Render ONLY through scripts/talyx_pdf.py with --max-pages 3; never emit Markdown or HTML as the deliverable (the only exception is S4-6, labelled DRAFT -- NOT RENDERED).  
   _Fails when:_ The output directory contains exactly one .pdf and no .md/.html after a run.
 - **S4-4** If the tightest density rung still overflows 3 pages, the run FAILS with the section word counts; it never truncates or spills.  
   _Fails when:_ Feed a 900-word section -- the engine must exit non-zero naming the section.
 - **S4-5** The PDF footer carries: profile line, research status, duf_pp, coverage fraction.  
   _Fails when:_ Extract page-3 footer text -- all four fields present.
+- **S4-6** If the renderer cannot run on this host (no Python, or the user declines `scripts/talyx_pdf.py --setup`), say so before delivering and hand over brief.md + script.md headed DRAFT -- NOT RENDERED; never call them the PDF and never delete them.  
+  _Fails when:_ Run with Playwright absent and decline setup -- the reply names both drafts, says not rendered, and claims no PDF.
 - **S4-7** When delivering, say what was NOT found first -- families with no usable source, failed URLs, LIMITED status -- then what was found.  
   _Fails when:_ In a run with a failed URL, the delivery message names it and the coverage fraction before any finding.
 

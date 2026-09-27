@@ -119,7 +119,7 @@ QUESTION_TOOLS = """the host's structured-question tool, first option marked rec
     text ("or choose Other and type: <label>"). If it answers "unavailable in Default mode", ask in chat
     instead and tell the user once that Codex shows these as a form in Plan mode, or after
     `codex features enable default_mode_request_user_input`.
-  - Keep headers to 12 characters; you may shorten option labels, but record the option `value`.
+  - Keep headers to 12 characters; you may shorten option labels, but apply the option `value`.
   - A free-text question (no options) always goes in plain chat.
   - No such tool: ask them all in one chat message with numbered options"""
 
@@ -131,7 +131,7 @@ RUNNING_PLUGIN = """## Running this skill
   output folder (`--out <dir>`, default the user's current working folder).
 - **Runtime.** Python 3.10+ with PyYAML. The PDF step also needs Playwright + Chromium + pypdf; if
   `scripts/talyx_pdf.py` reports them missing, ask the user before running
-  `python3 scripts/talyx_pdf.py --setup` (it installs packages).
+  `python3 scripts/talyx_pdf.py --setup` (it installs packages). Row S4-6 covers a host that cannot render.
 - **Arguments.** `$ARGUMENTS` -- `"Full Name, Organisation"` or a CSV path (template:
   `assets/intake-template.csv`), plus optional `--recalibrate`, `--profile <name>`, `--out <dir>`. If that
   placeholder was not filled in (hosts other than Claude), read them from the user's message.
@@ -139,12 +139,25 @@ RUNNING_PLUGIN = """## Running this skill
   elsewhere is not this plug-in.
 - **Say first** what was not found (coverage) before what was -- row S4-7."""
 
-STAGE0_PLUGIN = """## Stage 0: Calibrate (once)
+STAGE0_PLUGIN = """## Stage 0: Calibrate (once per user)
 
-If `{profile_path}` is missing or invalid, or `--recalibrate` is passed, ask these eight questions
-using {tools}.
+Run `python3 scripts/profile.py inspect [--profile <name>] [--recalibrate]`. It prints JSON; `questions`
+holds exactly what to ask. The saved profile is per user and is reused by every later run. The rows
+below (CAL-1 to CAL-7) are the rules; this is how to follow them:
 
-Then write the profile and continue. Otherwise (the profile exists and no `--recalibrate`) read it silently.
+- `status: complete` -- use `effective` and `profile_line` silently. Ask nothing.
+- `status: missing`, `incomplete` or `recalibrate` -- ask the listed `questions` (with `recalibrate`, show
+  each saved `current` answer as the default), using {tools}.
+- Then, however the answers were collected, save them: write a JSON object
+  `{{"Q1": "<option value or label>", ..., "Q8": "<free text>"}}` (null = skipped) to a temporary file in the
+  output folder, run
+  `python3 scripts/profile.py apply --answers-file <file> --base-sha256 <sha256 from inspect, or none> [--profile <name>]`,
+  delete the file, and use the `effective` block it returns.
+- `status: invalid` -- tell the user their saved setup cannot be read and ask whether to redo it. On yes,
+  ask every question and apply with `--replace-invalid` (the old file is kept as a backup).
+- `ok: false` from apply -- act on its `code`: `INVALID_ANSWER` map the answer to an option or ask again;
+  `REQUIRED` ask that free-text question; `STALE` inspect again; `WRITE_DENIED` see CAL-7.
+- Python unavailable -- ask the questions, use the answers for this run only, and say they were not saved.
 
 | # | Chip | Question | Options | Sets |
 |---|---|---|---|---|
@@ -152,9 +165,9 @@ Then write the profile and continue. Otherwise (the profile exists and no `--rec
 
 {rules}
 
-Profile line (footer of every PDF): `role · domain · depth · jurisdiction`."""
+Profile line (footer of every PDF): `{profile_line}`."""
 
-STAGE0_CHAT = """## Stage 0: Calibrate (once)
+STAGE0_CHAT = """## Stage 0: Calibrate (once per user)
 
 This host runs no scripts. The saved setup is the **Saved setup** block at the end of this knowledge file.
 
@@ -172,7 +185,7 @@ This host runs no scripts. The saved setup is the **Saved setup** block at the e
 
 {rules}
 
-Profile line (heading of every brief): `role · domain · depth · jurisdiction`."""
+Profile line (heading of every brief): `{profile_line}`."""
 
 RENDER_PLUGIN = """## Render
 
@@ -214,7 +227,7 @@ def render_skill(src, R, sha, mode="plugin"):
         q_lines.append(f"| {q['id']} | {q['header']} | {q['question']} | {opts} | {', '.join(q['sets'])} |")
     stage0 = (STAGE0_PLUGIN if mode == "plugin" else STAGE0_CHAT).format(
         tools=QUESTION_TOOLS, questions="\n".join(q_lines), rules=_rows(cal["rules"]),
-        profile_path=cal["profile_path"])
+        profile_line=" · ".join(cal["profile_line"]))
     fam_lines = [f"| {f['id']} | {f['name']} | {'/'.join(f['depth'])} | {'yes' if f['socmint'] else 'no'} | `{f['query']}` | {f['extract']} |"
                  for f in R["families"]]
     dims = "\n".join(f"| {d['id']} | {'; '.join(d['signals'])} | {d['meaning']['low']} | {d['meaning']['mid']} | {d['meaning']['high']} |"
@@ -345,7 +358,7 @@ def render_chat_knowledge(src, R, sha):
 
 # ── checks ───────────────────────────────────────────────────────────────────────────────────────
 
-def check_skills(plugin, files, R):
+def check_skills(plugin, files):
     """Portability checks on every SKILL.md as it will be written (the Agent Skills spec + host rules)."""
     fails = []
     for skill_dir in sorted((plugin / "skills").iterdir()):
@@ -365,10 +378,9 @@ def check_skills(plugin, files, R):
         if not desc or len(desc.encode()) > 1024 or not re.search(r"\bUse (when|for|to)\b", desc):
             fails.append(f"{where}: description missing, over 1024 bytes, or without a 'Use when' trigger")
         body = text[fm.end():]
-        allowed = R["calibration"]["profile_path"]   # the product's own user-global profile location
         for pattern, why in ((r"\.\./", "reads above its own folder"), (r"\$\{?CLAUDE_", "uses a Claude-only variable"),
                              (r"(?<![\w/])~/\.\w", "names a machine-local dot-path"), (r"/Users/\w", "names a machine path")):
-            if re.search(pattern, body.replace(allowed, "")):
+            if re.search(pattern, body):
                 fails.append(f"{where}: {why} -- not portable across hosts")
         for ref in sorted(set(re.findall(r"`(?:python3 )?((?:scripts|assets)/[\w.-]+)", body))):
             if not (skill_dir / ref).exists() and not any(p == skill_dir / ref for p in files):
@@ -469,7 +481,7 @@ def main():
         return p.read_bytes() if isinstance(files[p], bytes) else p.read_text()
 
     drift = sorted(str(p.relative_to(ROOT)) for p in files if current(p) != files[p])
-    problems = check_skills(plugin, files, R) + check_registry(R) + check_ladder(R)
+    problems = check_skills(plugin, files) + check_registry(R) + check_ladder(R)
     if a.check:
         for line in drift:
             print("out of date:", line)

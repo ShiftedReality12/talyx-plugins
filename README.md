@@ -5,7 +5,7 @@ compounding intelligence from what they already know.
 
 | Plug-in | What it does |
 |---|---|
-| [`pcp`](plugins/pcp) | Pre-call prep. Calibrates once, researches public sources with a coverage ledger, and produces one 3-page PDF: a 2-page brief and a 1-page meeting script, with every fact cited. |
+| [`pcp`](plugins/pcp) | Pre-call prep. Calibrates once per user, researches public sources with a coverage ledger, and produces one 3-page PDF: a 2-page brief and a 1-page meeting script, with every fact cited. |
 
 ## Install
 

@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:952ac8d03934) by build/generate.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:ed8f7487e097) by build/generate.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v2.1.0)
 
@@ -7,7 +7,7 @@ Every stage declares its inputs before its behaviour, reads only its listed cont
 that each carry a falsification test. Every fact traces to a public source. Nothing is invented.
 The deliverable is one 3-page PDF. Nothing else is emitted.
 
-## Stage 0: Calibrate (once)
+## Stage 0: Calibrate (once per user)
 
 This host runs no scripts. The saved setup is the **Saved setup** block at the end of this knowledge file.
 
@@ -19,7 +19,7 @@ This host runs no scripts. The saved setup is the **Saved setup** block at the e
     text ("or choose Other and type: <label>"). If it answers "unavailable in Default mode", ask in chat
     instead and tell the user once that Codex shows these as a form in Plan mode, or after
     `codex features enable default_mode_request_user_input`.
-  - Keep headers to 12 characters; you may shorten option labels, but record the option `value`.
+  - Keep headers to 12 characters; you may shorten option labels, but apply the option `value`.
   - A free-text question (no options) always goes in plain chat.
   - No such tool: ask them all in one chat message with numbered options. A skipped question takes its first
   (Recommended) option, marked defaulted. Then output the complete updated **Saved setup** block in
@@ -39,14 +39,22 @@ This host runs no scripts. The saved setup is the **Saved setup** block at the e
 | Q7 | Compliance | Jurisdiction and compliance posture? | US (Recommended) / UK / EU (GDPR strict) / Regulated sales (FINRA / FCA style) / APAC | jurisdiction |
 | Q8 | Your offer | In one line -- what do you offer, and what does a win in this meeting look like? (free text) | free text | caller.offer_one_line, meeting.win_definition |
 
-- **CAL-1** Ask all eight questions only when ~/.pcp/profile.yaml is missing, invalid, or --recalibrate is passed. Otherwise read it silently.  
-  _Fails when:_ Delete the profile and run -- the run must ask. Run again -- it must not.
+- **CAL-1** Ask only the questions `scripts/profile.py inspect` lists as missing -- all of them on first use or with --recalibrate, none once the profile is complete. Otherwise read it silently.  
+  _Fails when:_ Point PCP_PROFILE at an empty path -- inspect lists all eight. Apply them -- inspect lists none. Add a Q9 here -- inspect lists only Q9.
 - **CAL-2** A skipped answer takes the first (Recommended) option and is stored with defaulted:true; the PDF footer shows the profile line.  
   _Fails when:_ Skip Q5 -- profile shows research.depth standard, defaulted true; footer reads "standard".
 - **CAL-3** The improve loop may PROPOSE a profile change (one line, with the debrief evidence) but never applies one without a yes.  
   _Fails when:_ Three debriefs with facts_used > 80% must produce a proposal, and the profile must be unchanged until answered.
+- **CAL-4** The profile is written only by `scripts/profile.py apply`. An unreadable profile is never overwritten without the user's yes, and then the old file is kept as a backup.  
+  _Fails when:_ Corrupt the profile -- inspect reports invalid, and apply exits non-zero with the file bytes unchanged.
+- **CAL-5** Never start intake while inspect reports missing or incomplete, and never put a placeholder where a calibration answer belongs. If answers cannot be collected in this session, end by listing the questions and saying the prep has not started.  
+  _Fails when:_ Run non-interactively with an empty profile -- the reply lists the questions, no research tool is called, and no [your offer] placeholder appears anywhere.
+- **CAL-6** --recalibrate asks every question inspect lists, showing each saved answer as the default, even when the profile is complete.  
+  _Fails when:_ With a complete profile, inspect --recalibrate reports status recalibrate and all eight questions with their current answers.
+- **CAL-7** If the host blocks writing the profile (WRITE_DENIED), retry the same apply with the host's permission to write outside the workspace; if that is refused, use the answers for this run only and say they were not saved.  
+  _Fails when:_ Make the profile folder read-only -- apply returns WRITE_DENIED as JSON, nothing is written, and the run says the answers were not saved.
 
-Profile line (heading of every brief): `role · domain · depth · jurisdiction`.
+Profile line (heading of every brief): `caller.role · domain · research.depth · jurisdiction`.
 
 ## Stage 1: Intake
 
@@ -55,7 +63,7 @@ Profile line (heading of every brief): `role · domain · depth · jurisdiction`
 | Input | Type | Source | Required | Fallback |
 |---|---|---|---|---|
 | `arguments` | path.csv | 'Full Name, Organisation' | empty | $ARGUMENTS | yes | ask the required intake fields in one message |
-| `profile` | yaml | ~/.pcp/profile.yaml | yes | run calibration |
+| `profile` | yaml | scripts/profile.py inspect | yes | run calibration |
 | `meeting.objective` | text | intake row or one question | yes | ask: What do you want to walk out of this meeting with? |
 | `target.kind` | person|company|deal | intake or profile.target.kind_default | yes | person |
 
@@ -132,7 +140,7 @@ Profile line (heading of every brief): `role · domain · depth · jurisdiction`
 |---|---|---|---|---|
 | `claims.jsonl` | jsonl | S2 | yes | none |
 | `read.json` | json | S3 | yes | none |
-| `profile` | yaml | ~/.pcp/profile.yaml | yes | none |
+| `profile` | yaml | scripts/profile.py inspect | yes | none |
 | `page_budget` | rows | pcp.yaml brief + script | yes | none |
 
 **Context contract** -- read, in this order: brief sections with word budgets, script beats, claims (C1/C2 first), read.json, profile.caller, guardrails. Budget: 3000 words. Not read: rubric evidence lists, family query templates.
@@ -145,12 +153,14 @@ Profile line (heading of every brief): `role · domain · depth · jurisdiction`
   _Fails when:_ eval.py duf reports unbound > 0 -- the run must rewrite before render.
 - **S4-2** Every sentence passes the swap test against caller.offer_one_line and the target: if another target's name would leave it true, delete it.  
   _Fails when:_ A brief with a sentence containing no claim id and no target-specific noun fails checks.swap.
-- **S4-3** Render ONLY through scripts/talyx_pdf.py with --max-pages 3; never emit Markdown or HTML as the deliverable.  
+- **S4-3** Render ONLY through scripts/talyx_pdf.py with --max-pages 3; never emit Markdown or HTML as the deliverable (the only exception is S4-6, labelled DRAFT -- NOT RENDERED).  
   _Fails when:_ The output directory contains exactly one .pdf and no .md/.html after a run.
 - **S4-4** If the tightest density rung still overflows 3 pages, the run FAILS with the section word counts; it never truncates or spills.  
   _Fails when:_ Feed a 900-word section -- the engine must exit non-zero naming the section.
 - **S4-5** The PDF footer carries: profile line, research status, duf_pp, coverage fraction.  
   _Fails when:_ Extract page-3 footer text -- all four fields present.
+- **S4-6** If the renderer cannot run on this host (no Python, or the user declines `scripts/talyx_pdf.py --setup`), say so before delivering and hand over brief.md + script.md headed DRAFT -- NOT RENDERED; never call them the PDF and never delete them.  
+  _Fails when:_ Run with Playwright absent and decline setup -- the reply names both drafts, says not rendered, and claims no PDF.
 - **S4-7** When delivering, say what was NOT found first -- families with no usable source, failed URLs, LIMITED status -- then what was found.  
   _Fails when:_ In a run with a failed URL, the delivery message names it and the coverage fraction before any finding.
 

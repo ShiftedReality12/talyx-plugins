@@ -8,9 +8,9 @@ repository README (https://github.com/talyx-ai/talyx-plugins) for install comman
 
 ## What it does
 
-0. **Calibrates once.** Eight quick questions the first time (role, domain, target kind, meeting
-   shape, depth, social scope, jurisdiction, your offer). Stored in `~/.pcp/profile.yaml`; never
-   asked again unless you pass `--recalibrate`.
+0. **Calibrates once per user.** Eight quick questions the first time (role, domain, target kind,
+   meeting shape, depth, social scope, jurisdiction, your offer). Saved per user and reused by every
+   later run; only a question added in a later version is asked again. `--recalibrate` redoes them.
 1. **Intake.** A name and an organisation, or a CSV of up to 8 rows.
 2. **Collects.** Up to 12 public source families (identity, career, org news, voice, public social,
    affiliations, publications, registers, events, shared context, counter-evidence). Writes a
@@ -27,6 +27,7 @@ repository README (https://github.com/talyx-ai/talyx-plugins) for install comman
 /pcp "Full Name, Organisation"
 /pcp path/to/intake.csv
 /pcp --recalibrate
+/pcp "Full Name, Organisation" --profile investor     # a second saved setup, e.g. for another role
 ```
 
 The entry point is the `pcp` skill: `/pcp:pcp` in Claude, `/pcp` in Cursor, Grok and Gemini, `$pcp` in
@@ -40,12 +41,17 @@ The first PDF on a machine needs Playwright, Chromium and pypdf. The skill asks 
 
 ## Your saved setup
 
-The eight answers are saved once in `~/.pcp/profile.yaml` and read silently on every later run;
-`--recalibrate` asks them again.
+Your calibration answers are saved once per user in `~/.pcp/profile.yaml` by the skill's
+`scripts/profile.py`, which validates every answer against the questions in `pcp.yaml`, writes
+atomically, never overwrites an unreadable file without asking (it keeps a backup), and holds any
+number of named setups (`--profile <name>`). Set `PCP_PROFILE` to keep it somewhere else.
+
+What that means per host:
 
 | Host | Saved setup |
 |---|---|
-| Claude Code, Codex, Grok, Cursor, Gemini CLI, Devin | saved on first run, reused after (Codex may ask to approve the write outside its sandbox) |
+| Claude Code, Grok, Cursor, Gemini CLI, Devin | saved on first run, reused after |
+| Codex / ChatGPT desktop | reading works in the sandbox; the first save writes outside the workspace, so approve that one write when asked |
 | Claude desktop (Cowork), Perplexity | these run the skill in a sandbox whose home folder may not persist; if it does not, the questions come back in a new session |
 | Gemini Gem, Microsoft 365 Copilot | no files: the assistant gives you a *Saved setup* block to paste into the knowledge file (`adapters/chat` in the source repository) |
 

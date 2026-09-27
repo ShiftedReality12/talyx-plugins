@@ -86,7 +86,7 @@ class BuildTests(unittest.TestCase):
     def test_unportable_skill_fails_the_build_and_writes_nothing(self):
         skill = self.plugin / "skills/talyx-pdf/SKILL.md"
         for bad in ("Run `python3 ../format/talyx_pdf.py`.", "Run `${CLAUDE_PLUGIN_ROOT}/x.py`.",
-                    "Save to ~/.config/notes.yaml.", "Run `python3 scripts/missing.py`."):
+                    "Save to ~/.pcp/profile.yaml.", "Run `python3 scripts/missing.py`."):
             with self.subTest(bad):
                 original = skill.read_text()
                 skill.write_text(original + "\n" + bad + "\n")
@@ -187,11 +187,15 @@ class BuildTests(unittest.TestCase):
         elsewhere = self.tmp / "client-folder"
         elsewhere.mkdir()
         fixture = ROOT / "evals/fixtures/control_12.md"
+        env = {**os.environ, "PCP_PROFILE": str(self.tmp / "p" / "profile.yaml")}
         skill = installed / "skills/pcp"
         r = subprocess.run([sys.executable, str(skill / "scripts/eval.py"), "duf", str(fixture)],
                            cwd=elsewhere, capture_output=True, text=True, timeout=30)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertEqual(json.loads(r.stdout)["bound"], 12)
+        r = subprocess.run([sys.executable, str(skill / "scripts/profile.py"), "inspect"],
+                           cwd=elsewhere, capture_output=True, text=True, timeout=30, env=env)
+        self.assertEqual(json.loads(r.stdout)["status"], "missing", r.stderr)
         for s in ("pcp", "talyx-pdf"):
             r = subprocess.run([sys.executable, str(installed / "skills" / s / "scripts/talyx_pdf.py"), "--help"],
                                cwd=elsewhere, capture_output=True, text=True, timeout=30)

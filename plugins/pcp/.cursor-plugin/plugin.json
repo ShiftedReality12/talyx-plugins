@@ -1,7 +1,7 @@
 {
   "name": "pcp",
   "version": "2.1.0",
-  "description": "Pre-call prep: eight one-time calibration questions, public-source OSINT/SOCMINT with a coverage ledger, a six-dimension behavioral read, and ONE 3-page PDF (2-page brief + 1-page meeting script). Every fact cited.",
+  "description": "Pre-call prep: one-time calibration saved per user, public-source OSINT/SOCMINT with a coverage ledger, a six-dimension behavioral read, and ONE 3-page PDF (2-page brief + 1-page meeting script). Every fact cited.",
   "author": {
     "name": "Talyx AI",
     "url": "https://talyx.ai"

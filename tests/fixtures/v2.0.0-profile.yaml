@@ -1,0 +1,17 @@
+# pcp profile -- written 2026-09-25 from calibration answers supplied inline with /pcp
+caller:
+  role: principal
+  authority_level: high
+  offer_one_line: "We build relationship-intelligence software for enterprise sales teams"
+domain: general
+target:
+  kind_default: person
+meeting:
+  format_default: intro
+  win_definition: "a 30-minute working session with her chief of staff"
+research:
+  depth: standard
+socmint:
+  scope: professional
+jurisdiction: us
+defaulted: {}
