@@ -1,0 +1,20 @@
+{
+  "name": "talyx",
+  "interface": {
+    "displayName": "Talyx"
+  },
+  "plugins": [
+    {
+      "name": "pcp",
+      "source": {
+        "source": "local",
+        "path": "./plugins/pcp"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_USE"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

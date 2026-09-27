@@ -1,27 +1,48 @@
-<!-- GENERATED from pcp.yaml (sha256:955f9b4c32cc) by render_skill.py -- edit pcp.yaml, never this file -->
 ---
-name: pre-call-prep
-description: >
-  Prepare for an upcoming meeting with a named person, company or deal. Eight one-time calibration
-  questions, public-source OSINT/SOCMINT collection with a coverage ledger, a six-dimension
-  behavioral read, and ONE 3-page PDF: a 2-page brief plus a 1-page meeting script. Use when the
-  user mentions pre-call prep, meeting prep, call preparation, researching someone before a
-  meeting, talking points, or shares an intake list. Do not use for general research unrelated to
-  a meeting, or for notes on a meeting that has already happened.
+name: pcp
+description: "Prepare for an upcoming meeting with a named person, company or deal. Eight one-time calibration questions, public-source OSINT/SOCMINT collection with a coverage ledger, a six-dimension behavioral read, and ONE 3-page PDF: a 2-page brief plus a 1-page meeting script. Use when the user mentions pre-call prep, meeting prep, call preparation, researching someone before a meeting, talking points, or shares an intake list. Do not use for general research unrelated to a meeting, or for notes on a meeting that has already happened."
+argument-hint: "[intake.csv | \"Full Name, Organisation\"] [--recalibrate] [--profile <name>] [--out <dir>]"
 ---
+<!-- GENERATED from pcp.yaml (sha256:952ac8d03934) by build/generate.py -- edit pcp.yaml, never this file -->
 
-# Pre-call prep (v2.0.0)
+# Pre-call prep (v2.1.0)
 
 Five stages, dependency-ordered: **calibrate once -> intake -> collect -> read -> brief + script -> debrief.**
 Every stage declares its inputs before its behaviour, reads only its listed context, and follows rows
 that each carry a falsification test. Every fact traces to a public source. Nothing is invented.
 The deliverable is one 3-page PDF. Nothing else is emitted.
 
+## Running this skill
+
+- **Paths.** Every `scripts/`, `assets/` and `pcp.yaml` path here is relative to this skill's folder -- the
+  folder containing this SKILL.md. Resolve it to an absolute path before running anything. Never write
+  into the skill folder: working files (`claims.jsonl`, `brief.md`, `script.md`) and the PDF go in the
+  output folder (`--out <dir>`, default the user's current working folder).
+- **Runtime.** Python 3.10+ with PyYAML. The PDF step also needs Playwright + Chromium + pypdf; if
+  `scripts/talyx_pdf.py` reports them missing, ask the user before running
+  `python3 scripts/talyx_pdf.py --setup` (it installs packages).
+- **Arguments.** `$ARGUMENTS` -- `"Full Name, Organisation"` or a CSV path (template:
+  `assets/intake-template.csv`), plus optional `--recalibrate`, `--profile <name>`, `--out <dir>`. If that
+  placeholder was not filled in (hosts other than Claude), read them from the user's message.
+- **One copy.** Use only this skill's folder. Never search the disk for another pcp install: an older copy
+  elsewhere is not this plug-in.
+- **Say first** what was not found (coverage) before what was -- row S4-7.
+
 ## Stage 0: Calibrate (once)
 
-If `~/.pcp/profile.yaml` is missing or invalid, or `--recalibrate` is passed, ask these eight
-questions with `AskUserQuestion` -- two calls of four, first option recommended -- then write the
-profile and continue. Otherwise read the profile silently.
+If `~/.pcp/profile.yaml` is missing or invalid, or `--recalibrate` is passed, ask these eight questions
+using the host's structured-question tool, first option marked recommended:
+  - Claude `AskUserQuestion` and Gemini `ask_user`: up to 4 questions per call, 2-4 options each.
+  - Codex `request_user_input`: up to 3 questions per call and only 2-3 options each; it adds an "Other"
+    free-text choice itself. For a 4-option question show the first 3 and name the 4th in the question
+    text ("or choose Other and type: <label>"). If it answers "unavailable in Default mode", ask in chat
+    instead and tell the user once that Codex shows these as a form in Plan mode, or after
+    `codex features enable default_mode_request_user_input`.
+  - Keep headers to 12 characters; you may shorten option labels, but record the option `value`.
+  - A free-text question (no options) always goes in plain chat.
+  - No such tool: ask them all in one chat message with numbered options.
+
+Then write the profile and continue. Otherwise (the profile exists and no `--recalibrate`) read it silently.
 
 | # | Chip | Question | Options | Sets |
 |---|---|---|---|---|
@@ -29,7 +50,7 @@ profile and continue. Otherwise read the profile silently.
 | Q2 | Domain | Where do your targets mostly live? | General professional (Recommended) / Wealth management / Private equity / VC / Enterprise / SaaS | domain |
 | Q3 | Target kind | Who do you usually prep for? | A person (Recommended) / A company or team / A deal or transaction / Mixed | target.kind_default |
 | Q4 | Meeting | What is the typical call? | First intro (cold or warm) (Recommended) / Discovery / qualification / Pitch / close / Relationship / renewal | meeting.format_default |
-| Q5 | Depth | Research depth versus speed? | Standard -- 12 families / Fast -- 6 families / Deep -- all families + competing hypotheses | research.depth |
+| Q5 | Depth | Research depth versus speed? | Standard -- 12 families, about 8 minutes (Recommended) / Fast -- 6 families, about 3 minutes / Deep -- all families + competing hypotheses | research.depth |
 | Q6 | SOCMINT | Public social footprint -- how far? | Professional only (Recommended) / Plus public X / Bluesky / Substack / None | socmint.scope |
 | Q7 | Compliance | Jurisdiction and compliance posture? | US (Recommended) / UK / EU (GDPR strict) / Regulated sales (FINRA / FCA style) / APAC | jurisdiction |
 | Q8 | Your offer | In one line -- what do you offer, and what does a win in this meeting look like? (free text) | free text | caller.offer_one_line, meeting.win_definition |
@@ -132,7 +153,7 @@ Profile line (footer of every PDF): `role · domain · depth · jurisdiction`.
 
 **Context contract** -- read, in this order: brief sections with word budgets, script beats, claims (C1/C2 first), read.json, profile.caller, guardrails. Budget: 3000 words. Not read: rubric evidence lists, family query templates.
 
-**Outputs:** `brief.md` (pages 1-2); `script.md` (page 3); `<out>/<date>-<slug>.pdf` (ONE 3-page PDF via format/talyx_pdf.py --max-pages 3)
+**Outputs:** `brief.md` (pages 1-2); `script.md` (page 3); `<out>/<date>-<slug>.pdf` (ONE 3-page PDF via scripts/talyx_pdf.py --max-pages 3)
 
 **Rows:**
 
@@ -140,12 +161,14 @@ Profile line (footer of every PDF): `role · domain · depth · jurisdiction`.
   _Fails when:_ eval.py duf reports unbound > 0 -- the run must rewrite before render.
 - **S4-2** Every sentence passes the swap test against caller.offer_one_line and the target: if another target's name would leave it true, delete it.  
   _Fails when:_ A brief with a sentence containing no claim id and no target-specific noun fails checks.swap.
-- **S4-3** Render ONLY through format/talyx_pdf.py with --max-pages 3; never emit Markdown or HTML as the deliverable.  
+- **S4-3** Render ONLY through scripts/talyx_pdf.py with --max-pages 3; never emit Markdown or HTML as the deliverable.  
   _Fails when:_ The output directory contains exactly one .pdf and no .md/.html after a run.
 - **S4-4** If the tightest density rung still overflows 3 pages, the run FAILS with the section word counts; it never truncates or spills.  
   _Fails when:_ Feed a 900-word section -- the engine must exit non-zero naming the section.
 - **S4-5** The PDF footer carries: profile line, research status, duf_pp, coverage fraction.  
   _Fails when:_ Extract page-3 footer text -- all four fields present.
+- **S4-7** When delivering, say what was NOT found first -- families with no usable source, failed URLs, LIMITED status -- then what was found.  
+  _Fails when:_ In a run with a failed URL, the delivery message names it and the coverage fraction before any finding.
 
 ## Stage 5: Debrief + ratchet
 
@@ -154,18 +177,18 @@ Profile line (footer of every PDF): `role · domain · depth · jurisdiction`.
 | Input | Type | Source | Required | Fallback |
 |---|---|---|---|---|
 | `debrief.yaml` | yaml | user, after the call (60 seconds, 4 fields) | no | skip loop |
-| `ratchet.json` | json | evals/ratchet.json | yes | initialise empty |
+| `ratchet.json` | json | evals/ratchet.json in the source repository | yes | initialise empty |
 
 **Context contract** -- read, in this order: ratchet floors, debrief rows, the pcp.yaml rows the debrief touches. Budget: 800 words. Not read: everything else.
 
 **Rows:**
 
-- **S5-1** A change to pcp.yaml lands only if eval.py ratchet passes: every frozen target's duf_pp >= its floor AND all checks pass. The floor is the best ever seen and only rises.  
+- **S5-1** A change to pcp.yaml lands only if evals/pcp_eval.py ratchet (source repository) passes: every frozen target's duf_pp >= its floor AND all checks pass. The floor is the best ever seen and only rises.  
   _Fails when:_ Lower a family weight so a target's duf_pp drops -- ratchet must exit non-zero and name the target.
 - **S5-2** Debrief fields: facts_used[claim ids], questions_landed[ids], band_accuracy{dim: hit|miss}, outcome. Nothing else is asked.  
   _Fails when:_ The debrief template has exactly four fields.
 - **S5-3** improve proposes row diffs (family weights, question templates, band phrases) as a patch with basis: debrief_id; it never edits SKILL.md and never lands a diff itself.  
-  _Fails when:_ Run improve -- the only file written is evals/proposals/<date>.patch.
+  _Fails when:_ Run scripts/eval.py improve on a debrief -- the only file written is pcp-proposals-<date>.patch beside it.
 
 ## Source families
 
@@ -251,30 +274,35 @@ Never say: "Does that make sense?"; "Is this helpful?"; "No pressure"; "You'd kn
 
 | Id | Check | Command | Passes when |
 |---|---|---|---|
-| C1 | swap | `eval.py checks --swap` | no sentence in B1-B7 lacks both a [n] and a target-specific noun |
-| C2 | bound | `eval.py duf` | unbound == 0 and every [n] in the body exists in B9 with url+tag+date |
-| C3 | quotes | `eval.py checks --quotes` | every quoted string in B2 has a [n] |
-| C4 | custom_q | `eval.py checks --custom-q` | >= 2 questions in B5 carry a [n] |
-| C5 | sections | `eval.py checks --sections` | B1-B9 and P1-P7 present in order (P5 may be omitted per S3-2) |
-| C6 | budgets | `eval.py checks --budgets` | no section exceeds its words by > 15% |
-| C7 | never_say | `eval.py checks --never-say` | no never_say phrase appears outside P7/B8 |
-| C8 | outcome | `eval.py checks --outcome` | B6 Bridge contains no method verbs from checks.method_verbs |
-| C9 | exclusions | `eval.py checks --exclusions` | no excluded topic keyword appears in the body |
-| C10 | pages | `format/talyx_pdf.py --max-pages 3` | rendered page count == 3 |
+| C1 | swap | `scripts/eval.py checks --swap` | no sentence in B1-B7 lacks both a [n] and a target-specific noun |
+| C2 | bound | `scripts/eval.py duf` | unbound == 0 and every [n] in the body exists in B9 with url+tag+date |
+| C3 | quotes | `scripts/eval.py checks --quotes` | every quoted string in B2 has a [n] |
+| C4 | custom_q | `scripts/eval.py checks --custom-q` | >= 2 questions in B5 carry a [n] |
+| C5 | sections | `scripts/eval.py checks --sections` | B1-B9 and P1-P7 present in order (P5 may be omitted per S3-2) |
+| C6 | budgets | `scripts/eval.py checks --budgets` | no section exceeds its words by > 15% |
+| C7 | never_say | `scripts/eval.py checks --never-say` | no never_say phrase appears outside P7/B8 |
+| C8 | outcome | `scripts/eval.py checks --outcome` | B6 Bridge contains no method verbs from checks.method_verbs |
+| C9 | exclusions | `scripts/eval.py checks --exclusions` | no excluded topic keyword appears in the body |
+| C10 | pages | `scripts/talyx_pdf.py --max-pages 3` | rendered page count == 3 |
 
 ## Render
 
 ```
-python3 format/talyx_pdf.py --brief brief.md --script script.md --title "<Name> -- <Org>" \
+python3 scripts/talyx_pdf.py --brief <out>/brief.md --script <out>/script.md --title "<Name> -- <Org>" \
     --subtitle "Pre-call brief · <meeting date>" --footer "<profile line> · <status> · duf_pp <x> · coverage <a>/<b>" \
-    --max-pages 3 --out <dir>/<date>-<slug>.pdf
+    --max-pages 3 --out <out>/<date>-<slug>.pdf
 ```
+
+Read the JSON it prints: `ok: false` means there is no deliverable yet -- cut the named sections and render
+again. Deliver the PDF path and the footer line, then delete `brief.md` and `script.md`.
 
 ## Debrief and ratchet
 
-After the call, `evals/debrief_template.yaml` (four fields). `python3 eval.py improve` proposes row diffs to
-`pcp.yaml`; `python3 eval.py ratchet` lands them only if every frozen target holds its floor. The floor is the
-best ever seen and only rises.
+After the call, offer the four fields in `assets/debrief-template.yaml` and save the answers as
+`debrief.yaml` beside the PDF. Never ask for more. Then `python3 scripts/eval.py improve <debrief.yaml>`
+writes proposed registry changes beside the debrief as `pcp-proposals-<date>.patch`; it never edits the
+skill. Proposals land only through the maintainers' ratchet (`evals/pcp_eval.py ratchet` in the source
+repository).
 
 ## About
 

@@ -1,0 +1,7 @@
+# <!-- GENERATED from pcp.yaml (sha256:952ac8d03934) by build/generate.py -- edit pcp.yaml, never this file -->
+description = "Prepare for a meeting. Calibrates once, researches from public sources, reads behaviour, and writes ONE 3-page PDF (2-page brief + 1-page script)."
+prompt = """
+Input from the user: {{args}}
+
+Activate the `pcp` skill from THIS extension and follow it exactly, in stage order, with that input as its arguments. Use only this extension's copy of the skill.
+"""

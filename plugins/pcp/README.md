@@ -1,8 +1,10 @@
-# /pcp: pre-call prep for Claude Code (v2)
+# /pcp: pre-call prep
 
-A free Claude Code plug-in from [Talyx AI](https://talyx.ai). Type `/pcp` before a meeting and get
-**one 3-page PDF**: a 2-page pre-call brief and a 1-page meeting script on the person, company or
-deal you are about to meet, built from public sources, every fact cited.
+A free plug-in from [Talyx AI](https://talyx.ai). Type `/pcp` before a meeting and get **one 3-page
+PDF**: a 2-page pre-call brief and a 1-page meeting script on the person, company or deal you are about
+to meet, built from public sources, every fact cited. Runs in Claude Code, Claude desktop, Codex,
+ChatGPT desktop, Grok, Cursor, Gemini CLI, Devin and Perplexity -- see the
+repository README (https://github.com/talyx-ai/talyx-plugins) for install commands and which hosts are verified.
 
 ## What it does
 
@@ -16,43 +18,38 @@ deal you are about to meet, built from public sources, every fact cited.
    before anything is written.
 3. **Reads behaviour.** Six dimensions, each scored only from cited observations; the evidence tier
    decides how far the script goes.
-4. **Renders the PDF.** Pages 1-2 brief (snapshot, their words, strategic read, behavioral read,
-   discovery questions, situation framed, value + next step, guardrails, sources). Page 3 script
-   (open, beats, questions, objections, close, never-say). Hard page gate: it fails rather than
-   spills.
-5. **Debrief.** Four fields after the call feed proposals back into the registry; a change lands only
-   if it does not regress any frozen eval target.
-
-## Install
-
-```
-/plugin marketplace add talyx-ai/talyx-plugins
-/plugin install pcp@talyx
-python3 format/talyx_pdf.py --setup      # once per machine: Playwright + Chromium + pypdf
-```
+4. **Renders the PDF.** Pages 1-2 brief, page 3 script. Hard page gate: it fails rather than spills.
+5. **Debrief.** Four fields after the call.
 
 ## Use
 
-```
+```text
 /pcp "Full Name, Organisation"
 /pcp path/to/intake.csv
 /pcp --recalibrate
 ```
 
-## How it is built (for contributors)
+The entry point is the `pcp` skill: `/pcp:pcp` in Claude, `/pcp` in Cursor, Grok and Gemini, `$pcp` in
+Codex (or pick it with `@` in the Codex / ChatGPT app). You can also just ask: "prep me for my call with ...".
 
-Three files. Everything else is generated or frozen.
+Codex asks the setup questions as a form only in Plan mode, or everywhere after
+`codex features enable default_mode_request_user_input`; otherwise it asks them in chat.
 
-| File | Role |
+The first PDF on a machine needs Playwright, Chromium and pypdf. The skill asks before installing them
+(`python3 scripts/talyx_pdf.py --setup` from the skill folder).
+
+## Your saved setup
+
+The eight answers are saved once in `~/.pcp/profile.yaml` and read silently on every later run;
+`--recalibrate` asks them again.
+
+| Host | Saved setup |
 |---|---|
-| `pcp.yaml` | The registry: every question, parameter, source family, rubric band, page budget, instruction row (with its falsification test) |
-| `render_skill.py` | Renders `skills/pre-call-prep/SKILL.md` and `commands/pcp.md` from the registry. The only writer. |
-| `eval.py` | The instrument: `duf` (decision-useful facts per page), `checks`, `concordance`, `self-test`, `ratchet`, `improve` |
-
-`format/talyx_pdf.py` is the portable house-style renderer (also exposed as the `talyx-pdf` skill).
-
-Contract: edit `pcp.yaml`, run `python3 render_skill.py`, then `python3 eval.py concordance && python3 eval.py self-test && python3 eval.py ratchet`. A hand edit to a generated file fails concordance. A registry change that lowers any frozen target's `duf_pp` below its floor fails the ratchet.
+| Claude Code, Codex, Grok, Cursor, Gemini CLI, Devin | saved on first run, reused after (Codex may ask to approve the write outside its sandbox) |
+| Claude desktop (Cowork), Perplexity | these run the skill in a sandbox whose home folder may not persist; if it does not, the questions come back in a new session |
+| Gemini Gem, Microsoft 365 Copilot | no files: the assistant gives you a *Saved setup* block to paste into the knowledge file (`adapters/chat` in the source repository) |
 
 ## Licence
 
-Free to use under `LICENSE`. Public professional record only; see the exclusions in `pcp.yaml`.
+Free to use under `LICENSE`. Public professional record only; see the exclusions in
+`skills/pcp/pcp.yaml`. Contributors: see the repository README.
