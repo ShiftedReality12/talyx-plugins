@@ -186,6 +186,19 @@ class BuildTests(unittest.TestCase):
         self.assertEqual(skill["name"], "pcp")
         self.assertIn("--recalibrate", skill["argument-hint"])
 
+    def test_skill_keeps_the_v2_0_0_command_run_order(self):
+        # v2.0.0 ran through a /pcp command whose run order made the model save the coverage ledger;
+        # dropping it with the command made runs skip coverage.json (A/B 2026-09-28)
+        skill = (self.root / "skills/pcp/SKILL.md").read_text()
+        for step in ("1. **Intake** -- resolve `$ARGUMENTS` (CSV path, `\"Name, Org\"`, or ask). Confirm the objective.",
+                     "2. **Collect** -- run the enabled source families; write `claims.jsonl` and the coverage ledger.",
+                     "3. **Read** -- score six dimensions from claim ids only; set the evidence tier.",
+                     "4. **Brief + script** -- write `brief.md` (B1-B9) and `script.md` (P1-P7); run `python3 scripts/eval.py checks`",
+                     "Delete `brief.md`/`script.md` after a clean render.",
+                     "5. **Debrief** -- offer the four-field debrief template; never ask for more.",
+                     "Say what was NOT found (coverage) before what was."):
+            self.assertIn(step, skill)
+
     def test_skill_frontmatter_follows_agent_skills_spec(self):
         for skill in sorted((self.plugin / "skills").iterdir()):
             text = (skill / "SKILL.md").read_text()
