@@ -56,13 +56,19 @@ def ratchet(record=False):
     for b in runs:
         tid = b.parents[1].name
         s = b.parent / "script.md"
-        rep = ev.duf(b.read_text(), s.read_text() if s.exists() else "")
+        brief, script = b.read_text(), s.read_text() if s.exists() else ""
+        target = yaml.safe_load((b.parents[1] / "target.yaml").read_text())["target"]
+        rep = ev.duf(brief, script)
+        fails = ev.checks(brief, script, target_nouns=[*target["name"].split(), target["org"]])   # C1-C9, as S5-1 requires
         floor = floors["floors"].get(tid, {}).get("duf_pp", 0)
-        status = "OK" if rep["duf_pp"] >= floor and rep["ok"] else "REGRESS"
-        print(f"{tid}: duf_pp {rep['duf_pp']} floor {floor} checks_ok {rep['ok']} -> {status}")
+        passed = rep["ok"] and not fails
+        status = "OK" if passed and rep["duf_pp"] >= floor else "REGRESS"
+        print(f"{tid}: duf_pp {rep['duf_pp']} floor {floor} duf_ok {rep['ok']} check_failures {len(fails)} -> {status}")
+        for f in fails:
+            print("   ", f)
         if status != "OK":
             bad.append(tid)
-        if record and rep["ok"] and rep["duf_pp"] > floor:
+        if record and passed and rep["duf_pp"] > floor:
             floors["floors"][tid] = {"duf_pp": rep["duf_pp"], "recorded": dt.date.today().isoformat()}
     if record:
         rf.write_text(json.dumps(floors, indent=2))

@@ -97,6 +97,14 @@ def openai_skill_yaml(skill):
 
 # ── the skill, rendered from pcp.yaml ────────────────────────────────────────────────────────────
 
+def _for(items, mode):
+    """The registry items a host mode sees. In chat mode (no scripts, no files) an item marked
+    `chat: false` is left out and `chat: {field: text}` replaces those fields."""
+    if mode != "chat":
+        return items
+    return [{**i, **i["chat"]} if isinstance(i.get("chat"), dict) else i for i in items if i.get("chat", True) is not False]
+
+
 def _rows(rows):
     return "\n".join(f"- **{r['id']}** {r['text']}  \n  _Fails when:_ {r['test']}" for r in rows)
 
@@ -172,12 +180,13 @@ STAGE0_CHAT = """## Stage 0: Calibrate (once per user)
 This host runs no scripts. The saved setup is the **Saved setup** block at the end of this knowledge file.
 
 - Every question has a saved answer there -- use them silently. Ask nothing.
-- Otherwise ask ONLY the unanswered questions, using {tools}. A skipped question takes its first
-  (Recommended) option, marked defaulted. Then output the complete updated **Saved setup** block in
-  the same YAML shape -- each answer as `Q1: {{value: <option value or your text>, defaulted: false}}` under
-  `profiles: default: answers:` -- and tell the user to replace the block in this knowledge file with it, so the
-  next conversation does not ask again. Never claim it was saved: only the user can update the file.
-- `--recalibrate` asks every question again, showing the saved answer.
+- Otherwise ask ONLY the unanswered questions, using {tools}.
+- A skipped question takes its first (Recommended) option, marked defaulted.
+- Then output the complete updated **Saved setup** block in the same YAML shape -- each answer as
+  `Q1: {{value: <option value or your text>, defaulted: false}}` under `profiles: default: answers:` -- and tell
+  the user to replace the block in this knowledge file with it, so the next conversation does not ask again.
+  Never claim it was saved: only the user can update the file.
+- `--recalibrate` in the user's message asks every question again, showing the saved answer.
 
 | # | Chip | Question | Options | Sets |
 |---|---|---|---|---|
@@ -220,13 +229,15 @@ accuracy per dimension (hit or miss), outcome -- and nothing else."""
 
 
 def render_skill(src, R, sha, mode="plugin"):
+    pdf = mode == "plugin"
     cal = R["calibration"]
     q_lines = []
     for q in cal["questions"]:
-        opts = " / ".join(o["label"] for o in q["options"]) if q["options"] else "free text"
+        # numbered, because labels contain " / " and Codex must know which option is the 4th
+        opts = "; ".join(f"{n}. {o['label']}" for n, o in enumerate(q["options"], 1)) if q["options"] else "free text"
         q_lines.append(f"| {q['id']} | {q['header']} | {q['question']} | {opts} | {', '.join(q['sets'])} |")
-    stage0 = (STAGE0_PLUGIN if mode == "plugin" else STAGE0_CHAT).format(
-        tools=QUESTION_TOOLS, questions="\n".join(q_lines), rules=_rows(cal["rules"]),
+    stage0 = (STAGE0_PLUGIN if pdf else STAGE0_CHAT).format(
+        tools=QUESTION_TOOLS, questions="\n".join(q_lines), rules=_rows(_for(cal["rules"], mode)),
         profile_line=" · ".join(cal["profile_line"]))
     fam_lines = [f"| {f['id']} | {f['name']} | {'/'.join(f['depth'])} | {'yes' if f['socmint'] else 'no'} | `{f['query']}` | {f['extract']} |"
                  for f in R["families"]]
@@ -236,28 +247,34 @@ def render_skill(src, R, sha, mode="plugin"):
     brief = "\n".join(f"| {s['id']} | {s['title']} | {s['words']} | {s['content']} |" for s in R["brief"]["sections"])
     script = "\n".join(f"| {b['id']} | {b['title']} | {b['words']} | {b['content']} |" for b in R["script"]["blocks"])
     beats = "\n".join(f"- **{k}**: {' -> '.join(v)}" for k, v in R["script"]["beats_by_format"].items())
-    checks = "\n".join(f"| {c['id']} | {c['name']} | `{c['cmd']}` | {c['passes_when']} |" for c in R["checks"] if "cmd" in c)
+    runnable = [c for c in _for(R["checks"], mode) if "cmd" in c]
+    checks = "\n".join(["| Id | Check | Command | Passes when |", "|---|---|---|---|"] +
+                       [f"| {c['id']} | {c['name']} | `{c['cmd']}` | {c['passes_when']} |" for c in runnable] if pdf else
+                       ["| Id | Check | Passes when |", "|---|---|---|"] +   # a chat host runs no commands
+                       [f"| {c['id']} | {c['name']} | {c['passes_when']} |" for c in runnable])
     excl, pb = R["exclusions"], R["page_budget"]
     stages = []
-    for s in R["stages"]:
+    for s in _for(R["stages"], mode):
         block = [f"## Stage {s['id'][1]}: {s['name']}", "", "**Input contract** (declared before behaviour):", "",
-                 _inputs(s["inputs"]), "", _context(s["context"]), ""]
-        if s.get("outputs"):
-            block += ["**Outputs:** " + "; ".join(f"`{o['name']}` ({', '.join(o.get('fields', [])) or o.get('note', '')})" for o in s["outputs"]), ""]
-        block += ["**Rows:**", "", _rows(s["rows"]), ""]
+                 _inputs(_for(s["inputs"], mode)), "", _context(s["context"]), ""]
+        if outputs := _for(s.get("outputs", []), mode):
+            block += ["**Outputs:** " + "; ".join(f"`{o['name']}` ({', '.join(o.get('fields', [])) or o.get('note', '')})" for o in outputs), ""]
+        block += ["**Rows:**", "", _rows(_for(s["rows"], mode)), ""]
         stages.append("\n".join(block))
     # frontmatter must be the first bytes of the file or hosts ignore it -- the marker goes after it
     head = (f"---\nname: {R['skill']['name']}\ndescription: {json.dumps(R['skill']['description'])}\n"
             f"argument-hint: {json.dumps(R['skill']['argument_hint'])}\n---\n{R['render_header'].format(sha=sha)}\n\n"
-            if mode == "plugin" else f"{R['render_header'].format(sha=sha)}\n\n")
-    running = RUNNING_PLUGIN + "\n\n" if mode == "plugin" else ""
-    tail = RENDER_PLUGIN.format(pages=pb["total_pages"]) if mode == "plugin" else RENDER_CHAT
+            if pdf else f"{R['render_header'].format(sha=sha)}\n\n")
+    running = RUNNING_PLUGIN + "\n\n" if pdf else ""
+    tail = RENDER_PLUGIN.format(pages=pb["total_pages"]) if pdf else RENDER_CHAT
+    budget = (f"Word budgets are the page budget; the engine renders on a {len(pb['ladder'])}-rung density ladder and fails, never spills, past {pb['total_pages']} pages."
+              if pdf else "Word budgets are length limits: cut to fit, never run over (check C6).")
     return f"""{head}# Pre-call prep (v{src['version']})
 
 Five stages, dependency-ordered: **calibrate once -> intake -> collect -> read -> brief + script -> debrief.**
 Every stage declares its inputs before its behaviour, reads only its listed context, and follows rows
 that each carry a falsification test. Every fact traces to a public source. Nothing is invented.
-The deliverable is one 3-page PDF. Nothing else is emitted.
+The deliverable is {'one 3-page PDF' if pdf else 'one document: the brief, then the meeting script'}. Nothing else is emitted.
 
 {running}{stage0}
 
@@ -288,9 +305,9 @@ medium = {tiers['medium']['min_observations']} observations, {tiers['medium']['c
 
 ACH mini (depth deep only): <= {R['rubric']['ach']['max_hypotheses']} hypotheses about what they want from this meeting, each with the claim that would disconfirm it.
 
-## The PDF: pages 1-2 brief
+## {'The PDF: pages 1-2 brief' if pdf else 'The brief'}
 
-Word budgets are the page budget; the engine renders on a {len(pb['ladder'])}-rung density ladder and fails, never spills, past {pb['total_pages']} pages.
+{budget}
 
 | Id | Section | Words | Content |
 |---|---|---|---|
@@ -298,7 +315,7 @@ Word budgets are the page budget; the engine renders on a {len(pb['ladder'])}-ru
 
 Domain vocabulary: {'; '.join(f"{k}: {', '.join(v)}" for k, v in R['brief']['vocab_by_domain'].items() if v)}.
 
-## The PDF: page 3 meeting script
+## {'The PDF: page 3 meeting script' if pdf else 'The meeting script'}
 
 Beats by meeting format:
 {beats}
@@ -309,10 +326,8 @@ Beats by meeting format:
 
 Never say: {'; '.join(f'"{p}"' for p in R['guardrails']['never_say'])}.
 
-## Checks (all pass before render)
+## Checks (all pass before {'render' if pdf else 'delivery'})
 
-| Id | Check | Command | Passes when |
-|---|---|---|---|
 {checks}
 
 {tail}
@@ -361,7 +376,7 @@ def render_chat_knowledge(src, R, sha):
 def check_skills(plugin, files):
     """Portability checks on every SKILL.md as it will be written (the Agent Skills spec + host rules)."""
     fails = []
-    for skill_dir in sorted((plugin / "skills").iterdir()):
+    for skill_dir in sorted(d for d in (plugin / "skills").iterdir() if d.is_dir()):   # not .DS_Store
         path = skill_dir / "SKILL.md"
         text = files.get(path) or path.read_text()
         fm = re.match(r"---\n(.*?)\n---\n", text, re.S)
@@ -386,6 +401,15 @@ def check_skills(plugin, files):
             if not (skill_dir / ref).exists() and not any(p == skill_dir / ref for p in files):
                 fails.append(f"{where}: references {ref}, which is not in the skill folder")
     return fails
+
+
+def check_chat(text):
+    """The chat file goes to hosts that run no code and keep no files. It must never send the model to a
+    script, a machine path or a slash-command placeholder (review 2026-09-28: it asked for a script-made PDF)."""
+    body = text.split("\n", 1)[1]   # line 1 is the generated-file header
+    hits = sorted(set(re.findall(r"scripts/[\w.-]*|\b[\w-]+\.py\b|~/\.\w+|\$ARGUMENTS|PCP_PROFILE", body)))
+    return [f"adapters/chat/pcp-knowledge.md names {', '.join(hits)} -- a chat host has no scripts or files; "
+            "give that pcp.yaml item `chat: false` or `chat: {field: text}`"] if hits else []
 
 
 def check_registry(R):
@@ -481,7 +505,8 @@ def main():
         return p.read_bytes() if isinstance(files[p], bytes) else p.read_text()
 
     drift = sorted(str(p.relative_to(ROOT)) for p in files if current(p) != files[p])
-    problems = check_skills(plugin, files) + check_registry(R) + check_ladder(R)
+    problems = (check_skills(plugin, files) + check_chat(files[ROOT / "adapters" / "chat" / "pcp-knowledge.md"])
+                + check_registry(R) + check_ladder(R))
     if a.check:
         for line in drift:
             print("out of date:", line)

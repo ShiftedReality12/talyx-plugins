@@ -117,6 +117,32 @@ class BuildTests(unittest.TestCase):
         self.assertEqual(r.returncode, 1)
         self.assertIn("stray key", r.stdout)
 
+    def test_stray_file_beside_the_skills_is_ignored(self):
+        (self.plugin / "skills/.DS_Store").write_bytes(b"\0\0\0\1Bud1")
+        r = self.generate("--check")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+    def test_chat_file_never_sends_the_model_to_a_script_or_a_file(self):
+        chat = (self.root / "adapters/chat/pcp-knowledge.md").read_text()
+        for plugin_only in ("scripts/", ".py", "~/.pcp", "$ARGUMENTS", "3-page PDF", "C10"):
+            self.assertNotIn(plugin_only, chat.split("\n", 1)[1])
+        for kept in ("## Saved setup", "self-checked", "S4-7", "the user's message", *[f"| C{n} |" for n in range(1, 10)]):
+            self.assertIn(kept, chat)
+        self.assertIn("scripts/talyx_pdf.py --max-pages 3", (self.plugin / "skills/pcp/SKILL.md").read_text())
+        # a new row that needs a script fails the build until it is marked for chat hosts
+        reg = self.plugin / "skills/pcp/pcp.yaml"
+        text = reg.read_text()
+        row = '      - {id: S2-7, text: "Run scripts/eval.py duf after collecting.", test: "x", basis: "y"'
+        anchor = "\n  - id: S3\n"
+        reg.write_text(text.replace(anchor, f"\n{row}}}\n{anchor}", 1))
+        r = self.generate("--check")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("pcp-knowledge.md names scripts/eval.py", r.stdout)
+        reg.write_text(text.replace(anchor, f"\n{row}, chat: false}}\n{anchor}", 1))
+        self.assertEqual(self.generate().returncode, 0)
+        self.assertIn("S2-7", (self.plugin / "skills/pcp/SKILL.md").read_text())
+        self.assertNotIn("S2-7", (self.root / "adapters/chat/pcp-knowledge.md").read_text())
+
     def test_page_ladder_drift_between_registry_and_renderer_fails(self):
         reg = self.plugin / "skills/pcp/pcp.yaml"
         reg.write_text(reg.read_text().replace("{name: compact, body_pt: 10.0", "{name: compact, body_pt: 9.5"))
@@ -226,6 +252,28 @@ class BuildTests(unittest.TestCase):
         (self.root / "evals/fixtures/control_12.md").write_text("# empty\n")
         r = subprocess.run([sys.executable, "evals/pcp_eval.py", "self-test"], cwd=self.root, capture_output=True, text=True)
         self.assertEqual(r.returncode, 1)
+
+    def test_ratchet_holds_a_brief_to_every_check_not_just_the_counter(self):
+        brief = (ROOT / "evals/fixtures/control_12.md").read_text()
+        for a, b in (("Status FULL", "Jane Doe: status FULL"), ("What the answer", "What Jane's answer"),
+                     ("introductions land", "introductions reach Jane Doe"),
+                     ("30-minute follow-up.", "30-minute follow-up with Jane Doe."), (" about Alder Grey Capital --", " --")):
+            brief = brief.replace(a, b)   # the control, made to pass C1 (swap) and C6 (budgets) for this target
+        target = self.root / "evals/targets/jane-doe"
+        (target / "latest").mkdir(parents=True)
+        (target / "target.yaml").write_text('target: {kind: person, name: "Jane Doe", org: "Alder Grey Capital"}\n')
+
+        def ratchet(text):
+            (target / "latest/brief.md").write_text(text)
+            return subprocess.run([sys.executable, "evals/pcp_eval.py", "ratchet"], cwd=self.root, capture_output=True, text=True)
+        r = ratchet(brief)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("jane-doe: duf_pp 4.0 floor 0 duf_ok True check_failures 0 -> OK", r.stdout)
+        # same bound facts, so the counter still passes -- but C7 (never say) fails
+        r = ratchet(brief.replace("needs references now [6].", "needs references now [6]. No pressure."))
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertIn("jane-doe: duf_pp 4.0 floor 0 duf_ok True check_failures 1 -> REGRESS", r.stdout)
+        self.assertIn("C7 never_say", r.stdout)
 
 
 if __name__ == "__main__":
