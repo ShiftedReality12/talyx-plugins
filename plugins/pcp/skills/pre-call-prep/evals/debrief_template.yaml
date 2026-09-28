@@ -1,0 +1,6 @@
+# pcp debrief -- 60 seconds after the call. Exactly four fields; nothing else is asked.
+# Save beside the PDF as debrief.yaml, then: python3 eval.py improve <path>
+facts_used: []          # claim ids [n] you actually used in the room, e.g. [3, 8, 11]
+questions_landed: []    # question ids from B5/P3 that produced a real answer
+band_accuracy: {}       # dimension: hit | miss   e.g. {dominance: hit, risk_tolerance: miss}
+outcome: ""             # next_meeting | no | undecided | closed

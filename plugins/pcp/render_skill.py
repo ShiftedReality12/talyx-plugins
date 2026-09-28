@@ -72,8 +72,8 @@ def render_skill(R, sha):
         block += ["**Rows:**", "", _rows(s["rows"]), ""]
         stages.append("\n".join(block))
 
-    return f"""{R['render_header'].format(sha=sha)}
----
+    # frontmatter must be the first bytes of the file or no host loads the skill -- the header goes after it
+    return f"""---
 name: pre-call-prep
 description: >
   Prepare for an upcoming meeting with a named person, company or deal. Eight one-time calibration
@@ -83,6 +83,7 @@ description: >
   meeting, talking points, or shares an intake list. Do not use for general research unrelated to
   a meeting, or for notes on a meeting that has already happened.
 ---
+{R['render_header'].format(sha=sha)}
 
 # Pre-call prep (v{R['registry_version']})
 

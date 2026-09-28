@@ -17,5 +17,6 @@
     "pdf",
     "sales",
     "advisors"
-  ]
+  ],
+  "skills": "./skills/"
 }

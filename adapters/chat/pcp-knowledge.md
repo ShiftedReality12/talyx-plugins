@@ -1,13 +1,3 @@
----
-name: pre-call-prep
-description: >
-  Prepare for an upcoming meeting with a named person, company or deal. Eight one-time calibration
-  questions, public-source OSINT/SOCMINT collection with a coverage ledger, a six-dimension
-  behavioral read, and ONE 3-page PDF: a 2-page brief plus a 1-page meeting script. Use when the
-  user mentions pre-call prep, meeting prep, call preparation, researching someone before a
-  meeting, talking points, or shares an intake list. Do not use for general research unrelated to
-  a meeting, or for notes on a meeting that has already happened.
----
 <!-- GENERATED from pcp.yaml (sha256:c57dde6cf7ee) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v2.0.0)
@@ -15,13 +5,20 @@ description: >
 Five stages, dependency-ordered: **calibrate once -> intake -> collect -> read -> brief + script -> debrief.**
 Every stage declares its inputs before its behaviour, reads only its listed context, and follows rows
 that each carry a falsification test. Every fact traces to a public source. Nothing is invented.
-The deliverable is one 3-page PDF. Nothing else is emitted.
+The deliverable is one document: the brief, then the meeting script. Nothing else is emitted.
 
 ## Stage 0: Calibrate (once)
 
-If `~/.pcp/profile.yaml` is missing or invalid, or `--recalibrate` is passed, ask these eight
-questions with `AskUserQuestion` -- two calls of four, first option recommended -- then write the
-profile and continue. Otherwise read the profile silently.
+This host runs no scripts. The saved setup is the **Saved setup** block at the end of this knowledge file.
+
+- Every question has a saved answer there -- use them silently. Ask nothing.
+- Otherwise ask ONLY the unanswered questions, in one chat message with numbered options, first option recommended.
+- A skipped question takes its first (Recommended) option, marked defaulted.
+- Then output the complete updated **Saved setup** block in the same YAML shape -- each answer as
+  `Q1: {value: <option value or your text>, defaulted: false}` under `profiles: default: answers:` -- and tell
+  the user to replace the block in this knowledge file with it, so the next conversation does not ask again.
+  Never claim it was saved: only the user can update the file.
+- `--recalibrate` in the user's message asks every question again, showing the saved answer.
 
 | # | Chip | Question | Options | Sets |
 |---|---|---|---|---|
@@ -34,14 +31,12 @@ profile and continue. Otherwise read the profile silently.
 | Q7 | Compliance | Jurisdiction and compliance posture? | US (Recommended) / UK / EU (GDPR strict) / Regulated sales (FINRA / FCA style) / APAC | jurisdiction |
 | Q8 | Your offer | In one line -- what do you offer, and what does a win in this meeting look like? (free text) | free text | caller.offer_one_line, meeting.win_definition |
 
-- **CAL-1** Ask all eight questions only when ~/.pcp/profile.yaml is missing, invalid, or --recalibrate is passed. Otherwise read it silently.  
-  _Fails when:_ Delete the profile and run -- the run must ask. Run again -- it must not.
-- **CAL-2** A skipped answer takes the first (Recommended) option and is stored with defaulted:true; the PDF footer shows the profile line.  
-  _Fails when:_ Skip Q5 -- profile shows research.depth standard, defaulted true; footer reads "standard".
-- **CAL-3** The improve loop may PROPOSE a profile change (one line, with the debrief evidence) but never applies one without a yes.  
-  _Fails when:_ Three debriefs with facts_used > 80% must produce a proposal, and the profile must be unchanged until answered.
+- **CAL-1** Ask only the questions the Saved setup block has no answer for -- all eight the first time, all eight again with --recalibrate. Otherwise read it silently.  
+  _Fails when:_ An empty Saved setup block -- the run asks all eight. A complete one -- it asks none.
+- **CAL-2** A skipped answer takes the first (Recommended) option and is stored with defaulted:true; the brief's heading shows the profile line.  
+  _Fails when:_ Skip Q5 -- the Saved setup block shows Q5 standard, defaulted true; the heading reads "standard".
 
-Profile line (footer of every PDF): `role · domain · depth · jurisdiction`.
+Profile line (heading of every brief): `role · domain · depth · jurisdiction`.
 
 ## Stage 1: Intake
 
@@ -49,8 +44,8 @@ Profile line (footer of every PDF): `role · domain · depth · jurisdiction`.
 
 | Input | Type | Source | Required | Fallback |
 |---|---|---|---|---|
-| `arguments` | path.csv | 'Full Name, Organisation' | empty | $ARGUMENTS | yes | ask the required intake fields in one message |
-| `profile` | yaml | ~/.pcp/profile.yaml | yes | run calibration |
+| `arguments` | 'Full Name, Organisation' | a pasted list | the user's message | yes | ask the required intake fields in one message |
+| `profile` | yaml | Saved setup block | yes | run calibration |
 | `meeting.objective` | text | intake row or one question | yes | ask: What do you want to walk out of this meeting with? |
 | `target.kind` | person|company|deal | intake or profile.target.kind_default | yes | person |
 
@@ -84,7 +79,7 @@ Profile line (footer of every PDF): `role · domain · depth · jurisdiction`.
 - **S2-1** Public sources only. Nothing behind a login, no paid data the user has not supplied, no scraping.  
   _Fails when:_ A LinkedIn login wall counts as a failed URL and appears in coverage.failed_urls.
 - **S2-2** Every claim carries url, retrieved_at, tag DIRECT|SEARCH, and confidence C1 (primary, dated) | C2 (reputable secondary) | C3 (single weak source) | C4 (inferred).  
-  _Fails when:_ A claim missing any field is dropped by eval.py claims and counted in coverage.dropped.
+  _Fails when:_ A claim missing any field is dropped and counted in coverage.dropped.
 - **S2-3** A claim that hits an exclusion is dropped BEFORE the writer sees it and counted in coverage.excluded; the brief's guardrails say a topic was left out, never which fact.  
   _Fails when:_ Seed a claim tagged exclusion health -- it must not appear in any output file.
 - **S2-4** Coverage is a required output: families_attempted/families_total and hits per family. A run without coverage is not a run.  
@@ -127,45 +122,17 @@ Profile line (footer of every PDF): `role · domain · depth · jurisdiction`.
 |---|---|---|---|---|
 | `claims.jsonl` | jsonl | S2 | yes | none |
 | `read.json` | json | S3 | yes | none |
-| `profile` | yaml | ~/.pcp/profile.yaml | yes | none |
+| `profile` | yaml | Saved setup block | yes | none |
 | `page_budget` | rows | pcp.yaml brief + script | yes | none |
 
 **Context contract** -- read, in this order: brief sections with word budgets, script beats, claims (C1/C2 first), read.json, profile.caller, guardrails. Budget: 3000 words. Not read: rubric evidence lists, family query templates.
 
-**Outputs:** `brief.md` (pages 1-2); `script.md` (page 3); `<out>/<date>-<slug>.pdf` (ONE 3-page PDF via format/talyx_pdf.py --max-pages 3)
-
 **Rows:**
 
 - **S4-1** Every fact in the brief cites a claim id [n]; the Sources block lists only cited claims. A fact with no citation is a defect, not a style choice.  
-  _Fails when:_ eval.py duf reports unbound > 0 -- the run must rewrite before render.
+  _Fails when:_ Check C2 finds unbound > 0 -- the answer is rewritten before it is delivered.
 - **S4-2** Every sentence passes the swap test against caller.offer_one_line and the target: if another target's name would leave it true, delete it.  
   _Fails when:_ A brief with a sentence containing no claim id and no target-specific noun fails checks.swap.
-- **S4-3** Render ONLY through format/talyx_pdf.py with --max-pages 3; never emit Markdown or HTML as the deliverable.  
-  _Fails when:_ The output directory contains exactly one .pdf and no .md/.html after a run.
-- **S4-4** If the tightest density rung still overflows 3 pages, the run FAILS with the section word counts; it never truncates or spills.  
-  _Fails when:_ Feed a 900-word section -- the engine must exit non-zero naming the section.
-- **S4-5** The PDF footer carries: profile line, research status, duf_pp, coverage fraction.  
-  _Fails when:_ Extract page-3 footer text -- all four fields present.
-
-## Stage 5: Debrief + ratchet
-
-**Input contract** (declared before behaviour):
-
-| Input | Type | Source | Required | Fallback |
-|---|---|---|---|---|
-| `debrief.yaml` | yaml | user, after the call (60 seconds, 4 fields) | no | skip loop |
-| `ratchet.json` | json | evals/ratchet.json | yes | initialise empty |
-
-**Context contract** -- read, in this order: ratchet floors, debrief rows, the pcp.yaml rows the debrief touches. Budget: 800 words. Not read: everything else.
-
-**Rows:**
-
-- **S5-1** A change to pcp.yaml lands only if eval.py ratchet passes: every frozen target's duf_pp >= its floor AND all checks pass. The floor is the best ever seen and only rises.  
-  _Fails when:_ Lower a family weight so a target's duf_pp drops -- ratchet must exit non-zero and name the target.
-- **S5-2** Debrief fields: facts_used[claim ids], questions_landed[ids], band_accuracy{dim: hit|miss}, outcome. Nothing else is asked.  
-  _Fails when:_ The debrief template has exactly four fields.
-- **S5-3** improve proposes row diffs (family weights, question templates, band phrases) as a patch with basis: debrief_id; it never edits SKILL.md and never lands a diff itself.  
-  _Fails when:_ Run improve -- the only file written is evals/proposals/<date>.patch.
 
 ## Source families
 
@@ -209,9 +176,9 @@ medium = 2 observations, 1 source; low = role-inferred only (renders as "no read
 
 ACH mini (depth deep only): <= 3 hypotheses about what they want from this meeting, each with the claim that would disconfirm it.
 
-## The PDF: pages 1-2 brief
+## The brief
 
-Word budgets are the page budget; the engine renders on a 4-rung density ladder and fails, never spills, past 3 pages.
+Word budgets are length limits: cut to fit, never run over (check C6).
 
 | Id | Section | Words | Content |
 |---|---|---|---|
@@ -227,7 +194,7 @@ Word budgets are the page budget; the engine renders on a 4-rung density ladder 
 
 Domain vocabulary: wealth: book, AUM, custodian, fee compression, succession, next-gen; pe: dry powder, DPI, add-on, hold period, exit; saas: ARR, NRR, champion, security review, procurement, renewal.
 
-## The PDF: page 3 meeting script
+## The meeting script
 
 Beats by meeting format:
 - **intro**: open -> credibility in one line -> one insight they did not have -> ask for the second meeting
@@ -247,35 +214,44 @@ Beats by meeting format:
 
 Never say: "Does that make sense?"; "Is this helpful?"; "No pressure"; "You'd know better than me"; "Just checking in".
 
-## Checks (all pass before render)
+## Checks (all pass before delivery)
 
-| Id | Check | Command | Passes when |
-|---|---|---|---|
-| C1 | swap | `eval.py checks --swap` | no sentence in B1-B7 lacks both a [n] and a target-specific noun |
-| C2 | bound | `eval.py duf` | unbound == 0 and every [n] in the body exists in B9 with url+tag+date |
-| C3 | quotes | `eval.py checks --quotes` | every quoted string in B2 has a [n] |
-| C4 | custom_q | `eval.py checks --custom-q` | >= 2 questions in B5 carry a [n] |
-| C5 | sections | `eval.py checks --sections` | B1-B9 and P1-P7 present in order (P5 may be omitted per S3-2) |
-| C6 | budgets | `eval.py checks --budgets` | no section exceeds its words by > 15% |
-| C7 | never_say | `eval.py checks --never-say` | no never_say phrase appears outside P7/B8 |
-| C8 | outcome | `eval.py checks --outcome` | B6 Bridge contains no method verbs from checks.method_verbs |
-| C9 | exclusions | `eval.py checks --exclusions` | no excluded topic keyword appears in the body |
-| C10 | pages | `format/talyx_pdf.py --max-pages 3` | rendered page count == 3 |
+| Id | Check | Passes when |
+|---|---|---|
+| C1 | swap | no sentence in B1-B7 lacks both a [n] and a target-specific noun |
+| C2 | bound | unbound == 0 and every [n] in the body exists in B9 with url+tag+date |
+| C3 | quotes | every quoted string in B2 has a [n] |
+| C4 | custom_q | >= 2 questions in B5 carry a [n] |
+| C5 | sections | B1-B9 and P1-P7 present in order (P5 may be omitted per S3-2) |
+| C6 | budgets | no section exceeds its words by > 15% |
+| C7 | never_say | no never_say phrase appears outside P7/B8 |
+| C8 | outcome | B6 Bridge contains no method verbs from checks.method_verbs |
+| C9 | exclusions | no excluded topic keyword appears in the body |
 
-## Render
+## Deliver
 
-```
-python3 format/talyx_pdf.py --brief brief.md --script script.md --title "<Name> -- <Org>" \
-    --subtitle "Pre-call brief · <meeting date>" --footer "<profile line> · <status> · duf_pp <x> · coverage <a>/<b>" \
-    --max-pages 3 --out <dir>/<date>-<slug>.pdf
-```
+This host has no PDF renderer and cannot run the checks as code. Apply every check in the table above
+yourself before answering, and say they were self-checked, not machine-run. Deliver ONE document: the
+brief (B1-B9) then the meeting script (P1-P7), headed with the profile line, status and coverage. Say what
+was NOT found (coverage) before what was. Say plainly that it is not the Talyx PDF; the plug-in version
+renders that.
 
-## Debrief and ratchet
+## Debrief
 
-After the call, `evals/debrief_template.yaml` (four fields). `python3 eval.py improve` proposes row diffs to
-`pcp.yaml`; `python3 eval.py ratchet` lands them only if every frozen target holds its floor. The floor is the
-best ever seen and only rises.
+After the call, ask for the four debrief fields -- facts used (claim ids), questions that landed, band
+accuracy per dimension (hit or miss), outcome -- and nothing else.
 
 ## About
 
 Made by Talyx AI, https://talyx.ai. Free to use under the licence in the plug-in's `LICENSE` file.
+
+## Saved setup
+
+Replace this block with the one the assistant gives you after calibration.
+
+```yaml
+pcp_profile_format: 1
+profiles:
+  default:
+    answers: {}
+```
