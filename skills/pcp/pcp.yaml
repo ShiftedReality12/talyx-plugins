@@ -1,7 +1,7 @@
 # pcp.yaml — THE registry for the pcp plug-in. Version lives in build/plugin.source.json.
 #
 # Every parameter, instruction, question, source family, rubric band and page budget lives here and
-# nowhere else. SKILL.md, commands/pcp.toml and the chat adapters are GENERATED from
+# nowhere else. SKILL.md and the chat adapters are GENERATED from
 # this file by build/generate.py; `build/generate.py --check` fails if they drift. A behaviour that is not a row here does
 # not exist. Every `always` carries a `test:` (how it can be seen to fail). Every row carries `basis:`.
 #
@@ -18,7 +18,7 @@
 
 render_header: "<!-- GENERATED from pcp.yaml (sha256:{sha}) by build/generate.py -- edit pcp.yaml, never this file -->"
 
-# The skill's own metadata, as hosts show it. Rendered into SKILL.md frontmatter and commands/pcp.toml.
+# The skill's own metadata, as hosts show it. Rendered into SKILL.md frontmatter.
 skill:
   name: pcp
   description: >-
@@ -28,9 +28,6 @@ skill:
     prep, meeting prep, call preparation, researching someone before a meeting, talking points, or shares
     an intake list. Do not use for general research unrelated to a meeting, or for notes on a meeting
     that has already happened.
-  command_description: >-
-    Prepare for a meeting. Calibrates once, researches from public sources, reads behaviour, and
-    writes ONE 3-page PDF (2-page brief + 1-page script).
   argument_hint: '[intake.csv | "Full Name, Organisation"] [--recalibrate] [--profile <name>] [--out <dir>]'
 
 # ------------------------------------------------------------------------------------------------

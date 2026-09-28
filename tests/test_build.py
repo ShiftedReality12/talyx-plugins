@@ -1,5 +1,5 @@
-"""Packaging: one source generates every host file, the installed payload is self-contained and runs
-from anywhere, and each gate is shown able to fail.
+"""Packaging: one source generates every host's adapter, the repository root is the one plug-in every
+host installs, its scripts run from anywhere, and each gate is shown able to fail.
 
 Every test works on a temporary copy of the repository, never the checkout itself.
 """
@@ -18,11 +18,13 @@ import jsonschema
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-HOST_FILES = {
-    ".claude-plugin/marketplace.json", ".agents/plugins/marketplace.json", ".cursor-plugin/marketplace.json",
-    "plugins/pcp/plugin.json", "plugins/pcp/.claude-plugin/plugin.json", "plugins/pcp/.cursor-plugin/plugin.json",
-    "plugins/pcp/gemini-extension.json", "plugins/pcp/commands/pcp.toml",
+MANIFESTS = {   # host -> the plug-in manifest it reads first
+    "Claude": ".claude-plugin/plugin.json", "ChatGPT/Codex": ".codex-plugin/plugin.json",
+    "Cursor": ".cursor-plugin/plugin.json", "Grok": ".grok-plugin/plugin.json", "Devin": ".devin-plugin/plugin.json",
+    "Gemini (Antigravity)": "plugin.json", "Gemini CLI": "gemini-extension.json",
 }
+CATALOGS = {".claude-plugin/marketplace.json", ".agents/plugins/marketplace.json", ".cursor-plugin/marketplace.json"}
+HOST_FILES = set(MANIFESTS.values()) | CATALOGS | {"adapters/perplexity/pcp.zip"}
 
 
 class BuildTests(unittest.TestCase):
@@ -31,8 +33,8 @@ class BuildTests(unittest.TestCase):
         self.addCleanup(tmp.cleanup)
         self.tmp = Path(tmp.name)
         self.root = self.tmp / "repo"
-        shutil.copytree(ROOT, self.root, ignore=shutil.ignore_patterns(".git", "dist", "__pycache__", ".venv", ".DS_Store"))
-        self.plugin = self.root / "plugins/pcp"
+        shutil.copytree(ROOT, self.root, ignore=shutil.ignore_patterns(".git", ".claude", "__pycache__", ".venv", ".DS_Store"))
+        self.plugin = self.root
 
     def generate(self, *args):
         return subprocess.run([sys.executable, "build/generate.py", *args], cwd=self.root,
@@ -40,7 +42,7 @@ class BuildTests(unittest.TestCase):
 
     def snapshot(self):
         return {str(p.relative_to(self.root)): hashlib.sha256(p.read_bytes()).hexdigest()
-                for p in self.root.rglob("*") if p.is_file() and "dist" not in p.relative_to(self.root).parts}
+                for p in self.root.rglob("*") if p.is_file()}
 
     def payload(self, catalog):
         doc = json.loads((self.root / catalog).read_text())
@@ -59,8 +61,7 @@ class BuildTests(unittest.TestCase):
         self.assertEqual(self.snapshot(), before, "a fresh generate changed the checkout -- it was stale")
 
     def test_hand_edit_of_any_host_file_fails_check(self):
-        for rel in sorted(HOST_FILES) + ["plugins/pcp/skills/pcp/SKILL.md",
-                                          "plugins/pcp/skills/pcp/scripts/talyx_pdf.py",
+        for rel in sorted(HOST_FILES) + ["skills/pcp/SKILL.md", "skills/pcp/scripts/talyx_pdf.py",
                                           "adapters/chat/pcp-knowledge.md"]:
             with self.subTest(rel):
                 path = self.root / rel
@@ -76,8 +77,7 @@ class BuildTests(unittest.TestCase):
         doc = json.loads(src.read_text()); doc["version"] = "9.9.9"
         src.write_text(json.dumps(doc))
         self.assertEqual(self.generate().returncode, 0)
-        for rel in ("plugins/pcp/plugin.json", "plugins/pcp/.claude-plugin/plugin.json",
-                    "plugins/pcp/.cursor-plugin/plugin.json", "plugins/pcp/gemini-extension.json"):
+        for rel in MANIFESTS.values():
             self.assertEqual(json.loads((self.root / rel).read_text())["version"], "9.9.9", rel)
         for rel in (".claude-plugin/marketplace.json", ".cursor-plugin/marketplace.json"):
             self.assertEqual(json.loads((self.root / rel).read_text())["metadata"]["version"], "9.9.9", rel)
@@ -153,35 +153,36 @@ class BuildTests(unittest.TestCase):
     # -- host contracts --------------------------------------------------------------------------
 
     def test_every_catalog_resolves_to_the_one_payload(self):
-        for catalog in (".claude-plugin/marketplace.json", ".agents/plugins/marketplace.json", ".cursor-plugin/marketplace.json"):
-            self.assertEqual(self.payload(catalog), self.plugin.resolve(), catalog)
+        for catalog in sorted(CATALOGS):
+            self.assertEqual(self.payload(catalog), self.root.resolve(), catalog)
         codex, = json.loads((self.root / ".agents/plugins/marketplace.json").read_text())["plugins"]
         self.assertEqual(set(codex["policy"]), {"installation", "authentication"})
         self.assertIn("category", codex)
 
     def test_agent_plugins_manifest_matches_the_published_schema(self):
         schema = json.loads((self.root / "build/schemas/plugin.schema.json").read_text())
-        manifest = json.loads((self.plugin / "plugin.json").read_text())
+        manifest = json.loads((self.root / "plugin.json").read_text())
         jsonschema.validate(manifest, schema)
         bad = {**manifest, "commands": "./commands"}
         with self.assertRaises(jsonschema.ValidationError):
             jsonschema.validate(bad, schema)
-        interface = manifest["extensions"]["com.openai"]["interface"]
-        for key in ("logo", "logoDark"):
-            self.assertTrue((self.plugin / interface[key]).is_file(), key)
+        # an extensions.com.openai block here would replace .codex-plugin/plugin.json entirely (OpenAI docs)
+        self.assertNotIn("extensions", manifest)
 
-    def test_gemini_command_is_valid_toml_with_args_placeholder(self):
-        try:
-            import tomllib
-        except ModuleNotFoundError:   # Python 3.10
-            import tomli as tomllib
-        doc = tomllib.loads((self.plugin / "commands/pcp.toml").read_text())
-        self.assertIn("{{args}}", doc["prompt"])
-        self.assertNotIn("$ARGUMENTS", doc["prompt"])
-        self.assertIn("`pcp` skill", doc["prompt"])
-        # the skill is the entry point everywhere else; a same-named Markdown command would clash with it in Claude
-        self.assertEqual(sorted(p.name for p in (self.plugin / "commands").iterdir()), ["pcp.toml"])
-        skill = yaml.safe_load((self.plugin / "skills/pcp/SKILL.md").read_text().split("---")[1])
+    def test_every_host_manifest_names_the_one_plugin_and_its_skills(self):
+        for host, rel in MANIFESTS.items():
+            with self.subTest(host):
+                doc = json.loads((self.root / rel).read_text())
+                self.assertEqual((doc["name"], doc["version"]), ("pcp", json.loads((self.root / "plugin.json").read_text())["version"]))
+                if "skills" in doc:
+                    self.assertEqual(doc["skills"], "./skills/")
+        codex = json.loads((self.root / ".codex-plugin/plugin.json").read_text())
+        self.assertEqual(codex["interface"]["displayName"], "Talyx Pre-call Prep")
+        for key in ("logo", "logoDark"):
+            self.assertTrue((self.root / codex["interface"][key]).is_file(), key)
+        # the skill is the one entry point; a same-named command beside it shows twice (Claude, Antigravity)
+        self.assertFalse((self.root / "commands").exists())
+        skill = yaml.safe_load((self.root / "skills/pcp/SKILL.md").read_text().split("---")[1])
         self.assertEqual(skill["name"], "pcp")
         self.assertIn("--recalibrate", skill["argument-hint"])
 
@@ -201,15 +202,9 @@ class BuildTests(unittest.TestCase):
         shutil.copytree(self.payload(".claude-plugin/marketplace.json"), dest)
         return dest
 
-    def test_payload_carries_no_development_material(self):
-        installed = self.installed_copy()
-        forbidden = {"build", "tests", "evals", "dist", "adapters", ".git", ".github", "__pycache__", "plugin.source.json"}
-        for path in installed.rglob("*"):
-            self.assertFalse(forbidden & set(path.relative_to(installed).parts), path)
-        self.assertEqual({p.name for p in (installed / "skills").iterdir()}, {"pcp", "talyx-pdf"})
-
     def test_installed_scripts_run_from_an_unrelated_working_folder(self):
         installed = self.installed_copy()
+        self.assertEqual({p.name for p in (installed / "skills").iterdir()}, {"pcp", "talyx-pdf"})
         elsewhere = self.tmp / "client-folder"
         elsewhere.mkdir()
         fixture = ROOT / "evals/fixtures/control_12.md"
@@ -225,8 +220,7 @@ class BuildTests(unittest.TestCase):
         self.assertEqual(list(elsewhere.iterdir()), [], "a script wrote into the caller's folder")
 
     def test_perplexity_zip_is_the_skill_folder_and_runs_extracted(self):
-        self.assertEqual(self.generate().returncode, 0)
-        zpath = self.root / "dist/perplexity/pcp.zip"
+        zpath = self.root / "adapters/perplexity/pcp.zip"
         with zipfile.ZipFile(zpath) as zf:
             names = zf.namelist()
             self.assertIn("SKILL.md", names)
