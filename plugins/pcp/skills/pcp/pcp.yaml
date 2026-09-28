@@ -1,9 +1,12 @@
 # pcp.yaml — THE registry for the pcp plug-in. Version lives in build/plugin.source.json.
 #
 # Every parameter, instruction, question, source family, rubric band and page budget lives here and
-# nowhere else. SKILL.md, commands/pcp.md, commands/pcp.toml and the chat adapters are GENERATED from
+# nowhere else. SKILL.md, commands/pcp.toml and the chat adapters are GENERATED from
 # this file by build/generate.py; `build/generate.py --check` fails if they drift. A behaviour that is not a row here does
 # not exist. Every `always` carries a `test:` (how it can be seen to fail). Every row carries `basis:`.
+#
+# The chat adapter (Gem, Copilot) runs no scripts and keeps no files. An item that needs either carries
+# `chat: false` (left out there) or `chat: {field: text}` (reworded there); the build fails otherwise.
 #
 # Three contracts this file enforces, in order (dependency order, not discovery order):
 #   1. INPUT CONTRACT     -- each stage declares its inputs (name, type, source, required, fallback)
@@ -15,7 +18,7 @@
 
 render_header: "<!-- GENERATED from pcp.yaml (sha256:{sha}) by build/generate.py -- edit pcp.yaml, never this file -->"
 
-# The skill's own metadata, as hosts show it. Rendered into SKILL.md frontmatter and commands/pcp.md (+ .toml).
+# The skill's own metadata, as hosts show it. Rendered into SKILL.md frontmatter and commands/pcp.toml.
 skill:
   name: pcp
   description: >-
@@ -119,14 +122,17 @@ calibration:
       text: Ask all eight questions only when ~/.pcp/profile.yaml is missing, invalid, or --recalibrate is passed. Otherwise read it silently.
       test: Delete the profile and run -- the run must ask. Run again -- it must not.
       basis: design choice, 8 rapid one-time questions
+      chat: {text: "Ask only the questions the Saved setup block has no answer for -- all eight the first time, all eight again with --recalibrate. Otherwise read it silently.", test: "An empty Saved setup block -- the run asks all eight. A complete one -- it asks none."}
     - id: CAL-2
       text: A skipped answer takes the first (Recommended) option and is stored with defaulted:true; the PDF footer shows the profile line.
       test: Skip Q5 -- profile shows research.depth standard, defaulted true; footer reads "standard".
       basis: verify at value level
+      chat: {text: "A skipped answer takes the first (Recommended) option and is stored with defaulted:true; the brief's heading shows the profile line.", test: "Skip Q5 -- the Saved setup block shows Q5 standard, defaulted true; the heading reads \"standard\"."}
     - id: CAL-3
       text: The improve loop may PROPOSE a profile change (one line, with the debrief evidence) but never applies one without a yes.
       test: Three debriefs with facts_used > 80% must produce a proposal, and the profile must be unchanged until answered.
       basis: design choice, no silent adaptation
+      chat: false   # the improve loop is scripts/eval.py improve
 # ------------------------------------------------------------------------------------------------
 # 1. STAGES -- input contract + context contract + instruction rows, per stage, dependency-ordered.
 # ------------------------------------------------------------------------------------------------
@@ -134,8 +140,8 @@ stages:
   - id: S1
     name: Intake
     inputs:
-      - {name: arguments, type: "path.csv | 'Full Name, Organisation' | empty", source: $ARGUMENTS, required: true, fallback: ask the required intake fields in one message}
-      - {name: profile, type: yaml, source: ~/.pcp/profile.yaml, required: true, fallback: run calibration}
+      - {name: arguments, type: "path.csv | 'Full Name, Organisation' | empty", source: $ARGUMENTS, required: true, fallback: ask the required intake fields in one message, chat: {type: "'Full Name, Organisation' | a pasted list", source: "the user's message"}}
+      - {name: profile, type: yaml, source: ~/.pcp/profile.yaml, required: true, fallback: run calibration, chat: {source: Saved setup block}}
       - {name: meeting.objective, type: text, source: intake row or one question, required: true, fallback: "ask: What do you want to walk out of this meeting with?"}
       - {name: target.kind, type: "person|company|deal", source: intake or profile.target.kind_default, required: true, fallback: person}
     context:
@@ -162,7 +168,7 @@ stages:
       - {name: coverage, fields: [families_attempted, families_total, hits_by_family, failed_urls, status]}
     rows:
       - {id: S2-1, text: "Public sources only. Nothing behind a login, no paid data the user has not supplied, no scraping.", test: "A LinkedIn login wall counts as a failed URL and appears in coverage.failed_urls.", basis: original plugin v1}
-      - {id: S2-2, text: "Every claim carries url, retrieved_at, tag DIRECT|SEARCH, and confidence C1 (primary, dated) | C2 (reputable secondary) | C3 (single weak source) | C4 (inferred).", test: "A claim missing any field is dropped by eval.py claims and counted in coverage.dropped.", basis: a confidence ladder}
+      - {id: S2-2, text: "Every claim carries url, retrieved_at, tag DIRECT|SEARCH, and confidence C1 (primary, dated) | C2 (reputable secondary) | C3 (single weak source) | C4 (inferred).", test: "A claim missing any field is dropped and counted in coverage.dropped.", basis: a confidence ladder}
       - {id: S2-3, text: "A claim that hits an exclusion is dropped BEFORE the writer sees it and counted in coverage.excluded; the brief's guardrails say a topic was left out, never which fact.", test: "Seed a claim tagged exclusion health -- it must not appear in any output file.", basis: original plugin v1 + every rule carries a falsification test}
       - {id: S2-4, text: "Coverage is a required output: families_attempted/families_total and hits per family. A run without coverage is not a run.", test: "Disable WebFetch -- coverage must show 0/N attempted and status LIMITED, never FULL.", basis: never truncate silently}
       - {id: S2-5, text: "Status FULL requires >= 1 C1/C2 claim in >= research.full_threshold[depth] families; else LIMITED, stamped on page 1.", test: "Remove all C1/C2 claims from one family below threshold -- status flips to LIMITED.", basis: "original plugin FULL/LIMITED, made numeric"}
@@ -191,26 +197,27 @@ stages:
     inputs:
       - {name: claims.jsonl, type: jsonl, source: S2, required: true, fallback: none}
       - {name: read.json, type: json, source: S3, required: true, fallback: none}
-      - {name: profile, type: yaml, source: ~/.pcp/profile.yaml, required: true, fallback: none}
+      - {name: profile, type: yaml, source: ~/.pcp/profile.yaml, required: true, fallback: none, chat: {source: Saved setup block}}
       - {name: page_budget, type: rows, source: pcp.yaml brief + script, required: true, fallback: none}
     context:
       order: ["brief sections with word budgets", "script beats", "claims (C1/C2 first)", "read.json", "profile.caller", "guardrails"]
       budget_words: 3000
       excluded: ["rubric evidence lists", "family query templates"]
     outputs:
-      - {name: brief.md, note: "pages 1-2"}
-      - {name: script.md, note: "page 3"}
-      - {name: "<out>/<date>-<slug>.pdf", note: "ONE 3-page PDF via scripts/talyx_pdf.py --max-pages 3"}
+      - {name: brief.md, note: "pages 1-2", chat: false}
+      - {name: script.md, note: "page 3", chat: false}
+      - {name: "<out>/<date>-<slug>.pdf", note: "ONE 3-page PDF via scripts/talyx_pdf.py --max-pages 3", chat: false}
     rows:
-      - {id: S4-1, text: "Every fact in the brief cites a claim id [n]; the Sources block lists only cited claims. A fact with no citation is a defect, not a style choice.", test: "eval.py duf reports unbound > 0 -- the run must rewrite before render.", basis: DUF metric definition}
+      - {id: S4-1, text: "Every fact in the brief cites a claim id [n]; the Sources block lists only cited claims. A fact with no citation is a defect, not a style choice.", test: "eval.py duf reports unbound > 0 -- the run must rewrite before render.", basis: DUF metric definition, chat: {test: "Check C2 finds unbound > 0 -- the answer is rewritten before it is delivered."}}
       - {id: S4-2, text: "Every sentence passes the swap test against caller.offer_one_line and the target: if another target's name would leave it true, delete it.", test: "A brief with a sentence containing no claim id and no target-specific noun fails checks.swap.", basis: "original plugin check 1, tightened to sentence"}
-      - {id: S4-3, text: "Render ONLY through scripts/talyx_pdf.py with --max-pages 3; never emit Markdown or HTML as the deliverable.", test: "The output directory contains exactly one .pdf and no .md/.html after a run.", basis: "design choice, PDF only"}
-      - {id: S4-4, text: "If the tightest density rung still overflows 3 pages, the run FAILS with the section word counts; it never truncates or spills.", test: "Feed a 900-word section -- the engine must exit non-zero naming the section.", basis: never truncate silently}
-      - {id: S4-5, text: "The PDF footer carries: profile line, research status, duf_pp, coverage fraction.", test: "Extract page-3 footer text -- all four fields present.", basis: coverage as a required output}
+      - {id: S4-3, text: "Render ONLY through scripts/talyx_pdf.py with --max-pages 3; never emit Markdown or HTML as the deliverable.", test: "The output directory contains exactly one .pdf and no .md/.html after a run.", basis: "design choice, PDF only", chat: false}
+      - {id: S4-4, text: "If the tightest density rung still overflows 3 pages, the run FAILS with the section word counts; it never truncates or spills.", test: "Feed a 900-word section -- the engine must exit non-zero naming the section.", basis: never truncate silently, chat: false}
+      - {id: S4-5, text: "The PDF footer carries: profile line, research status, duf_pp, coverage fraction.", test: "Extract page-3 footer text -- all four fields present.", basis: coverage as a required output, chat: false}
       - {id: S4-7, text: "When delivering, say what was NOT found first -- families with no usable source, failed URLs, LIMITED status -- then what was found.", test: "In a run with a failed URL, the delivery message names it and the coverage fraction before any finding.", basis: "original /pcp command closing line; hosts that load only the skill (Codex, Devin, Perplexity, chat) never saw it"}
 
   - id: S5
     name: Debrief + ratchet
+    chat: false   # the chat file's own Debrief section asks the four fields; the ratchet is a repository tool
     inputs:
       - {name: debrief.yaml, type: yaml, source: "user, after the call (60 seconds, 4 fields)", required: false, fallback: skip loop}
       - {name: ratchet.json, type: json, source: evals/ratchet.json in the source repository, required: true, fallback: initialise empty}
@@ -362,7 +369,7 @@ checks:
   - {id: C7, name: never_say,    cmd: "scripts/eval.py checks --never-say", passes_when: "no never_say phrase appears outside P7/B8"}
   - {id: C8, name: outcome,      cmd: "scripts/eval.py checks --outcome",   passes_when: "B6 Bridge contains no method verbs from checks.method_verbs"}
   - {id: C9, name: exclusions,   cmd: "scripts/eval.py checks --exclusions",passes_when: "no excluded topic keyword appears in the body"}
-  - {id: C10, name: pages,       cmd: "scripts/talyx_pdf.py --max-pages 3", passes_when: "rendered page count == 3"}
+  - {id: C10, name: pages,       cmd: "scripts/talyx_pdf.py --max-pages 3", passes_when: "rendered page count == 3", chat: false}
   - {method_verbs: ["we scrape", "we ingest", "our pipeline", "our model", "we crawl", "our algorithm"]}
 
 # ------------------------------------------------------------------------------------------------

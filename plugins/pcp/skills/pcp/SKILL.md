@@ -3,7 +3,7 @@ name: pcp
 description: "Prepare for an upcoming meeting with a named person, company or deal. Eight one-time calibration questions, public-source OSINT/SOCMINT collection with a coverage ledger, a six-dimension behavioral read, and ONE 3-page PDF: a 2-page brief plus a 1-page meeting script. Use when the user mentions pre-call prep, meeting prep, call preparation, researching someone before a meeting, talking points, or shares an intake list. Do not use for general research unrelated to a meeting, or for notes on a meeting that has already happened."
 argument-hint: "[intake.csv | \"Full Name, Organisation\"] [--recalibrate] [--profile <name>] [--out <dir>]"
 ---
-<!-- GENERATED from pcp.yaml (sha256:952ac8d03934) by build/generate.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:62a0137264ef) by build/generate.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v2.1.0)
 
@@ -46,13 +46,13 @@ Then write the profile and continue. Otherwise (the profile exists and no `--rec
 
 | # | Chip | Question | Options | Sets |
 |---|---|---|---|---|
-| Q1 | Your role | Who is making the call? | Founder / principal (Recommended) / Sales / BD / Advisor / relationship manager / Investor / allocator | caller.role, caller.authority_level |
-| Q2 | Domain | Where do your targets mostly live? | General professional (Recommended) / Wealth management / Private equity / VC / Enterprise / SaaS | domain |
-| Q3 | Target kind | Who do you usually prep for? | A person (Recommended) / A company or team / A deal or transaction / Mixed | target.kind_default |
-| Q4 | Meeting | What is the typical call? | First intro (cold or warm) (Recommended) / Discovery / qualification / Pitch / close / Relationship / renewal | meeting.format_default |
-| Q5 | Depth | Research depth versus speed? | Standard -- 12 families, about 8 minutes (Recommended) / Fast -- 6 families, about 3 minutes / Deep -- all families + competing hypotheses | research.depth |
-| Q6 | SOCMINT | Public social footprint -- how far? | Professional only (Recommended) / Plus public X / Bluesky / Substack / None | socmint.scope |
-| Q7 | Compliance | Jurisdiction and compliance posture? | US (Recommended) / UK / EU (GDPR strict) / Regulated sales (FINRA / FCA style) / APAC | jurisdiction |
+| Q1 | Your role | Who is making the call? | 1. Founder / principal (Recommended); 2. Sales / BD; 3. Advisor / relationship manager; 4. Investor / allocator | caller.role, caller.authority_level |
+| Q2 | Domain | Where do your targets mostly live? | 1. General professional (Recommended); 2. Wealth management; 3. Private equity / VC; 4. Enterprise / SaaS | domain |
+| Q3 | Target kind | Who do you usually prep for? | 1. A person (Recommended); 2. A company or team; 3. A deal or transaction; 4. Mixed | target.kind_default |
+| Q4 | Meeting | What is the typical call? | 1. First intro (cold or warm) (Recommended); 2. Discovery / qualification; 3. Pitch / close; 4. Relationship / renewal | meeting.format_default |
+| Q5 | Depth | Research depth versus speed? | 1. Standard -- 12 families, about 8 minutes (Recommended); 2. Fast -- 6 families, about 3 minutes; 3. Deep -- all families + competing hypotheses | research.depth |
+| Q6 | SOCMINT | Public social footprint -- how far? | 1. Professional only (Recommended); 2. Plus public X / Bluesky / Substack; 3. None | socmint.scope |
+| Q7 | Compliance | Jurisdiction and compliance posture? | 1. US (Recommended); 2. UK / EU (GDPR strict); 3. Regulated sales (FINRA / FCA style); 4. APAC | jurisdiction |
 | Q8 | Your offer | In one line -- what do you offer, and what does a win in this meeting look like? (free text) | free text | caller.offer_one_line, meeting.win_definition |
 
 - **CAL-1** Ask all eight questions only when ~/.pcp/profile.yaml is missing, invalid, or --recalibrate is passed. Otherwise read it silently.  
@@ -105,7 +105,7 @@ Profile line (footer of every PDF): `role · domain · depth · jurisdiction`.
 - **S2-1** Public sources only. Nothing behind a login, no paid data the user has not supplied, no scraping.  
   _Fails when:_ A LinkedIn login wall counts as a failed URL and appears in coverage.failed_urls.
 - **S2-2** Every claim carries url, retrieved_at, tag DIRECT|SEARCH, and confidence C1 (primary, dated) | C2 (reputable secondary) | C3 (single weak source) | C4 (inferred).  
-  _Fails when:_ A claim missing any field is dropped by eval.py claims and counted in coverage.dropped.
+  _Fails when:_ A claim missing any field is dropped and counted in coverage.dropped.
 - **S2-3** A claim that hits an exclusion is dropped BEFORE the writer sees it and counted in coverage.excluded; the brief's guardrails say a topic was left out, never which fact.  
   _Fails when:_ Seed a claim tagged exclusion health -- it must not appear in any output file.
 - **S2-4** Coverage is a required output: families_attempted/families_total and hits per family. A run without coverage is not a run.  
