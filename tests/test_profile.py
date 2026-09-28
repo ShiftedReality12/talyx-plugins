@@ -50,14 +50,12 @@ class ProfileTests(unittest.TestCase):
         self.assertEqual((second["status"], second["missing"], second["questions"]), ("complete", [], []))
         self.assertEqual(second["profile_line"], "principal · wealth · fast · us")
         self.assertEqual(second["effective"]["caller.authority_level"], "high")
-        self.assertEqual(self.run_profile("validate")[0], 0)
 
     def test_partial_answers_leave_only_the_rest_to_ask(self):
         self.apply({k: ANSWERS[k] for k in ("Q1", "Q2", "Q3")})
         _, seen = self.run_profile("inspect")
         self.assertEqual((seen["status"], seen["missing"]), ("incomplete", ["Q4", "Q5", "Q6", "Q7", "Q8"]))
         self.assertIsNone(seen["profile_line"])
-        self.assertEqual(self.run_profile("validate")[0], 1)
 
     def test_new_registry_question_is_the_only_one_asked(self):
         self.skill = self.tmp / "skill"
@@ -90,6 +88,17 @@ class ProfileTests(unittest.TestCase):
         self.assertEqual(code, 0, out)
         self.assertEqual(out["effective"]["research.depth"], "standard")
         self.assertEqual(out["defaulted"], ["Q5"])
+
+    def test_skip_during_recalibrate_keeps_the_saved_answer(self):
+        self.apply({**ANSWERS, "Q7": "eu"})
+        _, seen = self.run_profile("inspect", "--recalibrate")
+        self.assertEqual(seen["questions"][6]["current"], "eu")
+        code, out = self.run_profile("apply", "--answers-file", "-", "--base-sha256", seen["sha256"],
+                                     answers={q: None for q in ALL})   # every question skipped
+        self.assertEqual(code, 0, out)
+        self.assertEqual(out["effective"]["jurisdiction"], "eu")
+        self.assertEqual(out["effective"]["caller.offer_one_line"], ANSWERS["Q8"])
+        self.assertEqual(out["defaulted"], [])
 
     def test_skipped_free_text_is_rejected_not_invented(self):
         code, out = self.apply({**ANSWERS, "Q8": None})
@@ -142,13 +151,49 @@ class ProfileTests(unittest.TestCase):
         self.assertEqual([q["id"] for q in seen["questions"]], ALL)
         self.assertEqual(seen["questions"][1]["current"], "wealth")
 
-    def test_blocked_write_reports_write_denied_as_json(self):
+    def test_blocked_write_reports_write_failed_as_json(self):
         self.path.parent.mkdir(parents=True)
         self.path.parent.chmod(0o500)
         self.addCleanup(self.path.parent.chmod, 0o700)
         code, out = self.apply(ANSWERS)
-        self.assertEqual((code, out["code"]), (1, "WRITE_DENIED"), out)
+        self.assertEqual((code, out["code"]), (1, "WRITE_FAILED"), out)
         self.assertFalse(self.path.exists())
+
+    def test_any_write_error_is_reported_as_json_not_a_traceback(self):
+        self.path.parent.parent.mkdir(parents=True)
+        self.path.parent.write_text("a file where the profile folder should be")   # ENOTDIR / EEXIST, not EACCES
+        code, out = self.apply(ANSWERS)
+        self.assertEqual((code, out["code"]), (1, "WRITE_FAILED"), out)
+
+    def test_hand_edited_answer_without_value_is_asked_again(self):
+        good = {"value": "principal", "defaulted": False}
+        doc = {"pcp_profile_format": 1, "profiles": {"default": {"answers": {
+            "Q1": "principal", "Q2": {"value": "wealth", "defaulted": False}}}}}
+        self.path.parent.mkdir(parents=True)
+        self.path.write_text(yaml.safe_dump(doc))
+        for args in (("inspect",), ("inspect", "--recalibrate")):
+            code, seen = self.run_profile(*args)
+            self.assertEqual(code, 0, seen)
+            self.assertIn("Q1", seen["missing"])
+            self.assertIn("no value", seen["stale"]["Q1"])
+        code, out = self.run_profile("apply", "--answers-file", "-", "--base-sha256", seen["sha256"], answers={"Q1": None})
+        self.assertEqual(code, 0, out)
+        self.assertEqual(yaml.safe_load(self.path.read_text())["profiles"]["default"]["answers"]["Q1"],
+                         {**good, "defaulted": True})
+
+    def test_backups_are_private_and_never_overwritten(self):
+        legacy = (ROOT / "tests/fixtures/v2.0.0-profile.yaml").read_bytes()
+        self.path.parent.mkdir(parents=True)
+        backups = []
+        for depth in ("deep", "fast"):
+            self.path.write_bytes(legacy.replace(b"depth: standard", f"depth: {depth}".encode()))
+            code, out = self.apply({"Q2": "general"})
+            self.assertEqual(code, 0, out)
+            backups.append(Path(out["backup"]))
+        self.assertNotEqual(*backups)
+        for b, depth in zip(backups, ("deep", "fast")):
+            self.assertIn(f"depth: {depth}".encode(), b.read_bytes())
+            self.assertEqual(b.stat().st_mode & 0o777, 0o600)
 
     def test_recalibrate_has_its_own_status_so_complete_never_suppresses_it(self):
         self.apply(ANSWERS)

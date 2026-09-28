@@ -156,15 +156,15 @@ below (CAL-1 to CAL-7) are the rules; this is how to follow them:
 - `status: complete` -- use `effective` and `profile_line` silently. Ask nothing.
 - `status: missing`, `incomplete` or `recalibrate` -- ask the listed `questions` (with `recalibrate`, show
   each saved `current` answer as the default), using {tools}.
-- Then, however the answers were collected, save them: write a JSON object
-  `{{"Q1": "<option value or label>", ..., "Q8": "<free text>"}}` (null = skipped) to a temporary file in the
-  output folder, run
+- Then, however the answers were collected, save them: write a JSON object with only the ids listed in
+  `questions`, e.g. `{{"Q2": "<option value or label>", "Q8": "<free text>"}}`, to a temporary file in the output
+  folder (null = skipped: the saved answer stays, or the Recommended option is used), run
   `python3 scripts/profile.py apply --answers-file <file> --base-sha256 <sha256 from inspect, or none> [--profile <name>]`,
   delete the file, and use the `effective` block it returns.
 - `status: invalid` -- tell the user their saved setup cannot be read and ask whether to redo it. On yes,
   ask every question and apply with `--replace-invalid` (the old file is kept as a backup).
 - `ok: false` from apply -- act on its `code`: `INVALID_ANSWER` map the answer to an option or ask again;
-  `REQUIRED` ask that free-text question; `STALE` inspect again; `WRITE_DENIED` see CAL-7.
+  `REQUIRED` ask that free-text question; `STALE` inspect again; `WRITE_FAILED` see CAL-7.
 - Python unavailable -- ask the questions, use the answers for this run only, and say they were not saved.
 
 | # | Chip | Question | Options | Sets |
@@ -181,7 +181,7 @@ This host runs no scripts. The saved setup is the **Saved setup** block at the e
 
 - Every question has a saved answer there -- use them silently. Ask nothing.
 - Otherwise ask ONLY the unanswered questions, using {tools}.
-- A skipped question takes its first (Recommended) option, marked defaulted.
+- A skipped question keeps its saved answer; with none saved it takes its first (Recommended) option, marked defaulted.
 - Then output the complete updated **Saved setup** block in the same YAML shape -- each answer as
   `Q1: {{value: <option value or your text>, defaulted: false}}` under `profiles: default: answers:` -- and tell
   the user to replace the block in this knowledge file with it, so the next conversation does not ask again.

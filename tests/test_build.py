@@ -132,7 +132,7 @@ class BuildTests(unittest.TestCase):
         # a new row that needs a script fails the build until it is marked for chat hosts
         reg = self.plugin / "skills/pcp/pcp.yaml"
         text = reg.read_text()
-        row = '      - {id: S2-7, text: "Run scripts/eval.py duf after collecting.", test: "x", basis: "y"'
+        row = '      - {id: S2-99, text: "Run scripts/eval.py duf after collecting.", test: "x", basis: "y"'
         anchor = "\n  - id: S3\n"
         reg.write_text(text.replace(anchor, f"\n{row}}}\n{anchor}", 1))
         r = self.generate("--check")
@@ -140,8 +140,8 @@ class BuildTests(unittest.TestCase):
         self.assertIn("pcp-knowledge.md names scripts/eval.py", r.stdout)
         reg.write_text(text.replace(anchor, f"\n{row}, chat: false}}\n{anchor}", 1))
         self.assertEqual(self.generate().returncode, 0)
-        self.assertIn("S2-7", (self.plugin / "skills/pcp/SKILL.md").read_text())
-        self.assertNotIn("S2-7", (self.root / "adapters/chat/pcp-knowledge.md").read_text())
+        self.assertIn("S2-99", (self.plugin / "skills/pcp/SKILL.md").read_text())
+        self.assertNotIn("S2-99", (self.root / "adapters/chat/pcp-knowledge.md").read_text())
 
     def test_page_ladder_drift_between_registry_and_renderer_fails(self):
         reg = self.plugin / "skills/pcp/pcp.yaml"

@@ -7,14 +7,15 @@ question added to pcp.yaml is reported missing (and asked) without touching this
 
   inspect  [--profile NAME] [--recalibrate]       status + only the questions still to ask (JSON)
   apply    --answers-file PATH|- --base-sha256 SHA|none [--profile NAME] [--replace-invalid]
-  validate [--profile NAME]                        exit 0 only for a complete, valid profile
 
 Answers are a JSON object {question_id: value}. A value may be the option value or its exact label;
-null means skipped, which stores the first (Recommended) option with defaulted: true.
+null means skipped: a valid saved answer is kept, otherwise the first (Recommended) option is stored
+with defaulted: true.
 
 The file lives at pcp.yaml `calibration.profile_path` (one per user, all named profiles in one file).
 PCP_PROFILE overrides the location. Writes are atomic; a stale base digest or an unreadable file is
-rejected without touching the existing bytes. Output is JSON on stdout; exit 0 = ok, 1 = rejected.
+rejected without touching the existing bytes; a replaced file is kept as a private backup that is never
+overwritten. Output is JSON on stdout; exit 0 = ok, 1 = rejected.
 """
 import argparse
 import datetime as dt
@@ -112,9 +113,12 @@ def check_answer(q, stored):
     return None if v in allowed else f"{v!r} is no longer an option ({', '.join(allowed)})"
 
 
-def normalise(q, given):
-    """User-supplied answer -> stored {value, defaulted}. Raises Rejected on anything not in the schema."""
+def normalise(q, given, saved=None):
+    """User-supplied answer -> stored {value, defaulted}. Raises Rejected on anything not in the schema.
+    A skipped question (None) keeps a valid saved answer, so skipping during --recalibrate loses nothing."""
     if given is None:
+        if saved is not None and not check_answer(q, saved):
+            return saved
         if q.get("free_text"):
             raise Rejected("REQUIRED", f"{q['id']} is free text and has no recommended default; ask it again")
         return {"value": q["options"][0]["value"], "defaulted": True}
@@ -167,6 +171,7 @@ def inspect(name, recalibrate=False):
     if bad:
         return {**base, "status": "invalid", "reason": bad, "questions": [question_view(q) for q in questions.values()]}
     answers = ((doc or {}).get("profiles", {}).get(name) or {}).get("answers", {})
+    saved = {q: a["value"] for q, a in answers.items() if isinstance(a, dict) and "value" in a}   # a hand-edited scalar is stale
     missing, stale = [], {}
     for qid, q in questions.items():
         if qid not in answers:
@@ -179,9 +184,8 @@ def inspect(name, recalibrate=False):
     if recalibrate:
         status = "recalibrate"
     return {**base, "status": status, "missing": missing, "stale": stale,
-            "unknown": sorted(set(answers) - set(questions)),
-            "questions": [question_view(questions[q], answers.get(q, {}).get("value") if recalibrate else None) for q in ask],
-            "effective": eff, "defaulted": sorted(q for q in answers if answers[q].get("defaulted")),
+            "questions": [question_view(questions[q], saved.get(q) if recalibrate else None) for q in ask],
+            "effective": eff, "defaulted": sorted(q for q in questions if q not in missing and answers[q].get("defaulted")),
             "profile_line": profile_line(eff, cal["profile_line"]) if not missing else None}
 
 
@@ -215,14 +219,22 @@ def apply(name, answers_json, base_sha, replace_invalid=False):
     unknown = sorted(set(given) - set(questions))
     if unknown:
         raise Rejected("UNKNOWN_QUESTION", f"not calibration questions: {unknown}", allowed=list(questions))
-    stored = {qid: normalise(questions[qid], v) for qid, v in given.items()}   # all-or-nothing
+    saved = ((doc or {}).get("profiles", {}).get(name) or {}).get("answers", {})
+    stored = {qid: normalise(questions[qid], v, saved.get(qid)) for qid, v in given.items()}   # all-or-nothing
 
     try:
         return _write(path, name, stored, raw, doc, bad, replace_invalid)
-    except PermissionError as exc:
-        raise Rejected("WRITE_DENIED", f"the host did not allow writing {path} ({exc.strerror}); "
-                       "retry with the host's permission to write there, or keep the answers for this run only",
-                       path=str(path))
+    except OSError as exc:   # permission, read-only filesystem, disk full, a file where the folder should be
+        raise Rejected("WRITE_FAILED", f"could not write {path} ({exc.strerror or exc}); retry with the host's "
+                       "permission to write there, or keep the answers for this run only", path=str(path))
+
+
+def keep_backup(path, raw, why):
+    """The replaced bytes, beside the profile: private (0600) and under a new name, so never overwritten."""
+    fd, name = tempfile.mkstemp(dir=path.parent, prefix=f"{path.name}.{why}-{dt.date.today():%Y%m%d}-", suffix=".yaml")
+    with os.fdopen(fd, "wb") as fh:
+        fh.write(raw)
+    return name
 
 
 def _write(path, name, stored, raw, doc, bad, replace_invalid):
@@ -230,25 +242,23 @@ def _write(path, name, stored, raw, doc, bad, replace_invalid):
     if bad:
         if not replace_invalid:
             raise Rejected("INVALID_PROFILE", f"existing profile is unreadable ({bad}); ask the user, then pass --replace-invalid")
-        backup = path.with_name(f"{path.name}.invalid-{dt.datetime.now().strftime('%Y%m%dT%H%M%S')}")
-        backup.write_bytes(raw)
+        backup = keep_backup(path, raw, "invalid")
         doc = None
     if doc and doc.pop("_from", None):   # first write after a v2.0.0 profile: keep the original beside it
-        backup = path.with_name(f"{path.name}.v2.0.0")
-        backup.write_bytes(raw)
+        backup = keep_backup(path, raw, "v2.0.0")
     doc = doc or {"pcp_profile_format": FORMAT, "profiles": {}}
     entry = doc["profiles"].setdefault(name, {"answers": {}})
     entry.setdefault("answers", {}).update(stored)
     entry["updated"] = dt.date.today().isoformat()
     text = "# pcp calibration profile -- written by scripts/profile.py; edit with `/pcp --recalibrate`, not by hand.\n"
     atomic_write(path, text + yaml.safe_dump(doc, sort_keys=False, allow_unicode=True))
-    return {**inspect(name), "written": sorted(stored), "backup": str(backup) if backup else None}
+    return {**inspect(name), "written": sorted(stored), "backup": backup}
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
-    for cmd in ("inspect", "apply", "validate"):
+    for cmd in ("inspect", "apply"):
         p = sub.add_parser(cmd)
         p.add_argument("--profile", default=DEFAULT_PROFILE)
         if cmd == "inspect":
@@ -261,13 +271,9 @@ def main():
     try:
         if a.cmd == "inspect":
             out = inspect(a.profile, a.recalibrate)
-        elif a.cmd == "apply":
+        else:
             text = sys.stdin.read() if a.answers_file == "-" else pathlib.Path(a.answers_file).read_text()
             out = apply(a.profile, text, a.base_sha256, a.replace_invalid)
-        else:
-            out = inspect(a.profile)
-            print(json.dumps(out, indent=1, ensure_ascii=False))
-            return 0 if out["status"] == "complete" else 1
     except Rejected as exc:
         print(json.dumps({"ok": False, "code": exc.code, "error": str(exc), **exc.details}, indent=1, ensure_ascii=False))
         return 1
