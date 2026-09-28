@@ -1,28 +1,29 @@
 #!/usr/bin/env python3
 """generate.py -- every host file for the pcp plug-in, from two sources.
 
-  build/plugin.source.json                       identity: name, version, author, catalog, interface, skills
-  plugins/pcp/skills/pcp/pcp.yaml      content: questions, stages, families, rubric, page budget, checks
+  build/plugin.source.json      identity: name, version, author, catalogs, interface, skills
+  skills/pcp/pcp.yaml           content: questions, stages, families, rubric, page budget, checks
 
+The repository root is the plug-in: every host installs it straight from the repository.
 Never edit a generated file. Edit a source, run this, run the tests.
 
-Emits (host contracts per the vendors' docs, verified 2026-09-25):
-  .claude-plugin/marketplace.json            Claude Code / Cowork catalog; also read by Codex (legacy), Grok, Devin
-  .agents/plugins/marketplace.json           Codex + ChatGPT desktop catalog (canonical)
-  .cursor-plugin/marketplace.json            Cursor catalog
-  plugins/pcp/plugin.json                    Agent Plugins 1.0.0 manifest + extensions.com.openai (Codex, Cursor, Devin)
-  plugins/pcp/.claude-plugin/plugin.json     Claude (Devin and Grok also read it)
-  plugins/pcp/.cursor-plugin/plugin.json     Cursor plug-in format, so commands/ loads
-  plugins/pcp/gemini-extension.json          Gemini CLI extension
-  plugins/pcp/commands/pcp.toml              /pcp for Gemini CLI ({{args}}); every other host invokes the skill
-  plugins/pcp/skills/pcp/SKILL.md  the skill, rendered from pcp.yaml
-  plugins/pcp/skills/*/agents/openai.yaml    Codex / ChatGPT per-skill presentation
-  plugins/pcp/skills/pcp/scripts|assets   renderer copied byte-for-byte from the talyx-pdf skill
-  adapters/chat/{instructions.txt,pcp-knowledge.md} Gemini Gem / M365 Copilot (no scripts there)
-  dist/perplexity/<skill>.zip                one upload per skill (not in --check; ignored by git)
+Emits (host contracts per the vendors' docs, verified 2026-09-28):
+  .claude-plugin/{marketplace,plugin}.json   Claude desktop (Cowork), Claude Code
+  .agents/plugins/marketplace.json           ChatGPT, Codex (catalog)
+  .codex-plugin/plugin.json                  ChatGPT, Codex (OpenAI presentation; root plugin.json has none)
+  .cursor-plugin/{marketplace,plugin}.json   Cursor
+  .grok-plugin/plugin.json                   Grok (installs the repository directly)
+  .devin-plugin/plugin.json                  Devin
+  plugin.json                                Agent Plugins 1.0.0: Antigravity (Gemini), and every host's fallback
+  gemini-extension.json                      Gemini CLI (Code Assist plans)
+  skills/pcp/SKILL.md                        the skill, rendered from pcp.yaml
+  skills/*/agents/openai.yaml                ChatGPT / Codex per-skill presentation
+  skills/pcp/scripts|assets                  renderer copied byte-for-byte from the talyx-pdf skill
+  adapters/perplexity/pcp.zip                Perplexity: the pcp skill folder, uploaded as one file
+  adapters/chat/{instructions.txt,pcp-knowledge.md}  Gemini Gem / Microsoft 365 Copilot (no scripts there)
 
 Usage:
-  python3 build/generate.py            write everything, run the skill checks, build the ZIPs
+  python3 build/generate.py            write everything and run the checks
   python3 build/generate.py --check    exit 1 if any generated file differs from a fresh render
 """
 from __future__ import annotations
@@ -32,6 +33,7 @@ import hashlib
 import json
 import re
 import sys
+import io
 import zipfile
 from pathlib import Path
 
@@ -39,7 +41,6 @@ import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "build" / "plugin.source.json"
-DIST = ROOT / "dist"
 PLUGIN_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
 META = ("name", "version", "description", "author", "homepage", "repository", "license", "keywords")
 PERPLEXITY = {"files": 100, "bytes": 10 * 1024 * 1024}     # upload UI limit (stricter than the API's 32 MiB)
@@ -47,10 +48,8 @@ PERPLEXITY = {"files": 100, "bytes": 10 * 1024 * 1024}     # upload UI limit (st
 
 def load():
     src = {k: v for k, v in json.loads(SOURCE.read_text()).items() if not k.startswith("_")}
-    plugin = ROOT / "plugins" / src["name"]
-    reg_path = plugin / "skills" / "pcp" / "pcp.yaml"
-    raw = reg_path.read_bytes()
-    return src, plugin, yaml.safe_load(raw), hashlib.sha256(raw).hexdigest()[:12]
+    raw = (ROOT / "skills" / "pcp" / "pcp.yaml").read_bytes()
+    return src, ROOT, yaml.safe_load(raw), hashlib.sha256(raw).hexdigest()[:12]
 
 
 def dump(obj):
@@ -64,26 +63,31 @@ def meta(src):
 # ── manifests and catalogs ───────────────────────────────────────────────────────────────────────
 
 def agent_plugin_json(src):
-    return {"$schema": PLUGIN_SCHEMA, **meta(src), "extensions": {"com.openai": {"interface": src["interface"]}}}
+    # no extensions.com.openai here: when present it replaces .codex-plugin/plugin.json entirely
+    return {"$schema": PLUGIN_SCHEMA, **meta(src)}
 
 
-def catalog_entry(src):
+def codex_plugin_json(src):
+    return {**meta(src), "skills": "./skills/", "interface": src["interface"]}
+
+
+def catalog_entry(src, source):
     return {"name": src["name"], "description": src["description"], "version": src["version"],
             "author": src["author"], "homepage": src["homepage"], "license": src["license"],
-            "category": src["category"], "keywords": src["keywords"], "source": f"./plugins/{src['name']}"}
+            "category": src["category"], "keywords": src["keywords"], "source": source}
 
 
-def claude_style_catalog(src):
+def claude_style_catalog(src, source="./"):
     m = src["marketplace"]
     return {"name": m["name"], "owner": m["owner"],
             "metadata": {"description": m["description"], "version": src["version"]},
-            "plugins": [catalog_entry(src)]}
+            "plugins": [catalog_entry(src, source)]}
 
 
 def codex_catalog(src):
     m = src["marketplace"]
     return {"name": m["name"], "interface": {"displayName": m["displayName"]},
-            "plugins": [{"name": src["name"], "source": {"source": "local", "path": f"./plugins/{src['name']}"},
+            "plugins": [{"name": src["name"], "source": {"source": "local", "path": "./"},
                          "policy": m["policy"], "category": src["interface"]["category"]}]}
 
 
@@ -338,17 +342,6 @@ Made by Talyx AI, https://talyx.ai. Free to use under the licence in the plug-in
 """
 
 
-def render_command_toml(R, sha):
-    """Gemini CLI only: a /pcp slash command that activates the skill. Every other host invokes the skill itself."""
-    body = (f"Input from the user: {{{{args}}}}\n\n"
-            f"Activate the `{R['skill']['name']}` skill from THIS extension and follow it exactly, in stage order, "
-            f"with that input as its arguments. Use only this extension's copy of the skill.\n")
-    assert '"""' not in body and "\\" not in body
-    return (f"# {R['render_header'].format(sha=sha)}\n"
-            f"description = {json.dumps(R['skill']['command_description'])}\n"
-            f'prompt = """\n{body}"""\n')
-
-
 # ── chat adapters (hosts that take instructions + a knowledge file, and run no scripts) ────────────
 
 
@@ -436,7 +429,7 @@ def check_registry(R):
 
 def check_ladder(R):
     """pcp.yaml's page ladder and the renderer's LADDER are one parameter in two files -- values must match."""
-    text = (ROOT / "plugins" / "pcp" / "skills" / "talyx-pdf" / "scripts" / "talyx_pdf.py").read_text()
+    text = (ROOT / "skills" / "talyx-pdf" / "scripts" / "talyx_pdf.py").read_text()
     code = [dict(name=m[0], body_pt=float(m[1]), line_height=float(m[2]), para_gap_pt=int(m[3]), sec_gap_pt=int(m[4]))
             for m in re.findall(r'dict\(name="(\w+)",\s*body_pt=([\d.]+),\s*lh=([\d.]+),\s*para=(\d+),\s*sec=(\d+)\)', text)]
     reg = [dict(r, body_pt=float(r["body_pt"]), line_height=float(r["line_height"])) for r in R["page_budget"]["ladder"]]
@@ -448,48 +441,55 @@ def check_ladder(R):
 def render(src, plugin, R, sha):
     files: dict[Path, str | bytes] = {
         ROOT / ".claude-plugin" / "marketplace.json": dump(claude_style_catalog(src)),
-        ROOT / ".cursor-plugin" / "marketplace.json": dump(claude_style_catalog(src)),
+        ROOT / ".claude-plugin" / "plugin.json": dump(meta(src)),
         ROOT / ".agents" / "plugins" / "marketplace.json": dump(codex_catalog(src)),
-        plugin / "plugin.json": dump(agent_plugin_json(src)),
-        plugin / ".claude-plugin" / "plugin.json": dump(meta(src)),
-        plugin / ".cursor-plugin" / "plugin.json": dump(meta(src)),
-        plugin / "gemini-extension.json": dump({k: src[k] for k in ("name", "version", "description")}),
-        plugin / "commands" / "pcp.toml": render_command_toml(R, sha),
-        plugin / "skills" / "pcp" / "SKILL.md": render_skill(src, R, sha),
+        ROOT / ".codex-plugin" / "plugin.json": dump(codex_plugin_json(src)),
+        ROOT / ".cursor-plugin" / "marketplace.json": dump(claude_style_catalog(src, source=".")),
+        ROOT / ".cursor-plugin" / "plugin.json": dump({**meta(src), "displayName": src["interface"]["displayName"]}),
+        ROOT / ".grok-plugin" / "plugin.json": dump({**meta(src), "skills": "./skills/"}),
+        ROOT / ".devin-plugin" / "plugin.json": dump(meta(src)),
+        ROOT / "plugin.json": dump(agent_plugin_json(src)),
+        ROOT / "gemini-extension.json": dump({k: src[k] for k in ("name", "version", "description")}),
+        ROOT / "skills" / "pcp" / "SKILL.md": render_skill(src, R, sha),
     }
     for skill in src["skills"]:
-        files[plugin / "skills" / skill["name"] / "agents" / "openai.yaml"] = openai_skill_yaml(skill)
+        files[ROOT / "skills" / skill["name"] / "agents" / "openai.yaml"] = openai_skill_yaml(skill)
     for owner, skills in src["shared"].items():
-        base = plugin / "skills" / owner
-        for f in sorted(p for d in ("scripts", "assets") for p in (base / d).rglob("*")
-                        if p.is_file() and p.name != ".DS_Store" and "__pycache__" not in p.parts):
+        base = ROOT / "skills" / owner
+        for f in sorted(p for d in ("scripts", "assets") for p in (base / d).rglob("*") if _shipped(p)):
             for skill in skills:
-                files[plugin / "skills" / skill / f.relative_to(base)] = f.read_bytes()
+                files[ROOT / "skills" / skill / f.relative_to(base)] = f.read_bytes()
     files[ROOT / "adapters" / "chat" / "instructions.txt"] = CHAT_INSTRUCTIONS.format(knowledge="pcp-knowledge.md")
     files[ROOT / "adapters" / "chat" / "pcp-knowledge.md"] = render_chat_knowledge(src, R, sha)
+    files[ROOT / "adapters" / "perplexity" / "pcp.zip"] = skill_zip(ROOT / "skills" / "pcp", files)
     return files
 
 
-def build_zips(plugin, src):
-    out = DIST / "perplexity"
-    out.mkdir(parents=True, exist_ok=True)
-    made = []
-    for skill in src["skills"]:
-        folder = plugin / "skills" / skill["name"]
-        members = sorted(p for p in folder.rglob("*") if p.is_file() and p.name != ".DS_Store" and "__pycache__" not in p.parts)
-        if len(members) > PERPLEXITY["files"]:
-            sys.exit(f"{skill['name']}: {len(members)} files exceeds Perplexity's {PERPLEXITY['files']}")
-        tmp = out / f".{skill['name']}.zip.tmp"
-        with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as zf:
-            for p in members:
-                info = zipfile.ZipInfo(str(p.relative_to(folder)), date_time=(2026, 1, 1, 0, 0, 0))
-                info.external_attr = (0o755 if p.suffix == ".py" else 0o644) << 16
-                zf.writestr(info, p.read_bytes(), zipfile.ZIP_DEFLATED)
-        if tmp.stat().st_size > PERPLEXITY["bytes"]:
-            tmp.unlink(); sys.exit(f"{skill['name']}: ZIP exceeds Perplexity's {PERPLEXITY['bytes']} bytes")
-        tmp.replace(out / f"{skill['name']}.zip")
-        made.append((skill["name"], len(members), (out / f"{skill['name']}.zip").stat().st_size))
-    return made
+def _shipped(p):
+    return p.is_file() and p.name != ".DS_Store" and "__pycache__" not in p.parts
+
+
+def skill_zip(folder, files):
+    """The skill folder as Perplexity takes it: SKILL.md at the top. Stored, not compressed, with fixed
+    dates and modes, so the same sources give the same bytes on every OS and Python (--check compares them)."""
+    members = {p: files[p] for p in files if folder in p.parents}
+    members |= {p: p.read_bytes() for p in folder.rglob("*") if _shipped(p) and p not in members}
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_STORED) as zf:
+        for p in sorted(members):
+            info = zipfile.ZipInfo(p.relative_to(folder).as_posix(), date_time=(2026, 1, 1, 0, 0, 0))
+            info.create_system, info.external_attr = 3, (0o755 if p.suffix == ".py" else 0o644) << 16
+            data = members[p]
+            zf.writestr(info, data.encode() if isinstance(data, str) else data)
+    return buf.getvalue()
+
+
+def check_perplexity(files):
+    data = files[ROOT / "adapters" / "perplexity" / "pcp.zip"]
+    count = len(zipfile.ZipFile(io.BytesIO(data)).namelist())
+    if count > PERPLEXITY["files"] or len(data) > PERPLEXITY["bytes"]:
+        return [f"adapters/perplexity/pcp.zip: {count} files, {len(data)} bytes -- over Perplexity's upload limit {PERPLEXITY}"]
+    return []
 
 
 def main():
@@ -506,7 +506,7 @@ def main():
 
     drift = sorted(str(p.relative_to(ROOT)) for p in files if current(p) != files[p])
     problems = (check_skills(plugin, files) + check_chat(files[ROOT / "adapters" / "chat" / "pcp-knowledge.md"])
-                + check_registry(R) + check_ladder(R))
+                + check_registry(R) + check_ladder(R) + check_perplexity(files))
     if a.check:
         for line in drift:
             print("out of date:", line)
@@ -517,7 +517,7 @@ def main():
     if problems:
         for line in problems:
             print("FAIL", line)
-        print("Build failed -- nothing written, no ZIPs created or replaced.")
+        print("Build failed -- nothing written.")
         return 1
     for rel in drift:
         p = ROOT / rel
@@ -526,8 +526,6 @@ def main():
     print(f"{src['name']} v{src['version']} (pcp.yaml sha256:{sha}): wrote {len(drift)} of {len(files)} generated files")
     for rel in drift:
         print("  ", rel)
-    for name, count, size in build_zips(plugin, src):
-        print(f"   dist/perplexity/{name}.zip  {count} files, {size} bytes")
     return 0
 
 

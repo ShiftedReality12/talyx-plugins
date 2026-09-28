@@ -3,7 +3,7 @@ name: pcp
 description: "Prepare for an upcoming meeting with a named person, company or deal. One-time calibration saved per user, public-source OSINT/SOCMINT collection with a coverage ledger, a six-dimension behavioral read, and ONE 3-page PDF: a 2-page brief plus a 1-page meeting script. Use when the user mentions pre-call prep, meeting prep, call preparation, researching someone before a meeting, talking points, or shares an intake list. Do not use for general research unrelated to a meeting, or for notes on a meeting that has already happened."
 argument-hint: "[intake.csv | \"Full Name, Organisation\"] [--recalibrate] [--profile <name>] [--out <dir>]"
 ---
-<!-- GENERATED from pcp.yaml (sha256:a268cc63e130) by build/generate.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:2358cc0ac0a7) by build/generate.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v2.1.0)
 

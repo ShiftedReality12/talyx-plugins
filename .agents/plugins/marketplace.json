@@ -8,7 +8,7 @@
       "name": "pcp",
       "source": {
         "source": "local",
-        "path": "./plugins/pcp"
+        "path": "./"
       },
       "policy": {
         "installation": "AVAILABLE",
