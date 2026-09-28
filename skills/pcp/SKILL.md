@@ -26,7 +26,19 @@ The deliverable is one 3-page PDF. Nothing else is emitted.
   placeholder was not filled in (hosts other than Claude), read them from the user's message.
 - **One copy.** Use only this skill's folder. Never search the disk for another pcp install: an older copy
   elsewhere is not this plug-in.
-- **Say first** what was not found (coverage) before what was -- row S4-7.
+
+## Stage order
+
+Follow this skill exactly, in stage order:
+
+0. **Calibrate** -- if `~/.pcp/profile.yaml` is missing/invalid or `--recalibrate` is present, ask the eight questions (Stage 0) and write the profile. Otherwise read it silently.
+1. **Intake** -- resolve `$ARGUMENTS` (CSV path, `"Name, Org"`, or ask). Confirm the objective. Never start without a full name and an organisation.
+2. **Collect** -- run the enabled source families; write `claims.jsonl` and the coverage ledger. Drop excluded claims before writing.
+3. **Read** -- score six dimensions from claim ids only; set the evidence tier.
+4. **Brief + script** -- write `brief.md` (B1-B9) and `script.md` (P1-P7); run `python3 scripts/eval.py checks` and `python3 scripts/eval.py duf`; rewrite until clean; render with `scripts/talyx_pdf.py --max-pages 3`. Deliver the PDF path and the footer line. Delete `brief.md`/`script.md` after a clean render.
+5. **Debrief** -- offer the four-field debrief template; never ask for more.
+
+Say what was NOT found (coverage) before what was.
 
 ## Stage 0: Calibrate (once)
 

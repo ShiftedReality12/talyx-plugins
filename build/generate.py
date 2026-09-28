@@ -148,8 +148,21 @@ RUNNING_PLUGIN = """## Running this skill
   `assets/intake-template.csv`), plus optional `--recalibrate`, `--profile <name>`, `--out <dir>`. If that
   placeholder was not filled in (hosts other than Claude), read them from the user's message.
 - **One copy.** Use only this skill's folder. Never search the disk for another pcp install: an older copy
-  elsewhere is not this plug-in.
-- **Say first** what was not found (coverage) before what was -- row S4-7."""
+  elsewhere is not this plug-in."""
+
+# The v2.0.0 /pcp command's run order, kept word for word (paths aside) now that the skill is the entry point
+STAGE_ORDER_PLUGIN = """## Stage order
+
+Follow this skill exactly, in stage order:
+
+0. **Calibrate** -- if `{profile_path}` is missing/invalid or `--recalibrate` is present, ask the eight questions (Stage 0) and write the profile. Otherwise read it silently.
+1. **Intake** -- resolve `$ARGUMENTS` (CSV path, `"Name, Org"`, or ask). Confirm the objective. Never start without a full name and an organisation.
+2. **Collect** -- run the enabled source families; write `claims.jsonl` and the coverage ledger. Drop excluded claims before writing.
+3. **Read** -- score six dimensions from claim ids only; set the evidence tier.
+4. **Brief + script** -- write `brief.md` (B1-B9) and `script.md` (P1-P7); run `python3 scripts/eval.py checks` and `python3 scripts/eval.py duf`; rewrite until clean; render with `scripts/talyx_pdf.py --max-pages 3`. Deliver the PDF path and the footer line. Delete `brief.md`/`script.md` after a clean render.
+5. **Debrief** -- offer the four-field debrief template; never ask for more.
+
+Say what was NOT found (coverage) before what was."""
 
 STAGE0_PLUGIN = """## Stage 0: Calibrate (once)
 
@@ -256,7 +269,7 @@ def render_skill(src, R, sha, mode="plugin"):
     head = (f"---\nname: {R['skill']['name']}\ndescription: {json.dumps(R['skill']['description'])}\n"
             f"argument-hint: {json.dumps(R['skill']['argument_hint'])}\n---\n{R['render_header'].format(sha=sha)}\n\n"
             if pdf else f"{R['render_header'].format(sha=sha)}\n\n")
-    running = RUNNING_PLUGIN + "\n\n" if pdf else ""
+    running = RUNNING_PLUGIN + "\n\n" + STAGE_ORDER_PLUGIN.format(profile_path=cal["profile_path"]) + "\n\n" if pdf else ""
     tail = RENDER_PLUGIN.format(pages=pb["total_pages"]) if pdf else RENDER_CHAT
     budget = (f"Word budgets are the page budget; the engine renders on a {len(pb['ladder'])}-rung density ladder and fails, never spills, past {pb['total_pages']} pages."
               if pdf else "Word budgets are length limits: cut to fit, never run over (check C6).")
