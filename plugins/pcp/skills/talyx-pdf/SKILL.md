@@ -14,7 +14,8 @@ One command, one PDF, one page gate.
 ```
 python3 format/talyx_pdf.py --input <doc.md> --out <doc.pdf> [--title "..."] [--subtitle "..."] \
     [--footer "..."] [--max-pages N]
-python3 format/talyx_pdf.py --brief <brief.md> --script <script.md> --out <x.pdf> --max-pages 3
+python3 format/talyx_pdf.py --brief <brief.md> --script <script.md> [--gaps <gaps.md>] --out <x.pdf> --max-pages 3 \
+    [--script-subtitle "..."] [--script-after B5]
 ```
 
 First run on a machine: `python3 format/talyx_pdf.py --setup` (installs Playwright + Chromium + pypdf).
@@ -24,11 +25,14 @@ First run on a machine: `python3 format/talyx_pdf.py --setup` (installs Playwrig
 | Markdown | Renders as |
 |---|---|
 | `# Title` (first line) | document title (overridden by `--title`) |
-| `## Heading` | numbered, bookmarked section (`01 Heading`); a leading `B3 ` / `P2 ` id is stripped from the print |
-| paragraphs, `- ` bullets | body at the rung's size |
-| `\| a \| b \|` pipe tables | house table (uppercase head, hairline rows) |
-| `**bold**`, `*italic*`, `[n]` | emphasis; `[n]` prints as a small accent citation |
-| `--script <file>` | starts on a new page with its own masthead |
+| `## Heading` | numbered, bookmarked section (`01 Heading`); a leading `B3 ` / `P2 ` id sets the printed number and is stripped from the print |
+| paragraphs, `- ` bullets, `1.` numbered items, `- [ ]` / `- [x]` checklist items | body at the rung's size; indent 2+ spaces for a sub-bullet (two levels) |
+| `**Label:** text` | a label line: semibold label, hanging indent, no bullet |
+| `> text` | a pull quote with an accent rule |
+| `\| a \| b \|` pipe tables | house table (uppercase head, hairline rows); a first header cell of `#` makes a compact one-line-per-row sources table; an empty header row makes a label grid |
+| `**bold**`, `*italic*`, `[label](https://…)`, `[n]` | emphasis and links; `[n]` prints as a small accent citation that never starts a line; ` -- ` prints as an em dash |
+| `--script <file>`, `--gaps <file>` | each starts on a new page under its own masthead (its `# ` line, else "Meeting script" / "Before you walk in") |
+| `--script-after B5` | the script follows brief section B5; the rest of the brief continues after it, without a masthead |
 
 ## The page gate (`--max-pages N`)
 
