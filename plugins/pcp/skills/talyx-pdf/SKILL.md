@@ -26,7 +26,7 @@ none of them: `python3 format/talyx_pdf.py --setup` once (installs Playwright + 
 | Markdown | Renders as |
 |---|---|
 | `# Title` (first line) | document title (overridden by `--title`) |
-| `## Heading` | numbered, bookmarked section (`01 Heading`); a leading `B3 ` / `P2 ` id sets the printed number and is stripped from the print |
+| `## Heading` | numbered, bookmarked section (`01 Heading`); a leading `B3 ` id sets the printed number; `P2 ` ids number in order, so a left-out one leaves no gap; ids are stripped from the print |
 | paragraphs, `- ` bullets, `1.` numbered items, `- [ ]` / `- [x]` checklist items | body at the rung's size; indent 2+ spaces for a sub-bullet (two levels) |
 | `**Label:** text` | a label line: semibold label, hanging indent, no bullet |
 | `> text` | a pull quote with an accent rule |

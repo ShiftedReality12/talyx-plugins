@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:444938bde67e) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:71a082d21cc6) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Socratic questions
 
@@ -14,7 +14,7 @@ Ask the user only when a trigger below fires: at most 2 questions per run after 
 | No meeting objective in the intake | What do you want to walk out of this meeting with? |
 | Two or more people match the name | Which of these is the person you're meeting? |
 | The intake says you already know them, and no notes came with it | When did you last speak, and what did they tell you that isn't public? |
-| You mention notes, a CRM record, a saved LinkedIn PDF or a profile on them | Can you paste it or give me the file? I'll mark it as yours, not public. |
+| You mention notes, a CRM record, a Slack or Google Chat thread, a saved LinkedIn PDF or a profile on them | Can you paste it or give me the file? I'll mark it as yours, not public. |
 | Who decides, the gate or the timing is still Not determined after collection | Who else has a say in this, as far as you know? |
 
 ## Questions for the room

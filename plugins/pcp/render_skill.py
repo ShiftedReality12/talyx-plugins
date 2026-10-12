@@ -289,7 +289,7 @@ def main():
     targets = {HERE / "skills/pre-call-prep/SKILL.md": render_skill(R, sha),
                HERE / "skills/pre-call-prep/references/socratic-questions.md": render_socratic(R, sha),
                HERE / "commands/pcp.md": render_command(R, sha),
-               HERE / "pcp.json": json.dumps(R, indent=1, ensure_ascii=False, default=str) + "\n"}
+               HERE / "pcp.json": json.dumps(R, ensure_ascii=False, separators=(",", ":"), default=str) + "\n"}
     bad_words = plain_violations(R, user_facing(R))
     if bad_words:
         print("PLAIN WORDS FAIL -- user-facing text in pcp.yaml uses:", ", ".join(bad_words))

@@ -28,6 +28,8 @@ SRC_ROW = re.compile(r"^\|\s*\[(\d+)\]\s*\|\s*([^|]+?)\s*\|\s*([^|\s][^|]*?)\s*\
                      + CONFS + r")\s*\|\s*([A-Z][a-z]{2} \d{1,2}, \d{4})\s*\|", re.M)
 H2 = re.compile(r"^##\s+(.+)$", re.M)
 QUOTED = re.compile(r"[\u201c\"][^\u201d\"]*[\u201d\"]")   # their own words are exempt from plain words
+WORD = re.compile(r"\S*\w\S*")
+LINK_URL = re.compile(r"\]\([^)]*\)")
 
 
 def _sections(md):
@@ -121,7 +123,7 @@ def checks(brief_md, script_md="", which="all", target_nouns=()):
     if want("budgets"):
         for k, body in secs.items():
             if k in budgets:
-                w = len(body.split())
+                w = len(WORD.findall(LINK_URL.sub("]", body)))   # pipes, rules and link targets are not words
                 if w > budgets[k] * 1.15:
                     fails.append(f"C6 budgets: {k} {w} words > {budgets[k]} (+15%)")
     if want("never-say"):

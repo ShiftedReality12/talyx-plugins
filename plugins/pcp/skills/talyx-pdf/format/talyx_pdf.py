@@ -173,8 +173,9 @@ def sections(md, start_num=1, line_per_para=False):
         pre = "\n\n".join(ln for ln in parts[0].splitlines() if ln.strip()) if line_per_para else parts[0]
         secs.append((None, None, body_html(pre)))
     for i in range(1, len(parts), 2):
-        m = re.match(r"^[BP](\d+)\s", parts[i].strip())   # a Bn/Pn id sets the printed number
-        num = int(m.group(1)) if m else start_num + len([s for s in secs if s[0]])
+        m = re.match(r"^([BP])(\d+)\s", parts[i].strip())   # a Bn id sets the printed number
+        num = (int(m.group(2)) if m and m.group(1) == "B"   # Pn count in order, so an omitted block leaves no gap
+               else start_num + len([s for s in secs if s[0]]))
         secs.append((num, parts[i].strip(), body_html(parts[i + 1])))
     return title, secs
 

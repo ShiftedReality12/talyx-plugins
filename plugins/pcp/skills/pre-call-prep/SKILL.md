@@ -8,7 +8,7 @@ description: >
   before a meeting, talking points, or shares an intake list. Do not use for general research unrelated
   to a meeting, or for notes on a meeting that has already happened.
 ---
-<!-- GENERATED from pcp.yaml (sha256:444938bde67e) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:71a082d21cc6) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.0.0)
 
@@ -129,7 +129,7 @@ and `linkedin` when set) and continue.
 
 - **S3-1** Score each of the six dimensions only from observation_ids in claims.jsonl; a band with fewer observations than its tier minimum is reported as 'no read' -- never guessed from role.  
   _Fails when:_ A target with only role-archetype claims must render every dimension as tier low and the script must contain no influence sequence.
-- **S3-2** Evidence tier gates page 3: low -> no Read the room (P5); high AND authority_level high -> Influence (P6). Otherwise P6 is left out.  
+- **S3-2** B6's evidence tier is the highest tier at least three of the six dimensions reach (a no read counts as low). It gates page 3: low -> no Read the room (P5); high AND authority_level high -> Influence (P6). Otherwise P6 is left out.  
   _Fails when:_ Delete one corroborating claim -- the tier must drop and P6 must disappear on re-run.
 - **S3-3** Every Your move in B6 is a rubric meaning in pcp.yaml, word for word, or No read; no band phrase is written in prose.  
   _Fails when:_ Grep B6 for a move not in rubric.*.meaning -- the run is rewritten.
@@ -255,7 +255,7 @@ Then one `## Bn Title` per block, in order. Word budgets are the page budget; th
 | B7 | Who decides | 60 | always | Bullets: **Decision maker:** who signs off [n]. **The gate:** what must be true, or who must agree, before a yes [n]. **Relationship holder:** who the relationship runs through [n]. Unknown: Not determined, and a question in Still open. From F1 F3 F9 F11. |
 | B8 | Strongest case against | 150 | always | Up to 3 bullets: **Against:** the best evidence against your read [n]. **Reverses if:** what would flip it. None found: No counter-evidence found. Deep runs only, then `### What they may want from this meeting` and a table | Hypothesis and why it fits | Test: who answers, and what would disprove it |, up to 3 rows, each with the claim that would disprove it [n]. From F12; litigation stays off the page. |
 | B9 | Meeting angle | 150 | always | `### This meeting` then bullets: **Frame:** what this meeting is, in their terms; not a pitch. **Lands:** [n]. **Repels:** [n]. **What to bring:** one thing of value [n]. **The ask:** specific and bounded, who and how long [n] · **Fallback:** the smaller ask. **Stop if:** the answer that means drop the ask. `### Meeting two` then **Meeting two:** the next conversation if this one lands, on a fact from this brief. **Meeting three:** where it goes after that. `### After the meeting` then **Capture:** what to record from the room that the public record couldn't give. From Q8 and B3-B8. |
-| B10 | Evidence ledger | 700 | always | One line: Unmarked facts are measured. {n} facts cited; status {FULL or LIMITED} at {n} of 12 source types. Then the table | # | What it says | Source | Tag | Grade | Conf. | Date |, one row per cited fact in order of first use: [n] · the fact in about 8 words · [domain](url) (a file name for Yours) · Direct, Search, LinkedIn or Yours · Measured, Derived, Inference or Not determined · Primary (C1), Reputable (C2), Single source (C3) or Inferred (C4), printed as the word · Mon D, YYYY. Then a label grid (empty header row) with four rows: **Coverage** -- n of 12 source types, what was not found and why, LinkedIn read or not and why. **Still open** -- each gap with the question that closes it in the room. **Left out on purpose** -- the excluded topics, never the facts. **Run** -- date · depth · meeting type · prepared for · jurisdiction · status · decision-useful facts per page. |
+| B10 | Evidence ledger | 550 | always | One line: Unmarked facts are measured. {n} facts cited; status {FULL or LIMITED} at {n} of 12 source types. Then the table | # | What it says | Source | Tag | Grade | Conf. | Date |, one row per cited fact in order of first use: [n] · the fact in about 8 words · [domain](url) (a file name for Yours) · Direct, Search, LinkedIn or Yours · Measured, Derived, Inference or Not determined · Primary (C1), Reputable (C2), Single source (C3) or Inferred (C4), printed as the word · Mon D, YYYY. Then a label grid (empty header row) with four rows: **Coverage** -- n of 12 source types, what was not found and why, LinkedIn read or not and why. **Still open** -- each gap with the question that closes it in the room. **Left out on purpose** -- the excluded topics, never the facts. **Run** -- date · depth · meeting type · prepared for · jurisdiction · status · decision-useful facts per page. |
 
 Domain vocabulary: wealth: book, AUM, custodian, fee compression, succession, next-gen; pe: dry powder, DPI, add-on, hold period, exit; saas: ARR, NRR, champion, security review, procurement, renewal.
 
