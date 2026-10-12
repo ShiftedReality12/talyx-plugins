@@ -2,7 +2,8 @@
 """talyx_pdf.py -- portable Talyx house-style (masthead-alt) Markdown -> PDF, with a hard page gate.
 
 Self-contained: this file + assets/archivo-variable.woff2 + assets/talyx-logo-navy-base64.txt.
-Needs: playwright (+ chromium) and pypdf or pymupdf for the page count.  `python3 talyx_pdf.py --setup` installs them.
+Needs a Chromium: Playwright's if installed, else the Chrome, Edge or Chromium already on the computer.
+`python3 talyx_pdf.py --setup` installs Playwright's (and pypdf, for bookmark names). Nothing else.
 
 Markdown it understands (minimal, generic):
   `# Title`            document title (overridden by --title); a later part's `# ` line is that part's masthead
@@ -16,6 +17,10 @@ Usage:
   talyx_pdf.py --input doc.md --out doc.pdf [--title ..] [--subtitle ..] [--footer ..] [--max-pages N]
   talyx_pdf.py --brief brief.md --script script.md [--gaps gaps.md] --out x.pdf --max-pages 3
       # each later part starts on its own page under its own masthead
+  talyx_pdf.py --style brief --brief brief.md --script script.md --columns "B3|B4,P1+P2|P5+P6" \
+      --classification "INTERNAL | ..." --out x.pdf --max-pages 3
+      # the Intelligence Brief look: the brief's lines under `# Name` are its identity and meta lines; section
+      # B1 is the Take box; --columns sets blocks side by side (| between columns, + within a column)
 
 --max-pages N: renders on a density ladder (loose -> compact). If the tightest rung still overflows, exits 2
 naming the longest sections. It never truncates and never spills silently. Exit 0 prints: pages, rung, path.
@@ -24,8 +29,10 @@ import argparse
 import base64
 import html
 import json
+import os
 import pathlib
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -40,6 +47,13 @@ LADDER = [
     dict(name="tight",   body_pt=10.0, lh=1.30, para=4, sec=8,  mh=(0.15, 0.22), cell=3, page=(0.55, 0.6)),
     dict(name="compact", body_pt=10.0, lh=1.24, para=3, sec=6,  mh=(0.05, 0.14), cell=1.5, page=(0.45, 0.55)),
 ]
+# --style brief: Ben's format (the approved Oct 8 schema), about 9 pt
+BRIEF_LADDER = [
+    dict(name="normal",  body_pt=9.0, lh=1.33, para=3, sec=11, cell=2.6),
+    dict(name="tight",   body_pt=8.7, lh=1.29, para=2, sec=9,  cell=2.0),
+    dict(name="compact", body_pt=8.4, lh=1.25, para=2, sec=7,  cell=1.5),
+]
+GREY, BRIEF_ACCENT = "#8B95A1", "#1C3A66"
 
 
 # ---------------------------------------------------------------- markdown -> html --------------------------
@@ -146,8 +160,9 @@ def body_html(txt):
     return "\n".join(out)
 
 
-def sections(md, start_num=1):
-    """[(num, title, html)] from ## headings; a leading # line is returned as the title."""
+def sections(md, start_num=1, line_per_para=False):
+    """[(num, title, html)] from ## headings; a leading # line is returned as the title.
+    line_per_para: each line before the first ## is its own paragraph (the brief's identity and meta lines)."""
     title = None
     m = re.match(r"^\s*#\s+(.+?)\s*$", md.split("\n", 1)[0])
     if m:
@@ -155,7 +170,8 @@ def sections(md, start_num=1):
     parts = re.split(r"^##\s+(.+)$", md, flags=re.M)
     secs = []
     if parts[0].strip():
-        secs.append((None, None, body_html(parts[0])))
+        pre = "\n\n".join(ln for ln in parts[0].splitlines() if ln.strip()) if line_per_para else parts[0]
+        secs.append((None, None, body_html(pre)))
     for i in range(1, len(parts), 2):
         m = re.match(r"^[BP](\d+)\s", parts[i].strip())   # a Bn/Pn id sets the printed number
         num = int(m.group(1)) if m else start_num + len([s for s in secs if s[0]])
@@ -163,14 +179,36 @@ def sections(md, start_num=1):
     return title, secs
 
 
-def sec_html(num, title, body):
+def sec_html(num, title, body, style="house"):
     if title is None:
-        return f'<div class="sec"><div class="sec-body">{body}</div></div>'
+        return f'<div class="sec pre"><div class="sec-body">{body}</div></div>'
     t = inl(re.sub(r"^[BP]\d+\s+", "", title))  # strip Bn/Pn ids from the printed title
     ref = " ref" if re.search(r"\bsources\b", title, re.I) else ""
+    if style == "brief":   # brief blocks print no number; script sections print "1."
+        sid = re.match(r"([BP])(\d+)\s", title)
+        num_html = f'<span class="sec-num">{num}.</span> ' if sid and sid.group(1) == "P" else ""
+        return (f'<div class="sec{" sec-" + sid.group(0).strip().lower() if sid else ""}"><h2 class="sec-head">'
+                f'{num_html}<span class="sec-title">{t}</span></h2><div class="sec-body">{body}</div></div>')
     return (f'<div class="sec{ref}"><h2 class="sec-head">'
             f'<span class="sec-num">{num:02d}</span> <span class="sec-title">{t}</span></h2>'
             f'<div class="sec-body">{body}</div></div>')
+
+
+def columns(secs, htmls, spec):
+    """--columns "B3|B4,P1+P2|P5": wrap the named sections side by side, where the first of them stands."""
+    ids = [(re.match(r"([BP]\d+)\s", t or "") or [None, None])[1] for _, t, _ in secs]
+    groups = [[c.split("+") for c in g.split("|")] for g in (spec or "").split(",") if g]
+    out, used = [], set()
+    for i, sid in enumerate(ids):
+        if i in used:
+            continue
+        g = next((g for g in groups if sid in sum(g, [])), None)
+        if g is None:
+            out.append(htmls[i]); continue
+        cols = [[j for j, x in enumerate(ids) if x in col] for col in g]
+        used |= {j for c in cols for j in c}
+        out.append('<div class="two">' + "".join("<div>" + "".join(htmls[j] for j in c) + "</div>" for c in cols) + "</div>")
+    return out
 
 
 # ---------------------------------------------------------------- document --------------------------------
@@ -236,16 +274,75 @@ table.grid tbody tr:last-child td {{ border-bottom:0.5px solid {HAIR}; }}
 """
 
 
-def build_doc(parts, rung, footer):
+def brief_css(rung, footer):
+    """--style brief: the approved schema's look (Oct 8) -- classification band, Take box, small-caps heads, two columns."""
+    archivo = base64.b64encode((ASSETS / "archivo-variable.woff2").read_bytes()).decode()
+    b, lh, pg, sg, cp = rung["body_pt"], rung["lh"], rung["para"], rung["sec"], rung["cell"]
+    A = BRIEF_ACCENT
+    return f"""
+@font-face {{ font-family:'Archivo'; font-weight:100 900; src:url(data:font/woff2;base64,{archivo}) format('woff2'); }}
+@page {{ size: Letter; margin: 0.42in 0 0.62in 0;
+  @bottom-left {{ content: "{html.escape(footer)}"; font-family:'Archivo'; font-size:7.2pt; color:{GREY}; padding-left:0.55in; }}
+  @bottom-right {{ content: "page " counter(page) " of " counter(pages); font-family:'Archivo'; font-size:7.2pt; color:{GREY}; padding-right:0.55in; }} }}
+html {{ -webkit-print-color-adjust:exact; }}
+body {{ font-family:'Archivo', sans-serif; color:{MIDNIGHT}; margin:0; font-size:{b}pt; line-height:{lh}; }}
+.page-content {{ padding:0 0.55in; }}
+.stamp {{ display:flex; justify-content:flex-end; margin:-0.12in -0.05in 3pt 0; }} .stamp img {{ width:90px; height:auto; }}
+.band {{ display:flex; align-items:center; height:18pt; border-bottom:1pt solid {HAIR}; margin-bottom:9pt; }}
+.cls {{ font-size:7.8pt; font-weight:600; letter-spacing:0.16em; color:{A}; }}
+h1.name {{ font-size:14.2pt; font-weight:700; margin:0 0 2pt; }}
+.part-0 > .sec.pre p:first-child {{ font-size:9pt; font-weight:700; color:{A}; margin:0 0 4pt; }}
+.part-0 > .sec.pre p + p {{ font-size:7.5pt; color:{GREY}; line-height:1.4; margin:0 0 7pt; }}
+.sec.pre p strong {{ font-weight:700; }}
+h1.h, .sec-head {{ display:block; font-size:7.8pt; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:{A};
+  border-bottom:1pt solid {HAIR}; padding-bottom:3pt; margin:{sg}pt 0 5pt; break-after:avoid; }}
+h1.h {{ margin-top:0; }} .part-1 > .sec.pre p {{ font-size:7.5pt; color:{GREY}; margin:-2pt 0 5pt; }}
+p {{ margin:0 0 {pg}pt; }} p.lbl {{ margin:0 0 {pg}pt; }}
+ul, ol {{ margin:0 0 {pg}pt; padding-left:11pt; }} li {{ margin:0 0 3pt; }} li > ul, li > ol {{ margin:1pt 0 0; }}
+strong {{ font-weight:700; }} em {{ font-style:italic; }}
+a {{ color:{A}; text-decoration:underline; text-decoration-thickness:0.5px; text-underline-offset:1.5px; }}
+.cite {{ color:{A}; font-size:0.8em; font-weight:500; }}
+.sub {{ font-size:8.8pt; font-weight:700; margin:2pt 0 3pt; }}
+.two {{ display:grid; grid-template-columns:1fr 1fr; column-gap:0.28in; }}
+.sec-b1 .sec-head {{ display:none; }}
+.sec-b1 .sec-body {{ background:{A}; color:#F8F6F3; font-size:9.3pt; line-height:1.45; padding:8pt 11pt; border-radius:6pt; margin-top:2pt; }}
+.sec-b1 p {{ margin:0; }} .sec-b1 strong, .sec-b1 a {{ color:#fff; }} .sec-b1 .cite {{ color:#DDE5F0; }}
+.sec-b2 ol {{ padding-left:15pt; }} .sec-b2 ol > li {{ font-size:{b + 0.9}pt; font-weight:600; }}
+.sec-b2 li > ul {{ list-style:none; padding-left:0; }} .sec-b2 li li {{ font-size:7.8pt; font-weight:400; color:{GREY}; margin:0; }}
+.sec-b2 li li strong {{ color:{GREY}; }}
+table {{ border-collapse:collapse; width:100%; margin:0 0 {pg}pt; }} tr {{ break-inside:avoid; }}
+th {{ text-align:left; font-size:7.4pt; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:{A};
+  padding:0 6pt 3pt 0; border-bottom:1pt solid {HAIR}; }}
+td {{ vertical-align:top; padding:{cp}pt 6pt {cp}pt 0; border-bottom:0.6pt solid {HAIR}; }}
+.sec-b5 td:first-child {{ width:48%; }} .sec-b6 td:first-child {{ width:42%; }} .sec-b8 td:first-child {{ width:50%; }}
+table.src td {{ font-size:7.6pt; padding:2pt 6pt 2pt 0; white-space:nowrap; }} table.src td:nth-child(2) {{ white-space:normal; width:100%; }}
+table.src td:nth-child(5) {{ font-size:6.8pt; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#1A7F64; }}
+table.grid {{ margin-top:6pt; }} table.grid td:first-child {{ width:1.35in; white-space:nowrap; font-weight:700; }}
+.sec-p9 .sec-head {{ display:none; }} .sec-p9 {{ margin-top:12pt; font-size:9.6pt; }}
+.pagebreak {{ break-before:page; }}
+"""
+
+
+def build_doc(parts, rung, footer, style="house", classification=""):
     """parts: [(masthead title or None, subtitle, [section html])]; every part after the first starts on a new page."""
     logo = "data:image/png;base64," + (ASSETS / "talyx-logo-navy-base64.txt").read_text().strip()
-    mh = lambda t, s: "" if t is None else (
-        f'<div class="masthead-alt"><img class="mh-alt-logo" src="{logo}"/><div class="mh-alt-titles">'
-        f'<h1 class="mh-alt-title">{inl(t)}</h1>' + (f'<div class="mh-alt-role">{inl(s)}</div>' if s else "") + "</div></div>")
-    body = "".join(('<div class="pagebreak">' if i else "") + mh(t, s) + "".join(h) + ("</div>" if i else "")
+    if style == "brief":
+        sheet = brief_css(rung, footer)
+        mh = lambda t, s, i: "" if t is None else (f'<h1 class="h">{inl(t)}</h1>' if i else (
+            f'<div class="stamp"><img src="{logo}"/></div>'
+            + (f'<div class="band"><div class="cls">{inl(classification)}</div></div>' if classification else "")
+            + f'<h1 class="name">{inl(t)}</h1>'))
+        wrap = lambda i, inner: f'<div class="part part-{i}">{inner}</div>'
+    else:
+        sheet = css(rung, footer)
+        mh = lambda t, s, i: "" if t is None else (
+            f'<div class="masthead-alt"><img class="mh-alt-logo" src="{logo}"/><div class="mh-alt-titles">'
+            f'<h1 class="mh-alt-title">{inl(t)}</h1>' + (f'<div class="mh-alt-role">{inl(s)}</div>' if s else "") + "</div></div>")
+        wrap = lambda i, inner: inner
+    body = "".join(('<div class="pagebreak">' if i else "") + wrap(i, mh(t, s, i) + "".join(h)) + ("</div>" if i else "")
                    for i, (t, s, h) in enumerate(parts))
     return (f'<!doctype html><html lang="en"><head><meta charset="utf-8"><title>{html.escape(typo(parts[0][0] or ""))}</title>'
-            f"<style>{css(rung, footer)}</style></head><body><div class=\"page-content\">{body}</div></body></html>")
+            f"<style>{sheet}</style></head><body><div class=\"page-content\">{body}</div></body></html>")
 
 
 # ---------------------------------------------------------------- render --------------------------------
@@ -255,24 +352,59 @@ def page_count(path):
         with fitz.open(str(path)) as d:
             return d.page_count
     except ImportError:
+        pass
+    try:
         from pypdf import PdfReader
         return len(PdfReader(str(path)).pages)
+    except ImportError:   # no PDF library: the page tree's /Count (Chromium writes it in plain text)
+        data = pathlib.Path(path).read_bytes()
+        counts = [int(n) for d in re.findall(rb"<<[^<>]*/Type\s*/Pages\b[^<>]*>>", data) for n in re.findall(rb"/Count\s+(\d+)", d)]
+        return max(counts) if counts else len(re.findall(rb"/Type\s*/Page\b(?!s)", data))
+
+
+CHROMES = ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+           "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+           "/Applications/Chromium.app/Contents/MacOS/Chromium",
+           "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+           r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+           r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+           "google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "microsoft-edge", "msedge"]
+
+
+def system_chrome():
+    """A Chromium already on the computer, for hosts without Playwright's."""
+    for c in [os.environ.get("TALYX_PDF_CHROME"), *CHROMES]:
+        path = c and (c if os.path.isabs(c) else shutil.which(c))
+        if path and os.path.exists(path):
+            return path
+    return None
 
 
 def render_html(doc, out_path):
-    from playwright.sync_api import sync_playwright
     with tempfile.NamedTemporaryFile(suffix=".html", delete=False, mode="w", encoding="utf-8") as tf:
         tf.write(doc); tmp = tf.name
     try:
-        with sync_playwright() as p:
-            br = p.chromium.launch()
-            try:
-                pg = br.new_page()
-                pg.goto(pathlib.Path(tmp).as_uri())
-                pg.evaluate("document.fonts.ready")
-                pg.pdf(path=str(out_path), print_background=True, prefer_css_page_size=True, outline=True, tagged=True)
-            finally:
-                br.close()
+        try:
+            from playwright.sync_api import sync_playwright
+            with sync_playwright() as p:
+                br = p.chromium.launch()
+                try:
+                    pg = br.new_page()
+                    pg.goto(pathlib.Path(tmp).as_uri())
+                    pg.evaluate("document.fonts.ready")
+                    pg.pdf(path=str(out_path), print_background=True, prefer_css_page_size=True, outline=True, tagged=True)
+                finally:
+                    br.close()
+        except Exception:   # no Playwright, or no browser for it: use the computer's own Chromium
+            chrome = system_chrome()
+            if not chrome:
+                sys.exit(json.dumps(dict(ok=False, path=None, reason="no Chromium on this computer: run "
+                                         "`python3 format/talyx_pdf.py --setup` once, then render again")))
+            with tempfile.TemporaryDirectory() as prof:
+                subprocess.run([chrome, "--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
+                                f"--user-data-dir={prof}", "--no-pdf-header-footer", "--generate-pdf-document-outline",
+                                f"--print-to-pdf={out_path}", pathlib.Path(tmp).as_uri()],
+                               check=True, capture_output=True, timeout=120)
     finally:
         pathlib.Path(tmp).unlink(missing_ok=True)
     return page_count(out_path)
@@ -318,30 +450,32 @@ def word_report(md):
 
 def run(a):
     first = a.brief or a.input
+    brief = a.style == "brief"
     mds = [pathlib.Path(first).read_text()]
-    title, secs = sections(mds[0])
+    title, secs = sections(mds[0], line_per_para=brief)
     cut = len(secs)
     if a.script_after:   # the brief continues on a new page after the script, without a masthead
         cut = next((i + 1 for i, (_, t, _) in enumerate(secs) if t and t.split()[0] == a.script_after), None)
         if cut is None:
             sys.exit(f"--script-after {a.script_after}: no such section in {first}")
-    brief_html = [sec_html(n, t, h) for n, t, h in secs]
-    parts = [(a.title or title or pathlib.Path(first).stem, a.subtitle, brief_html[:cut])]
+    htmls = lambda ss: columns(ss, [sec_html(n, t, h, a.style) for n, t, h in ss], a.columns)
+    parts = [(a.title or title or pathlib.Path(first).stem, a.subtitle, htmls(secs[:cut]))]
     part_secs = [secs[:cut]]
     for path, default, sub in ((a.script, "Meeting script", a.script_subtitle or a.subtitle), (a.gaps, "Before you walk in", "")):
         if path:
             mds.append(pathlib.Path(path).read_text())
             t, ssecs = sections(mds[-1])
-            parts.append((t or default, sub, [sec_html(n, st, h) for n, st, h in ssecs])); part_secs.append(ssecs)
-    if brief_html[cut:]:
-        parts.append((None, "", brief_html[cut:])); part_secs.append(secs[cut:])
+            parts.append((t or default, sub, htmls(ssecs))); part_secs.append(ssecs)
+    if secs[cut:]:
+        parts.append((None, "", htmls(secs[cut:]))); part_secs.append(secs[cut:])
     out = pathlib.Path(a.out).expanduser()
     out.parent.mkdir(parents=True, exist_ok=True)
-    rungs = LADDER if a.max_pages else LADDER[:1]
+    ladder = BRIEF_LADDER if brief else LADDER
+    rungs = ladder if a.max_pages else ladder[:1]
     last = None
     names = outline_titles([(p[0], s) for p, s in zip(parts, part_secs)])
     for rung in rungs:
-        pages = render_html(build_doc(parts, rung, a.footer), out)
+        pages = render_html(build_doc(parts, rung, a.footer, a.style, a.classification), out)
         set_outline_titles(out, names)
         last = (rung["name"], pages)
         if not a.max_pages or pages <= a.max_pages:
@@ -368,6 +502,9 @@ def main():
     ap.add_argument("--script-after", help="brief section id (e.g. B5): the script follows it; the rest of the brief follows the script")
     ap.add_argument("--out"); ap.add_argument("--title"); ap.add_argument("--subtitle", default="")
     ap.add_argument("--footer", default="Talyx AI · talyx.ai"); ap.add_argument("--max-pages", type=int)
+    ap.add_argument("--style", choices=["house", "brief"], default="house", help="brief: the Intelligence Brief look")
+    ap.add_argument("--columns", default="", help='side-by-side sections, e.g. "B3|B4,P1+P2|P5+P6"')
+    ap.add_argument("--classification", default="", help="--style brief: the line above the name")
     ap.add_argument("--setup", action="store_true")
     a = ap.parse_args()
     if a.setup:

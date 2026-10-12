@@ -2,7 +2,7 @@
 """eval.py -- the pcp instrument. The metric comes before the feature.
 
   duf <brief.md> [script.md] [--pages N]   decision-useful facts: bound / unbound / dropped / duf_pp (+ coverage)
-  checks <brief.md> [script.md] [--all|--swap|--quotes|--custom-q|--sections|--budgets|--never-say|--outcome|--exclusions]
+  checks <brief.md> [script.md] [--all|--swap|--quotes|--custom-q|--sections|--budgets|--never-say|--outcome|--exclusions|--plain|--gaps|--conditional]
   concordance                               SKILL.md + commands/pcp.md match a fresh render of pcp.yaml
   self-test                                 positive + negative controls: the counter is proven able to fail
   ratchet [--record]                        every frozen target's duf_pp >= its floor; --record raises floors
@@ -18,14 +18,16 @@ import re
 import subprocess
 import sys
 
-import yaml
-
 HERE = pathlib.Path(__file__).resolve().parent
-R = yaml.safe_load((HERE / "pcp.yaml").read_text())
+R = json.loads((HERE / "pcp.json").read_text())   # pcp.yaml as JSON (render_skill.py): no YAML library needed at run time
+LEDGER = R["brief"]["sections"][-1]["id"]          # B10, the evidence ledger
 
 CITE = re.compile(r"\[(\d+)\]")
-SRC_ROW = re.compile(r"^\s*(?:-|\d+\.)?\s*\[(\d+)\]\s*(.+?)\s+--\s+(\S+)\s+--\s+(DIRECT|SEARCH)\s+--\s+(C[1-4])\s+--\s+(\d{4}-\d{2}-\d{2})", re.M)
+TAGS, GRADES, CONFS = "Direct|Search|LinkedIn|Yours", "Measured|Derived|Inference|Not determined", "Primary|Reputable|Single source|Inferred"
+SRC_ROW = re.compile(r"^\|\s*\[(\d+)\]\s*\|\s*([^|]+?)\s*\|\s*([^|\s][^|]*?)\s*\|\s*(" + TAGS + r")\s*\|\s*(" + GRADES + r")\s*\|\s*("
+                     + CONFS + r")\s*\|\s*([A-Z][a-z]{2} \d{1,2}, \d{4})\s*\|", re.M)
 H2 = re.compile(r"^##\s+(.+)$", re.M)
+QUOTED = re.compile(r"[\u201c\"][^\u201d\"]*[\u201d\"]")   # their own words are exempt from plain words
 
 
 def _sections(md):
@@ -40,8 +42,7 @@ def _sections(md):
 
 
 def _body_ids(secs):
-    body = [k for k in secs if re.match(r"B[1-8]$|P[1-6]$", k)]
-    return body
+    return [k for k in secs if re.match(r"B[1-9]$|P[1-9]$", k)]
 
 
 # ---------------------------------------------------------------- duf ---------------------------------------
@@ -50,23 +51,22 @@ def duf(brief_md, script_md="", pages=None):
     secs = _sections(md)
     sources = {}
     dropped = 0
-    src_block = secs.get("B9", "")
-    for ln in src_block.splitlines():
-        if not re.search(r"\[\d+\]", ln):
+    for ln in secs.get(LEDGER, "").splitlines():
+        if not re.match(r"^\|\s*\[\d+\]", ln):
             continue
         m = SRC_ROW.match(ln)
         if m:
-            sources[int(m.group(1))] = dict(claim=m.group(2), url=m.group(3), tag=m.group(4), conf=m.group(5), date=m.group(6))
+            sources[int(m.group(1))] = dict(claim=m.group(2), source=m.group(3), tag=m.group(4), grade=m.group(5), conf=m.group(6), date=m.group(7))
         else:
-            dropped += 1  # a [n] row in Sources missing url/tag/conf/date
+            dropped += 1  # a [n] ledger row missing its source, tag, grade, conf. or date
     cited = set()
     for k in _body_ids(secs):
         cited |= {int(n) for n in CITE.findall(secs[k])}
     bound = sorted(cited & set(sources))
-    dangling = sorted(cited - set(sources))       # cited in body, absent from B9
-    unbound = sorted(set(sources) - cited)         # in B9, never used by a move
+    dangling = sorted(cited - set(sources))       # cited in the body, absent from the ledger
+    unbound = sorted(set(sources) - cited)         # in the ledger, never used by a move
     pages = pages or R["page_budget"]["total_pages"]
-    cov = re.search(r"coverage\s+(\d+)\s*/\s*(\d+)", md, re.I)
+    cov = re.search(r"(\d+)\s+of\s+(\d+)\s+source types", md, re.I)
     rep = dict(bound=len(bound), unbound=len(unbound), dangling=len(dangling), dropped=dropped,
                sources_total=len(sources) + dropped, pages=pages, duf_pp=round(len(bound) / pages, 2),
                coverage=(f"{cov.group(1)}/{cov.group(2)}" if cov else "MISSING"),
@@ -78,6 +78,7 @@ def duf(brief_md, script_md="", pages=None):
 # ---------------------------------------------------------------- checks -------------------------------------
 def _sentences(txt):
     txt = re.sub(r"\|.*\|", " ", txt)  # tables are rows, not sentences
+    txt = "\n".join(ln for ln in txt.splitlines() if not re.match(r"\s*#|.*(?:Not determined|Evidence tier:)", ln))  # structure, not claims
     return [s.strip() for s in re.split(r"(?<=[.!?])\s+", txt) if len(s.strip()) > 25]
 
 
@@ -92,7 +93,7 @@ def checks(brief_md, script_md="", which="all", target_nouns=()):
 
     if want("swap"):
         nouns = [n.lower() for n in target_nouns if n]
-        for k in [k for k in secs if re.match(r"B[1-7]$", k)]:
+        for k in [k for k in secs if re.match(r"B1$|B[3-8]$", k)]:   # the blocks that state facts about the person
             for s in _sentences(secs[k]):
                 if CITE.search(s):
                     continue
@@ -100,16 +101,16 @@ def checks(brief_md, script_md="", which="all", target_nouns=()):
                     continue
                 fails.append(f"C1 swap: {k}: uncited, non-specific sentence: '{s[:70]}...'")
     if want("quotes"):
-        for q in re.finditer(r"[“\"]([^”\"]{12,})[”\"]", secs.get("B2", "")):
-            tail = secs["B2"][q.end(): q.end() + 40]
+        for q in re.finditer(r"[“\"]([^”\"]{12,})[”\"]", secs.get("B4", "")):
+            tail = secs["B4"][q.end(): q.end() + 40]
             if not CITE.search(tail):
-                fails.append(f"C3 quotes: B2 quote without [n]: '{q.group(1)[:50]}'")
+                fails.append(f"C3 quotes: B4 quote without [n]: '{q.group(1)[:50]}'")
     if want("custom-q"):
-        n = sum(1 for ln in secs.get("B5", "").splitlines() if "?" in ln and CITE.search(ln))
+        n = sum(1 for ln in secs.get("B2", "").splitlines() if "?" in ln and CITE.search(ln))
         if n < 2:
-            fails.append(f"C4 custom_q: {n}/2 questions in B5 carry a [n]")
+            fails.append(f"C4 custom_q: {n}/2 questions in B2 carry a [n]")
     if want("sections"):
-        need = [s["id"] for s in R["brief"]["sections"]] + [b["id"] for b in R["script"]["blocks"] if b["id"] != "P5"]
+        need = [s["id"] for s in R["brief"]["sections"]] + [b["id"] for b in R["script"]["blocks"] if b["prints"] == "always"]
         present = [k for k in secs if re.match(r"[BP]\d+$", k)]
         missing = [i for i in need if i not in present]
         order = [k for k in present if k in need]
@@ -125,7 +126,7 @@ def checks(brief_md, script_md="", which="all", target_nouns=()):
                     fails.append(f"C6 budgets: {k} {w} words > {budgets[k]} (+15%)")
     if want("never-say"):
         for k, body in secs.items():
-            if k in ("B8", "P7"):
+            if k == "P8":
                 continue
             for p in R["guardrails"]["never_say"]:
                 if p.lower() in body.lower():
@@ -133,16 +134,37 @@ def checks(brief_md, script_md="", which="all", target_nouns=()):
     if want("outcome"):
         mv = next(c["method_verbs"] for c in R["checks"] if "method_verbs" in c)
         for v in mv:
-            if v.lower() in secs.get("B6", "").lower():
-                fails.append(f"C8 outcome: method verb '{v}' in B6")
+            if v.lower() in secs.get("B5", "").lower():
+                fails.append(f"C8 outcome: method verb '{v}' in B5")
     if want("exclusions"):
         kws = {"health": ["diagnos", "illness", "hospital"], "family": ["divorce", "his wife", "her husband", "children"],
                "political": ["donated to", "FEC", "campaign contribution"], "litigation": ["lawsuit", "sued", "plaintiff"]}
-        body = "\n".join(v for k, v in secs.items() if k not in ("B8", "B9", "P7"))
+        body = "\n".join(v for k, v in secs.items() if k not in (LEDGER, "P8"))
         for topic, words in kws.items():
             for w in words:
                 if w.lower() in body.lower():
                     fails.append(f"C9 exclusions: '{w}' ({topic}) in body")
+    if want("plain"):
+        pw = R["plain_words"]
+        own = QUOTED.sub(" ", md)
+        hits = re.findall(r"\b(?:" + "|".join(re.escape(w) for w in pw["banned"]) + r")\b", own, re.I) + re.findall(pw["codes"], own)
+        for h in sorted(set(hits)):
+            fails.append(f"C11 plain: '{h}' outside quoted words")
+    if want("gaps"):
+        still = next((ln for ln in secs.get(LEDGER, "").splitlines() if "Still open" in ln), "")
+        for k in [k for k in secs if re.match(r"B[1-9]$", k)]:
+            for label in re.findall(r"\*\*([^*]+?):\*\*\s*Not determined", secs[k]):
+                if label.lower() not in still.lower() or "?" not in still:
+                    fails.append(f"C12 gaps: {k} '{label}' is Not determined with no question in Still open")
+    if want("conditional"):
+        if "What they may want" in secs.get("B8", "") and not re.search(r"Depth:\s*deep", md, re.I):
+            fails.append("C13 conditional: B8 has hypotheses but the meta line is not Depth deep")
+        tier = re.search(r"Evidence tier:\**\s*(high|medium|low)", secs.get("B6", ""), re.I)
+        tier = tier.group(1).lower() if tier else "low"
+        if "P6" in secs and tier != "high":
+            fails.append(f"C13 conditional: P6 Influence printed at evidence tier {tier}")
+        if "P5" in secs and tier == "low":
+            fails.append("C13 conditional: P5 Read the room printed at evidence tier low")
     return fails
 
 
@@ -171,8 +193,11 @@ def self_test():
         print("FAIL negative control expected unbound 3 / dropped 1 / ok False"); ok = False
     f = checks((fx / "control_broken.md").read_text())
     print("negative control checks:", len(f), "failures:", *[" - " + x for x in f], sep="\n")
-    if not any(x.startswith("C7") for x in f) or not any(x.startswith("C9") for x in f):
-        print("FAIL negative control must trip C7 (never_say) and C9 (exclusions)"); ok = False
+    for cid, what in (("C7", "never_say"), ("C9", "exclusions"), ("C11", "plain"), ("C12", "gaps"), ("C13", "conditional")):
+        if not any(x.startswith(cid + " ") for x in f):
+            print(f"FAIL negative control must trip {cid} ({what})"); ok = False
+    if checks((fx / "control_12.md").read_text()):
+        print("FAIL positive control must pass every check"); ok = False
     return ok
 
 
@@ -206,6 +231,7 @@ def ratchet(record=False):
 
 # ---------------------------------------------------------------- improve ------------------------------------
 def improve(debriefs):
+    import yaml   # the debrief is YAML; only this command needs the library
     props = []
     for p in debriefs:
         d = yaml.safe_load(pathlib.Path(p).read_text())
@@ -228,7 +254,7 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
     d = sub.add_parser("duf"); d.add_argument("brief"); d.add_argument("script", nargs="?"); d.add_argument("--pages", type=int)
     c = sub.add_parser("checks"); c.add_argument("brief"); c.add_argument("script", nargs="?"); c.add_argument("--target-nouns", default="")
-    for w in ["swap", "quotes", "custom-q", "sections", "budgets", "never-say", "outcome", "exclusions", "all"]:
+    for w in ["swap", "quotes", "custom-q", "sections", "budgets", "never-say", "outcome", "exclusions", "plain", "gaps", "conditional", "all"]:
         c.add_argument(f"--{w}", action="store_true")
     sub.add_parser("concordance"); sub.add_parser("self-test")
     r = sub.add_parser("ratchet"); r.add_argument("--record", action="store_true")
@@ -239,7 +265,8 @@ def main():
         rep = duf(pathlib.Path(a.brief).read_text(), pathlib.Path(a.script).read_text() if a.script else "", a.pages)
         print(json.dumps(rep, indent=1)); sys.exit(0 if rep["ok"] else 1)
     if a.cmd == "checks":
-        which = next((w for w in ["swap", "quotes", "custom-q", "sections", "budgets", "never-say", "outcome", "exclusions"] if getattr(a, w.replace("-", "_"))), "all")
+        which = next((w for w in ["swap", "quotes", "custom-q", "sections", "budgets", "never-say", "outcome", "exclusions", "plain", "gaps", "conditional"]
+                      if getattr(a, w.replace("-", "_"))), "all")
         f = checks(pathlib.Path(a.brief).read_text(), pathlib.Path(a.script).read_text() if a.script else "", which,
                    [n.strip() for n in a.target_nouns.split(",")])
         print(f"checks ({which}): {len(f)} failures"); [print(" -", x) for x in f]; sys.exit(1 if f else 0)

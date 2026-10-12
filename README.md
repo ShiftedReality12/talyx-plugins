@@ -5,7 +5,7 @@ compounding intelligence from what they already know.
 
 | Plug-in | What it does |
 |---|---|
-| [`pcp`](plugins/pcp) | Pre-call prep (v2). Calibrates once, researches public sources with a coverage ledger, and produces one 3-page PDF: a 2-page brief and a 1-page meeting script, with every fact cited. |
+| [`pcp`](plugins/pcp) | Pre-call prep (v3). Sets up once, researches public sources (plus LinkedIn and your own files, when you allow it), and produces one 3-page PDF: a 2-page Intelligence Brief and a 1-page meeting script, with every fact cited. |
 
 ## Install
 
@@ -42,8 +42,8 @@ For the whole workspace, an admin imports it once: **Admin > Plugins > Add > Imp
 | Perplexity | download [`adapters/perplexity/pre-call-prep.zip`](adapters/perplexity/pre-call-prep.zip) and upload it as a skill |
 | Gemini app (Gem), Microsoft 365 Copilot | paste two files; no scripts there, so no PDF: see [adapters/chat](adapters/chat) |
 
-The first PDF on a computer needs Playwright, Chromium and pypdf: `python3 format/talyx_pdf.py --setup`
-from the plug-in folder.
+The PDF uses the Chrome, Edge or Chromium already on the computer. With none of them, run
+`python3 format/talyx_pdf.py --setup` once from the plug-in folder.
 
 ## Use
 

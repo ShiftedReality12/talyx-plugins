@@ -45,7 +45,7 @@ SRC = {k: v for k, v in json.loads((ROOT / "build" / "plugin.source.json").read_
 META = {k: SRC[k] for k in ("name", "version", "description", "author", "homepage", "repository", "license", "keywords")}
 RENDERER = ["format/talyx_pdf.py", "format/assets/archivo-variable.woff2", "format/assets/talyx-logo-navy-base64.txt"]
 # the plug-in files each skill's instructions name (v2.0.0 paths, relative to the plug-in)
-NAMED = {"pre-call-prep": ["eval.py", "pcp.yaml", *RENDERER, "evals/debrief_template.yaml", "evals/ratchet.json"],
+NAMED = {"pre-call-prep": ["eval.py", "pcp.yaml", "pcp.json", *RENDERER, "evals/debrief_template.yaml", "evals/ratchet.json"],
          "talyx-pdf": RENDERER}
 
 
@@ -89,14 +89,22 @@ def perplexity_zip(files):
 
 # pcp.yaml items reworded or left out for a host that runs no code; everything else is rendered as is
 CHAT_ROWS = {
-    "CAL-1": {"text": "Ask only the questions the Saved setup block has no answer for -- all eight the first time, all eight again with --recalibrate. Otherwise read it silently.",
-              "test": "An empty Saved setup block -- the run asks all eight. A complete one -- it asks none."},
-    "CAL-2": {"text": "A skipped answer takes the first (Recommended) option and is stored with defaulted:true; the brief's heading shows the profile line.",
-              "test": "Skip Q5 -- the Saved setup block shows Q5 standard, defaulted true; the heading reads \"standard\"."},
+    "CAL-1": {"text": "Ask only the questions the Saved setup block has no answer for -- all of them the first time, all again with --recalibrate. Otherwise read it silently.",
+              "test": "An empty Saved setup block -- the run asks every question. A complete one -- it asks none."},
+    "CAL-2": {"text": "A skipped answer takes the first (Recommended) option and is stored with defaulted:true; the heading shows Prepared for and Depth.",
+              "test": "Skip Q5 -- the Saved setup block shows Q5 standard, defaulted true; the heading reads \"Depth: standard\"."},
     "CAL-3": None,   # the improve loop is a script
+    "CAL-4": {"text": "Files the user attaches about their business are read once; a summary of at most 150 words goes in the Saved setup block under context. Facts from them are tagged Yours, never presented as public.",
+              "test": "Attach a one-page file -- the updated Saved setup block holds its summary, and a fact from it carries tag Yours."},
     "S2-2": {"test": "A claim missing any field is dropped and counted in coverage.dropped."},
+    "S2-7": {"text": "LinkedIn: this host cannot open the user's browser. Offer once: save their profile as a PDF (More > Save to PDF) and attach it; it is read as Yours. Otherwise the Coverage row says 'LinkedIn not read: no browser here', and Still open carries a question that closes the gap.",
+             "test": "No attachment -- Coverage reads 'LinkedIn not read: no browser here'."},
     "S4-1": {"test": "Check C2 finds unbound > 0 -- the answer is rewritten before it is delivered."},
-    "S4-3": None, "S4-4": None, "S4-5": None,   # the PDF renderer
+    "S4-3": None, "S4-4": None,   # the PDF renderer
+    "S4-5": {"text": "The heading's meta line carries meeting, prepared for, depth, sources, status and date; the ledger's Run row carries the run details.",
+             "test": "The heading has all six fields."},
+    "S4-7": {"test": "Write **Decision maker:** Not determined with no question in Still open -- check C12 fails."},
+    "S4-8": {"test": "Put SOCMINT in B3 -- check C11 fails."},
 }
 CHAT_INPUTS = {"arguments": {"type": "'Full Name, Organisation' | a pasted list", "source": "the user's message"},
                "profile": {"source": "Saved setup block"}}
@@ -116,8 +124,8 @@ CHAT_DELIVER = """## Deliver
 
 This host has no PDF renderer and cannot run the checks as code. Apply every check in the table above
 yourself before answering, and say they were self-checked, not machine-run. Deliver ONE document: the
-brief (B1-B9) then the meeting script (P1-P7), headed with the profile line, status and coverage. Say what
-was NOT found (coverage) before what was. Say plainly that it is not the Talyx PDF; the plug-in version
+{deliverable} (B1-B10) then the {script} (P1-P9), headed with the identity and meta lines. Say what
+was NOT found before what was. Say plainly that it is not the Talyx PDF; the plug-in version
 renders that.
 
 ## Debrief
@@ -127,13 +135,13 @@ accuracy per dimension (hit or miss), outcome -- and nothing else.
 
 """
 
-CHAT_INSTRUCTIONS = """You are Talyx Pre-call Prep. Before a meeting you research the named person, company or deal from public sources only and write one cited brief plus a one-page meeting script.
+CHAT_INSTRUCTIONS = """You are Talyx Pre-call Prep. Before a meeting you research the named person, company or deal from public sources and the user's own files, and write one cited Intelligence Brief plus a one-page meeting script.
 
 Follow pcp-knowledge.md exactly, in stage order: calibrate, intake, collect, read, brief and script, debrief. It holds the questions, source families, exclusions, rubric, page budgets and checks. Where it and this text differ, it wins.
 
 Calibration is asked once. The Saved setup block at the end of pcp-knowledge.md holds the saved answers. Ask only the questions it has no answer for, then give the user the updated block to paste into their copy of pcp-knowledge.md. Never say it was saved: only the user can update that file.
 
-Never start research without a full name and an organisation. If two people match, stop and ask. Public sources only: nothing behind a login, no scraping. Every fact carries a numbered citation to a source you actually opened. Say what you could not find before what you found. Never invent a fact, a quote or a source.
+Never start research without a full name and an organisation. If two people match, stop and ask. Public sources, plus files the user attaches: you cannot open LinkedIn here, so offer to read a profile the user saves as a PDF. Every fact carries a numbered citation to a source you actually opened. Say what you could not find before what you found. Never invent a fact, a quote or a source.
 
 This host has no PDF renderer and runs no code. Apply the checks yourself and say they were self-checked. Deliver one document and say it is not the Talyx PDF.
 """
@@ -174,20 +182,33 @@ def chat_knowledge():
     C = _chat_registry(R)
     text = rs.render_skill(C, hashlib.sha256(raw).hexdigest()[:12])
     text = text[text.index("\n---\n") + 5:]   # a knowledge file has no skill frontmatter
-    text = text.replace("The deliverable is one 3-page PDF.", "The deliverable is one document: the brief, then the meeting script.")
+    n = R["names"]
+    text = text.replace(f"The deliverable is one 3-page PDF, the {n['deliverable']}.", f"The deliverable is one document: the {n['deliverable']}, then the {n['script']}.")
+    text = text.replace("`references/socratic-questions.md`", "the Socratic questions section below").replace("references/socratic-questions.md", "the Socratic questions section below")
     s0 = text.index("## Stage 0")
     text = text[:s0] + "## Stage 0: Calibrate (once)\n\n" + CHAT_STAGE0 + "\n\n" + text[text.index("| # | Chip", s0):]
-    text = text.replace("Profile line (footer of every PDF)", "Profile line (heading of every brief)")
-    text = text.replace("## The PDF: pages 1-2 brief", "## The brief").replace("## The PDF: page 3 meeting script", "## The meeting script")
-    text = re.sub(r"Word budgets are the page budget; the engine renders[^\n]*\n",
-                  "Word budgets are length limits: cut to fit, never run over (check C6).\n", text)
+    text = text.replace(f"## The PDF: pages 1-2, the {n['deliverable']}", f"## The {n['deliverable']}").replace(f"## The PDF: page 3, the {n['script']}", f"## The {n['script']}")
+    text = re.sub(r"Word budgets are the page budget; the renderer fails[^\n]*",
+                  "Word budgets are length limits: cut to fit, never run over (check C6).", text)
     checks = "\n".join(["| Id | Check | Passes when |", "|---|---|---|"] +
                        [f"| {c['id']} | {c['name']} | {c['passes_when']} |" for c in C["checks"] if "cmd" in c])
     text = _section(text, "## Checks", f"## Checks (all pass before delivery)\n\n{checks}\n\n", "## Render")
-    text = _section(text, "## Render", CHAT_DELIVER, "## About")
+    text = _section(text, "## Render", CHAT_DELIVER.format(**n), "## About")
+    socratic = rs.render_socratic(R, hashlib.sha256(raw).hexdigest()[:12]).split("\n", 2)[2]   # without its generated-file header
     blank = {"pcp_profile_format": 1, "profiles": {"default": {"answers": {}}}}
-    return (text + "\n## Saved setup\n\nReplace this block with the one the assistant gives you after calibration.\n\n"
+    return (text + "\n" + socratic.replace("# Socratic questions", "## Socratic questions", 1)
+            + "\n## Saved setup\n\nReplace this block with the one the assistant gives you after setup.\n\n"
             "```yaml\n" + yaml.safe_dump(blank, sort_keys=False) + "```\n")
+
+
+def check_listing():
+    """The listing text every host shows is user-facing: plain words (pcp.yaml plain_words)."""
+    spec = importlib.util.spec_from_file_location("render_skill", PLUGIN / "render_skill.py")
+    rs = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(rs)
+    texts = [SRC["description"], *[v for v in SRC["interface"].values() if isinstance(v, str)], *SRC["interface"]["defaultPrompt"]]
+    bad = rs.plain_violations(yaml.safe_load((PLUGIN / "pcp.yaml").read_text()), texts)
+    return [f"build/plugin.source.json listing text uses {', '.join(bad)} -- plain words"] if bad else []
 
 
 def check_chat(text):
@@ -228,7 +249,7 @@ def main():
     ap.add_argument("--check", action="store_true")
     a = ap.parse_args()
     files = render()
-    problems = check_chat(files["adapters/chat/pcp-knowledge.md"])
+    problems = check_chat(files["adapters/chat/pcp-knowledge.md"]) + check_listing()
     drift = [rel for rel, data in files.items()
              if not (ROOT / rel).exists() or (ROOT / rel).read_bytes() != (data if isinstance(data, bytes) else data.encode())]
     for line in problems:

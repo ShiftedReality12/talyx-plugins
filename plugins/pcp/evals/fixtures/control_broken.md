@@ -1,38 +1,52 @@
-# Jane Doe -- Alder Grey Capital
+# Jane Doe
+**Alder Grey Capital** | Managing Partner, since 2021 | Chicago
+Meeting: First intro | Prepared for: Founder / principal | Depth: standard | Sources: 4 of 12 source types, 8 cited | Status LIMITED | Prepared Sep 20, 2026
 
-## B1 Snapshot
-Jane Doe leads Alder Grey Capital since 2021 [1]. She went through a divorce in 2020. coverage 4/12.
+## B1 Take
+**Take.** Jane Doe leads Alder Grey Capital since 2021 [1].
 
-## B2 In their words
-"We buy patience" [2].
+## B2 Questions that close gaps
+1. What changed [4]?
 
-## B3 Strategic read
-Alder Grey is raising a second vehicle [3]. Does that make sense?
+## B3 Who they are
+- **Role:** Managing Partner [1]. She went through a divorce in 2020. Her SOCMINT footprint is thin [2].
 
-## B4 Behavioral read
-| dominance | high | Lead. | [4] |
+## B5 Signals and what to do with them
+Gap: references [1]. Bridge: our pipeline ingests filings. Does that make sense?
 
-## B5 Discovery questions
-- What changed [4]? What the answer tells you: pace.
+## B6 Meeting approach
+**Evidence tier:** medium: it sets how far page 3 goes
 
-## B6 Their situation framed
-Gap: references [1]. Bridge: our pipeline ingests filings. Urgency: fixed close [2].
+## B7 Who decides
+- **The gate:** Not determined
 
-## B7 Value and next step
-An introduction [3].
+## B8 Strongest case against
+### What they may want from this meeting
+| Hypothesis and why it fits | Test |
+|---|---|
+| A second vehicle [3] | Ask about the close |
 
-## B8 Guardrails
-Left out: litigation.
+## B10 Evidence ledger
+| # | What it says | Source | Tag | Grade | Conf. | Date |
+|---|---|---|---|---|---|---|
+| [1] | Fact 1 | [example.org](https://example.org/1) | Direct | Measured | Primary | Sep 20, 2026 |
+| [2] | Fact 2 | [example.org](https://example.org/2) | Direct | Measured | Primary | Sep 20, 2026 |
+| [3] | Fact 3 | [example.org](https://example.org/3) | Direct | Measured | Primary | Sep 20, 2026 |
+| [4] | Fact 4 | [example.org](https://example.org/4) | Direct | Measured | Primary | Sep 20, 2026 |
+| [5] | Fact 5 | [example.org](https://example.org/5) | Direct | Measured | Primary | Sep 20, 2026 |
+| [6] | Fact 6 | [example.org](https://example.org/6) | Direct | Measured | Primary | Sep 20, 2026 |
+| [7] | Fact 7 | [example.org](https://example.org/7) | Direct | Measured | Primary | Sep 20, 2026 |
+| [8] | Fact 8 with no source | | Direct | Measured | Primary | Sep 20, 2026 |
 
-## B9 Sources
-- [1] Fact 1 about Alder Grey Capital -- https://example.org/1 -- DIRECT -- C1 -- 2026-09-20
-- [2] Fact 2 about Alder Grey Capital -- https://example.org/2 -- DIRECT -- C1 -- 2026-09-20
-- [3] Fact 3 about Alder Grey Capital -- https://example.org/3 -- DIRECT -- C1 -- 2026-09-20
-- [4] Fact 4 about Alder Grey Capital -- https://example.org/4 -- DIRECT -- C1 -- 2026-09-20
-- [5] Fact 5 about Alder Grey Capital -- https://example.org/5 -- DIRECT -- C1 -- 2026-09-20
-- [6] Fact 6 about Alder Grey Capital -- https://example.org/6 -- DIRECT -- C1 -- 2026-09-20
-- [7] Fact 7 about Alder Grey Capital -- https://example.org/7 -- DIRECT -- C1 -- 2026-09-20
-- [8] Fact 8 no url here
+| | |
+|---|---|
+| **Coverage** | 4 of 12 source types |
+| **Still open** | nothing |
+
+# Meeting script
 
 ## P1 Open
 Hello [1].
+
+## P6 Influence, one fact behind each
+- **Authority:** none [2].

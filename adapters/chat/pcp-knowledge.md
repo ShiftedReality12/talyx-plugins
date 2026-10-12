@@ -1,11 +1,21 @@
-<!-- GENERATED from pcp.yaml (sha256:c57dde6cf7ee) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:444938bde67e) by render_skill.py -- edit pcp.yaml, never this file -->
 
-# Pre-call prep (v2.0.0)
+# Pre-call prep (v3.0.0)
 
-Five stages, dependency-ordered: **calibrate once -> intake -> collect -> read -> brief + script -> debrief.**
+Stages, dependency-ordered: **setup once -> intake -> intelligence collection -> meeting approach -> Intelligence Brief -> debrief.**
 Every stage declares its inputs before its behaviour, reads only its listed context, and follows rows
-that each carry a falsification test. Every fact traces to a public source. Nothing is invented.
-The deliverable is one document: the brief, then the meeting script. Nothing else is emitted.
+that each carry a falsification test. Every fact traces to a source. Nothing is invented.
+The deliverable is one document: the Intelligence Brief, then the Meeting script. Nothing else is emitted.
+
+## How PCP thinks (never in the output)
+
+- Work the intelligence cycle: direction (setup and the meeting objective) -> collection -> processing (each fact gets a source, tag, grade and date; excluded topics are dropped) -> analysis -> the Intelligence Brief -> feedback (the debrief).
+- Collection is open sources, the person's public social footprint, LinkedIn through the user's own session with permission, and the user's own files and answers.
+- Meeting approach is human-source analysis from public evidence: each row is a cited observation and the caller's move. It never labels the person's character.
+- Keep what was read apart from what was inferred (the grade). Check the one assumption the Take rests on (Strongest case against). On deep runs, weigh competing explanations of what they want.
+
+**Plain words.** Nothing the user reads -- the PDF, replies, setup questions, the listing -- uses military, intelligence-trade or technical jargon. Their own quoted words are exempt. Never write: OSINT, SOCMINT, HUMINT, SIGINT, tradecraft, collection plan, competing hypotheses, ACH, target package, kill chain, dossier, duf_pp, claims.jsonl, read.json, source families, scrape, scraped, scraping, crawl, LLM, or an internal id
+(C1-C4, F1-F12, row ids). Use "source types", not families; "the person you're meeting", not target.
 
 ## Stage 0: Calibrate (once)
 
@@ -26,17 +36,18 @@ This host runs no scripts. The saved setup is the **Saved setup** block at the e
 | Q2 | Domain | Where do your targets mostly live? | General professional (Recommended) / Wealth management / Private equity / VC / Enterprise / SaaS | domain |
 | Q3 | Target kind | Who do you usually prep for? | A person (Recommended) / A company or team / A deal or transaction / Mixed | target.kind_default |
 | Q4 | Meeting | What is the typical call? | First intro (cold or warm) (Recommended) / Discovery / qualification / Pitch / close / Relationship / renewal | meeting.format_default |
-| Q5 | Depth | Research depth versus speed? | Standard -- 12 families, about 8 minutes (Recommended) / Fast -- 6 families, about 3 minutes / Deep -- all families + competing hypotheses | research.depth |
-| Q6 | SOCMINT | Public social footprint -- how far? | Professional only (Recommended) / Plus public X / Bluesky / Substack / None | socmint.scope |
+| Q5 | Depth | Research depth versus speed? | Standard -- 12 source types, about 8 minutes (Recommended) / Fast -- 6 source types, about 3 minutes / Deep -- every source type + what they may want | research.depth |
+| Q6 | Social | Public social footprint -- how far? | Professional only (Recommended) / Plus public X / Bluesky / Substack / None | socmint.scope |
 | Q7 | Compliance | Jurisdiction and compliance posture? | US (Recommended) / UK / EU (GDPR strict) / Regulated sales (FINRA / FCA style) / APAC | jurisdiction |
-| Q8 | Your offer | In one line -- what do you offer, and what does a win in this meeting look like? (free text) | free text | caller.offer_one_line, meeting.win_definition |
+| Q9 | Experience | How long have you been running meetings like this? | Experienced (Recommended) / Newer -- under two years / Top producer | caller.experience |
+| Q8 | Your offer | In one line -- what do you offer, and what does a win in this meeting look like? If you have files about your business (a deck, a one-pager, case studies), add their paths and PCP will use them. (free text) | free text | caller.offer_one_line, meeting.win_definition, context.files |
 
-- **CAL-1** Ask only the questions the Saved setup block has no answer for -- all eight the first time, all eight again with --recalibrate. Otherwise read it silently.  
-  _Fails when:_ An empty Saved setup block -- the run asks all eight. A complete one -- it asks none.
-- **CAL-2** A skipped answer takes the first (Recommended) option and is stored with defaulted:true; the brief's heading shows the profile line.  
-  _Fails when:_ Skip Q5 -- the Saved setup block shows Q5 standard, defaulted true; the heading reads "standard".
-
-Profile line (heading of every brief): `role · domain · depth · jurisdiction`.
+- **CAL-1** Ask only the questions the Saved setup block has no answer for -- all of them the first time, all again with --recalibrate. Otherwise read it silently.  
+  _Fails when:_ An empty Saved setup block -- the run asks every question. A complete one -- it asks none.
+- **CAL-2** A skipped answer takes the first (Recommended) option and is stored with defaulted:true; the heading shows Prepared for and Depth.  
+  _Fails when:_ Skip Q5 -- the Saved setup block shows Q5 standard, defaulted true; the heading reads "Depth: standard".
+- **CAL-4** Files the user attaches about their business are read once; a summary of at most 150 words goes in the Saved setup block under context. Facts from them are tagged Yours, never presented as public.  
+  _Fails when:_ Attach a one-page file -- the updated Saved setup block holds its summary, and a fact from it carries tag Yours.
 
 ## Stage 1: Intake
 
@@ -49,7 +60,7 @@ Profile line (heading of every brief): `role · domain · depth · jurisdiction`
 | `meeting.objective` | text | intake row or one question | yes | ask: What do you want to walk out of this meeting with? |
 | `target.kind` | person|company|deal | intake or profile.target.kind_default | yes | person |
 
-**Context contract** -- read, in this order: profile, intake row, this stage's rows. Budget: 600 words. Not read: reference files of later stages, prior briefs.
+**Context contract** -- read, in this order: profile, intake row, this stage's rows, the Socratic questions section below. Budget: 900 words. Not read: reference files of later stages, prior briefs.
 
 **Rows:**
 
@@ -59,8 +70,10 @@ Profile line (heading of every brief): `role · domain · depth · jurisdiction`
   _Fails when:_ Seed an ambiguous name -- the run must present the candidates and stop.
 - **S1-3** Up to 8 targets per run; research targets in parallel, write briefs in turn.  
   _Fails when:_ A 9-row CSV must be refused with the count.
+- **S1-4** Ask the user only as the Socratic questions section below says: when a trigger fires, at most 2 questions after setup, in one message, each skippable.  
+  _Fails when:_ An intake with an objective and no relationship -- the run asks nothing before collection.
 
-## Stage 2: Collection
+## Stage 2: Intelligence collection
 
 **Input contract** (declared before behaviour):
 
@@ -68,28 +81,30 @@ Profile line (heading of every brief): `role · domain · depth · jurisdiction`
 |---|---|---|---|---|
 | `resolved_families` | list | families filtered by profile (kind, depth, socmint) | yes | none -- derived |
 | `exclusions` | list | exclusions.base + exclusions.by_jurisdiction[profile.jurisdiction] | yes | none -- derived |
-| `known_context` | text | intake Notes column | no | empty |
+| `known_context` | text | intake Notes column, the user's answers, profile.context and any file the user gives | no | empty |
 
 **Context contract** -- read, in this order: resolved_families with query templates, exclusions, target identity, known_context. Budget: 1200 words. Not read: rubric, brief structure, script structure.
 
-**Outputs:** `claims.jsonl` (id, claim, family, url, retrieved_at, tag, confidence, exclusion_hit); `coverage` (families_attempted, families_total, hits_by_family, failed_urls, status)
+**Outputs:** `claims.jsonl` (id, claim, family, url, retrieved_at, tag, grade, confidence, exclusion_hit); `coverage` (families_attempted, families_total, hits_by_family, failed_urls, linkedin, status)
 
 **Rows:**
 
-- **S2-1** Public sources only. Nothing behind a login, no paid data the user has not supplied, no scraping.  
-  _Fails when:_ A LinkedIn login wall counts as a failed URL and appears in coverage.failed_urls.
-- **S2-2** Every claim carries url, retrieved_at, tag DIRECT|SEARCH, and confidence C1 (primary, dated) | C2 (reputable secondary) | C3 (single weak source) | C4 (inferred).  
+- **S2-1** Public sources, plus what the user gives PCP: their files and answers (tag Yours) and their own LinkedIn session (S2-7). No paid data the user has not supplied, no scraping.  
+  _Fails when:_ A run with no browser, no files and no answers holds only Direct and Search facts.
+- **S2-2** Every claim carries url (or the file name, for Yours), retrieved_at, tag Direct|Search|LinkedIn|Yours, grade Measured|Derived|Inference|Not determined, and confidence C1 (primary, dated) | C2 (reputable secondary) | C3 (single weak source) | C4 (inferred).  
   _Fails when:_ A claim missing any field is dropped and counted in coverage.dropped.
-- **S2-3** A claim that hits an exclusion is dropped BEFORE the writer sees it and counted in coverage.excluded; the brief's guardrails say a topic was left out, never which fact.  
+- **S2-3** A claim that hits an exclusion is dropped BEFORE the writer sees it and counted in coverage.excluded; the ledger's Left out on purpose row names the topic, never the fact.  
   _Fails when:_ Seed a claim tagged exclusion health -- it must not appear in any output file.
 - **S2-4** Coverage is a required output: families_attempted/families_total and hits per family. A run without coverage is not a run.  
   _Fails when:_ Disable WebFetch -- coverage must show 0/N attempted and status LIMITED, never FULL.
-- **S2-5** Status FULL requires >= 1 C1/C2 claim in >= research.full_threshold[depth] families; else LIMITED, stamped on page 1.  
+- **S2-5** Status FULL requires >= 1 C1/C2 claim in >= research.full_threshold[depth] families; else LIMITED, stamped in the masthead.  
   _Fails when:_ Remove all C1/C2 claims from one family below threshold -- status flips to LIMITED.
 - **S2-6** Run the counter-evidence family last: search for what would contradict the strategic read.  
   _Fails when:_ With depth standard or deep, coverage must show family F12 attempted.
+- **S2-7** LinkedIn: this host cannot open the user's browser. Offer once: save their profile as a PDF (More > Save to PDF) and attach it; it is read as Yours. Otherwise the Coverage row says 'LinkedIn not read: no browser here', and Still open carries a question that closes the gap.  
+  _Fails when:_ No attachment -- Coverage reads 'LinkedIn not read: no browser here'.
 
-## Stage 3: Behavioral read
+## Stage 3: Meeting approach
 
 **Input contract** (declared before behaviour):
 
@@ -107,14 +122,14 @@ Profile line (heading of every brief): `role · domain · depth · jurisdiction`
 
 - **S3-1** Score each of the six dimensions only from observation_ids in claims.jsonl; a band with fewer observations than its tier minimum is reported as 'no read' -- never guessed from role.  
   _Fails when:_ A target with only role-archetype claims must render every dimension as tier low and the script must contain no influence sequence.
-- **S3-2** Evidence tier gates script depth: low -> opener + questions; medium -> + framing; high -> + influence sequence (only if authority_level high).  
-  _Fails when:_ Delete one corroborating claim -- the tier must drop and the influence sequence must disappear on re-run.
-- **S3-3** Every band phrase on the page is a rubric row in pcp.yaml; no band phrase is written in prose.  
-  _Fails when:_ Grep the brief for a band phrase not in rubric.*.meaning -- concordance fails.
-- **S3-4** Depth deep adds an ACH mini: <= 3 hypotheses about what the target wants from this meeting, each with the claim that would disconfirm it.  
-  _Fails when:_ Depth standard -- no ACH block; depth deep -- ACH block with a disconfirming claim id per hypothesis.
+- **S3-2** Evidence tier gates page 3: low -> no Read the room (P5); high AND authority_level high -> Influence (P6). Otherwise P6 is left out.  
+  _Fails when:_ Delete one corroborating claim -- the tier must drop and P6 must disappear on re-run.
+- **S3-3** Every Your move in B6 is a rubric meaning in pcp.yaml, word for word, or No read; no band phrase is written in prose.  
+  _Fails when:_ Grep B6 for a move not in rubric.*.meaning -- the run is rewritten.
+- **S3-4** Depth deep adds what they may want: <= 3 hypotheses about what the person wants from this meeting, each with the claim that would disprove it.  
+  _Fails when:_ Depth standard -- no hypotheses table in B8; depth deep -- the table, with a disproving claim [n] per hypothesis.
 
-## Stage 4: Brief + script
+## Stage 4: Intelligence Brief
 
 **Input contract** (declared before behaviour):
 
@@ -125,14 +140,28 @@ Profile line (heading of every brief): `role · domain · depth · jurisdiction`
 | `profile` | yaml | Saved setup block | yes | none |
 | `page_budget` | rows | pcp.yaml brief + script | yes | none |
 
-**Context contract** -- read, in this order: brief sections with word budgets, script beats, claims (C1/C2 first), read.json, profile.caller, guardrails. Budget: 3000 words. Not read: rubric evidence lists, family query templates.
+**Context contract** -- read, in this order: brief sections with word budgets, script beats and sections, claims (C1/C2 first), read.json, profile.caller, guardrails. Budget: 3000 words. Not read: rubric evidence lists, family query templates.
 
 **Rows:**
 
-- **S4-1** Every fact in the brief cites a claim id [n]; the Sources block lists only cited claims. A fact with no citation is a defect, not a style choice.  
+- **S4-1** Every fact in B1-B9 and the script cites a ledger number [n]; the ledger (B10) lists only cited facts, numbered in order of first use. A fact with no citation is a defect, not a style choice.  
   _Fails when:_ Check C2 finds unbound > 0 -- the answer is rewritten before it is delivered.
 - **S4-2** Every sentence passes the swap test against caller.offer_one_line and the target: if another target's name would leave it true, delete it.  
   _Fails when:_ A brief with a sentence containing no claim id and no target-specific noun fails checks.swap.
+- **S4-5** The heading's meta line carries meeting, prepared for, depth, sources, status and date; the ledger's Run row carries the run details.  
+  _Fails when:_ The heading has all six fields.
+- **S4-6** A block or line prints only as its Prints when says: a line PCP cannot fill from evidence is left out, or reads Not determined where its row says so. Never filler.  
+  _Fails when:_ No recent wins found -- the Recent wins line is absent, not blank or padded.
+- **S4-7** Every Not determined gets a question to ask in the room, in the ledger's Still open row, as the Socratic questions section below says.  
+  _Fails when:_ Write **Decision maker:** Not determined with no question in Still open -- check C12 fails.
+- **S4-8** Plain words: nothing printed uses a plain_words.banned term or an internal code; the person's own quoted words are exempt.  
+  _Fails when:_ Put SOCMINT in B3 -- check C11 fails.
+- **S4-9** Experience (Q9) shapes page 3 only: new -> P1, P3 and P4 each end with a **Why:** line of at most 12 words; top -> the Hook and each objection's answer are at most 15 words; experienced -> neither.  
+  _Fails when:_ Set Q9 new -- P1, P3 and P4 each carry a Why line; set experienced -- none does.
+
+## Asking questions
+
+When a question is needed -- of the user, or for the room -- read the Socratic questions section below first.
 
 ## Source families
 
@@ -140,61 +169,67 @@ Enabled per profile: `depth` filters the column, `target.kind` filters `kinds`, 
 to `linkedin.com/posts, linkedin.com/pulse, youtube.com, podcasts` (professional) or the wider list (social) or none.
 FULL status needs >= 1 C1/C2 claim in {'fast': 4, 'standard': 8, 'deep': 10} families (by depth).
 
-| Id | Family | Depth | SOCMINT | Query template | Extract |
+| Id | Family | Depth | Social | Query template | Extract |
 |---|---|---|---|---|---|
 | F1 | identity | fast/standard/deep | no | `"{name}" "{org}" {title}` | current role + start date, prior roles, education, credentials, boards, awards |
 | F2 | career timeline | standard/deep | no | `"{name}" {org} career OR joined OR appointed OR promoted` | dated moves; the last 24 months first |
 | F3 | org news | fast/standard/deep | no | `"{org}" news OR announces OR partnership OR acquisition OR raises {year}` | deals, leadership changes, launches, growth or contraction, anything the target led |
 | F4 | org self-description | standard/deep | no | `{org_website} about OR mission` | how the org describes itself in its own words |
 | F5 | voice | fast/standard/deep | no | `"{name}" interview OR podcast OR panel OR quoted OR keynote` | exact quotes with URL; recurring themes; the words they use for their own work |
-| F6 | public social | fast/standard/deep | yes | `"{name}" site:linkedin.com/posts OR site:x.com OR site:substack.com OR site:bsky.app` | public posts in the last 180 days; themes, tone, what they amplify; scope per profile.socmint.scope |
+| F6 | public social | fast/standard/deep | yes | `"{name}" site:linkedin.com/posts OR site:x.com OR site:substack.com OR site:bsky.app` | public posts in the last 180 days; themes, tone, what they amplify; scope per profile.socmint.scope; LinkedIn per S2-7 |
 | F7 | affiliations | standard/deep | no | `"{name}" board OR trustee OR advisory OR member OR association OR alumni` | boards, associations, alumni networks, speaking circuits |
 | F8 | publications | standard/deep | no | `"{name}" author OR paper OR patent OR whitepaper OR book` | what they have published; the positions they defend in print |
 | F9 | registers | fast/standard/deep | no | `by_domain` | regulator / registry facts (see registers); C1 by definition |
 | F10 | events | standard/deep | no | `"{name}" OR "{org}" conference OR summit OR webinar {year}` | upcoming and recent appearances; a live hook for the opener |
-| F11 | shared context | standard/deep | no | `known_context only (no search)` | shared people, prior touches, mutual affiliations named by the caller |
-| F12 | counter-evidence | standard/deep | no | `"{org}" lawsuit OR layoffs OR departure OR decline OR criticism -- filtered by exclusions` | what contradicts the strategic read; feeds ACH; litigation stays excluded from the page |
+| F11 | shared context | standard/deep | no | `known_context only (no search)` | shared people, prior touches, mutual affiliations, the user's notes, files and answers -- all tagged Yours |
+| F12 | counter-evidence | standard/deep | no | `"{org}" lawsuit OR layoffs OR departure OR decline OR criticism -- filtered by exclusions` | what contradicts the strategic read; feeds the hypotheses; litigation stays excluded from the page |
 
 Registers by domain: wealth: FINRA BrokerCheck, SEC IAPD, SEC EDGAR; pe: SEC EDGAR Form D / ADV, Companies House (UK); saas: Companies House (UK), SEC EDGAR.
 
 **Exclusions (dropped before the writer, counted in coverage):** health, family matters outside the public professional record, political giving, litigation as a talking point, home address, personal finances.
 By jurisdiction: eu: any claim older than 5 years that is not a current role, retention of claims.jsonl after render; regulated: performance claims, promissory language, comparative claims about named competitors.
 
-## Behavioral read (six dimensions)
+## Meeting approach (six dimensions)
 
 Tiers: high = 3 observations, 2 sources, a direct quote or action;
-medium = 2 observations, 1 source; low = role-inferred only (renders as "no read").
+medium = 2 observations, 1 source; low = role-inferred only (renders as "No read").
 
-| Dimension | Signals | Low means | Mid means | High means |
+| Dimension | Row label (B6) | Signals | Low means | Mid means | High means |
+|---|---|---|---|---|---|
+| dominance | Pace and control | interrupts or redirects in recorded panels; directive language in posts; org-chart authority; first-person plural for the firm | Let them set the pace; ask before you propose. | Match their pace; propose once, then ask. | Lead with the outcome in one sentence; they decide fast and dislike preamble. |
+| status_sensitivity | How they take recognition | titles and awards foregrounded in bios; name-drops; curated public image; response to public recognition | Skip the flattery; substance only. | Acknowledge one specific achievement, then move on. | Open with respect for a specific, recent, public achievement; never one-up. |
+| information_appetite | Appetite for detail | length and density of their writing; data in their talks; questions they ask on panels; sources they cite | Headline and one proof point; offer detail only if asked. | Headline, two proof points, a source on request. | Bring the numbers and the sources; allow silence after a question. |
+| risk_tolerance | Appetite for risk | career moves into or out of stability; public positions on new or unproven things; language of caution vs. opportunity | Reduce risk first: references, reversibility, small first step. | Pair the upside with the safeguard in the same sentence. | Lead with the upside and the speed; do not over-hedge. |
+| ego_vulnerability | How they take disagreement | reaction to public criticism; defensiveness in interviews; credit-taking vs. credit-giving | Direct disagreement is fine; they separate idea from self. | Frame challenges as questions about the situation, not the person. | Never correct them in the room; ask a question that lets them arrive at it. |
+| competitive_drive | How they keep score | benchmarks and rankings in their language; peer references; win/loss framing | Frame around their own goals, not peers. | One peer reference is useful; more is noise. | Name what peers are doing; they will want to be ahead of it. |
+
+What they may want (depth deep only): <= 3 hypotheses about what they want from this meeting, each with the claim that would disprove it.
+
+## The Intelligence Brief
+
+`brief.md` starts with `# Full Name`, then the identity line (`**Organization** | Role, since year | City, if public`),
+then the meta line (`Meeting: ... | Prepared for: ... | Depth: ... | Sources: n of 12 source types, n cited | Status FULL or LIMITED | Prepared Mon D, YYYY`).
+Then one `## Bn Title` per block, in order. Word budgets are length limits: cut to fit, never run over (check C6).
+
+| Id | Block | Words | Prints when | Content |
 |---|---|---|---|---|
-| dominance | interrupts or redirects in recorded panels; directive language in posts; org-chart authority; first-person plural for the firm | Let them set the pace; ask before you propose. | Match their pace; propose once, then ask. | Lead with the outcome in one sentence; they decide fast and dislike preamble. |
-| status_sensitivity | titles and awards foregrounded in bios; name-drops; curated public image; response to public recognition | Skip the flattery; substance only. | Acknowledge one specific achievement, then move on. | Open with respect for a specific, recent, public achievement; never one-up. |
-| information_appetite | length and density of their writing; data in their talks; questions they ask on panels; sources they cite | Headline and one proof point; offer detail only if asked. | Headline, two proof points, a source on request. | Bring the numbers and the sources; allow silence after a question. |
-| risk_tolerance | career moves into or out of stability; public positions on new or unproven things; language of caution vs. opportunity | Reduce risk first: references, reversibility, small first step. | Pair the upside with the safeguard in the same sentence. | Lead with the upside and the speed; do not over-hedge. |
-| ego_vulnerability | reaction to public criticism; defensiveness in interviews; credit-taking vs. credit-giving | Direct disagreement is fine; they separate idea from self. | Frame challenges as questions about the situation, not the person. | Never correct them in the room; ask a question that lets them arrive at it. |
-| competitive_drive | benchmarks and rankings in their language; peer references; win/loss framing | Frame around their own goals, not peers. | One peer reference is useful; more is noise. | Name what peers are doing; they will want to be ahead of it. |
-
-ACH mini (depth deep only): <= 3 hypotheses about what they want from this meeting, each with the claim that would disconfirm it.
-
-## The brief
-
-Word budgets are length limits: cut to fit, never run over (check C6).
-
-| Id | Section | Words | Content |
-|---|---|---|---|
-| B1 | Snapshot | 140 | Role, path, credentials (F1/F2). Org in its own words + what changed (F3/F4). Status + coverage line. |
-| B2 | In their words | 90 | 2-3 exact quotes with [n]; or 'Themes from their public presence' if none (F5/F6). |
-| B3 | Strategic read | 120 | Why this meeting matters to THEM. Pressure, priority, where the caller's offer connects. Counter-evidence acknowledged in one clause (F12). |
-| B4 | Behavioral read | 110 | Six rows: dimension | band | meaning-for-the-meeting | [n]. 'no read' where tier is missing. Tier gate line. |
-| B5 | Discovery questions | 180 | 4-6 questions, each <= 40 words, each with 'What the answer tells you' and a [n]. Mix set by meeting.format. |
-| B6 | Their situation framed | 110 | Gap -> Bridge (outcome, not method) -> Urgency, in their language, each step with a [n]. |
-| B7 | Value and next step | 80 | One thing of value to bring; the ask; the fallback ask. |
-| B8 | Guardrails | 90 | Pace/language from B4; [UNVERIFIED] items to confirm; topics left out on purpose; never-say list. |
-| B9 | Sources | 160 | Cited claims only: [n] claim -- URL -- DIRECT|SEARCH -- C-level -- date. Coverage fraction on the last line. |
+| B1 | Take | 70 | always | One paragraph: **Take.** who they are and why this meeting matters to them now, in one sentence, every clause cited. **Evidence:** the one to three facts it rests on [n]. **Action:** the first move in the room. **Avoid:** the one move that loses the meeting. It adds no fact the blocks below don't cite. |
+| B2 | Questions that close gaps | 210 | always | 5 numbered questions, each <= 20 words, on the fact it rests on [n]; under each, one indented bullet: **Decides:** what the answer settles for you. **Ask:** whom -- the person, or who else is in the room. Ordered by what they decide; the mix follows the meeting type (Q4). |
+| B3 | Who they are | 110 | always | Bullets, label first: **Role:** title and since when [n] (required). **Path:** the prior roles that matter [n]. **The organization:** in its own words, plus one scale figure [n]. **What changed:** one to three dated items, newest first [n]. **Recent wins:** none to two dated, cited results [n]. Path, The organization and What changed read Not determined if not found; Recent wins is left out. From F1 F2 F3 F4 F9. |
+| B4 | In their words | 90 | always | 2-3 bullets, label first: **Topic, where, when:** "their exact words" [n]. None found: one line of themes from their public presence [n]; nothing at all: Not determined. From F5 F6 F8 and LinkedIn. |
+| B5 | Signals and what to do with them | 100 | always | A table: | Observable | What to do with it |, three rows in this order: their priority and the gap, in their words [n] -> why this meeting matters to them; where your offer connects (Q8) [n] -> the bridge: the outcome you offer, not the method; the trigger, why now [n] -> the urgency, never invented. From F3 F10 F11 and Q8. |
+| B6 | Meeting approach | 170 | always | A table: | What the record shows | Your move |, six rows, one per rubric dimension, each starting with its label (Pace and control, How they take recognition, Appetite for detail, Appetite for risk, How they take disagreement, How they keep score): the cited observation [n] -> the rubric's move word for word, or No read. Then one line: **Evidence tier:** high, medium or low: it sets how far page 3 goes. A cited observation and a move, never a verdict on their character. |
+| B7 | Who decides | 60 | always | Bullets: **Decision maker:** who signs off [n]. **The gate:** what must be true, or who must agree, before a yes [n]. **Relationship holder:** who the relationship runs through [n]. Unknown: Not determined, and a question in Still open. From F1 F3 F9 F11. |
+| B8 | Strongest case against | 150 | always | Up to 3 bullets: **Against:** the best evidence against your read [n]. **Reverses if:** what would flip it. None found: No counter-evidence found. Deep runs only, then `### What they may want from this meeting` and a table | Hypothesis and why it fits | Test: who answers, and what would disprove it |, up to 3 rows, each with the claim that would disprove it [n]. From F12; litigation stays off the page. |
+| B9 | Meeting angle | 150 | always | `### This meeting` then bullets: **Frame:** what this meeting is, in their terms; not a pitch. **Lands:** [n]. **Repels:** [n]. **What to bring:** one thing of value [n]. **The ask:** specific and bounded, who and how long [n] · **Fallback:** the smaller ask. **Stop if:** the answer that means drop the ask. `### Meeting two` then **Meeting two:** the next conversation if this one lands, on a fact from this brief. **Meeting three:** where it goes after that. `### After the meeting` then **Capture:** what to record from the room that the public record couldn't give. From Q8 and B3-B8. |
+| B10 | Evidence ledger | 700 | always | One line: Unmarked facts are measured. {n} facts cited; status {FULL or LIMITED} at {n} of 12 source types. Then the table | # | What it says | Source | Tag | Grade | Conf. | Date |, one row per cited fact in order of first use: [n] · the fact in about 8 words · [domain](url) (a file name for Yours) · Direct, Search, LinkedIn or Yours · Measured, Derived, Inference or Not determined · Primary (C1), Reputable (C2), Single source (C3) or Inferred (C4), printed as the word · Mon D, YYYY. Then a label grid (empty header row) with four rows: **Coverage** -- n of 12 source types, what was not found and why, LinkedIn read or not and why. **Still open** -- each gap with the question that closes it in the room. **Left out on purpose** -- the excluded topics, never the facts. **Run** -- date · depth · meeting type · prepared for · jurisdiction · status · decision-useful facts per page. |
 
 Domain vocabulary: wealth: book, AUM, custodian, fee compression, succession, next-gen; pe: dry powder, DPI, add-on, hold period, exit; saas: ARR, NRR, champion, security review, procurement, renewal.
 
-## The meeting script
+## The Meeting script
+
+`script.md` starts with `# Meeting script`, then one line: *Facts select the moves; read the room, never the record · Full Name, Organization · Prepared Mon D, YYYY*.
+Then one `## Pn Title` per section, in order; a section whose Prints when is not met is left out, not blank.
 
 Beats by meeting format:
 - **intro**: open -> credibility in one line -> one insight they did not have -> ask for the second meeting
@@ -202,15 +237,17 @@ Beats by meeting format:
 - **close**: open -> restate their words -> the outcome -> the safeguard -> the ask
 - **relationship**: open -> acknowledge what changed -> one thing of value -> one forward question
 
-| Id | Block | Words | Content |
-|---|---|---|---|
-| P1 | Open | 40 | <= 2 sentences; names a [n]. |
-| P2 | Beats | 200 | One line per beat from beats_by_format, each with the [n] it rests on. |
-| P3 | Questions | 150 | 5 questions verbatim from B5, ordered for the room. |
-| P4 | If they say | 120 | 3 objection -> response pairs, each response <= 30 words. |
-| P5 | Influence sequence | 60 | ONLY if tier high AND authority high: 3 moves from B4 meanings. Otherwise this block is omitted, not blank. |
-| P6 | Close and ask | 50 | The ask, the fallback, the follow-up promise. |
-| P7 | Never say | 40 | guardrails.never_say + jurisdiction rows. |
+| Id | Section | Words | Prints when | Content |
+|---|---|---|---|---|
+| P1 | Open | 80 | always | Bullets: **Hook:** two sentences, said aloud, on a cited fact [n] -- in italics. **Credibility:** who you are, in one line, 30 seconds [n]. **Insight:** one thing they didn't have [n]. **Rule:** how to hold the opening's rapport through the questions. |
+| P2 | Question order | 120 | always | Bullets: **Story:** **Process:** **Gate:** **History:** **Commitment:** -- B2's questions word for word, in the order the room needs, on the beats for the meeting type. |
+| P3 | Objections: name it, then answer | 110 | always | 3 bullets: **Their likely objection:** *say it before they do, then the answer, at most 30 words* [n]. |
+| P4 | Close | 80 | always | Bullets: **Restate:** ask what would make it an easy yes, then say it back in their words. **Real deadline:** a date that actually moves [n]. **The ask:** B9's ask · **Fallback:** B9's fallback. **Follow-up:** what you promise to send, and when. |
+| P5 | Read the room (watch, do not assume) | 60 | evidence tier medium or high | Bullets: **Fast, wants the answer:** **Asks for terms and data:** **Talks about people:** **Big picture, ideas:** -- what you do, from B6. |
+| P6 | Influence, one fact behind each | 80 | evidence tier high and authority high | Bullets, only for principles a cited fact backs: **Authority:** **Reciprocity:** **Commitment:** **Social proof:** **Liking:** **Scarcity:** (real limits only; never invented urgency) [n]. |
+| P7 | If it stalls | 60 | always | 2-3 bullets: **The move:** what restarts the conversation, from a fact in this brief [n]. |
+| P8 | Guardrails | 50 | always | Bullets: **Rule:** what never to promise or claim, for the jurisdiction (Q7). **Never say:** the guardrails.never_say phrases and the domain's forbidden claims, quoted. |
+| P9 | Next step | 25 | always | One line: **Next step:** the one action and its date. |
 
 Never say: "Does that make sense?"; "Is this helpful?"; "No pressure"; "You'd know better than me"; "Just checking in".
 
@@ -218,22 +255,25 @@ Never say: "Does that make sense?"; "Is this helpful?"; "No pressure"; "You'd kn
 
 | Id | Check | Passes when |
 |---|---|---|
-| C1 | swap | no sentence in B1-B7 lacks both a [n] and a target-specific noun |
-| C2 | bound | unbound == 0 and every [n] in the body exists in B9 with url+tag+date |
-| C3 | quotes | every quoted string in B2 has a [n] |
-| C4 | custom_q | >= 2 questions in B5 carry a [n] |
-| C5 | sections | B1-B9 and P1-P7 present in order (P5 may be omitted per S3-2) |
+| C1 | swap | no sentence in B1 or B3-B8 lacks both a [n] and a target-specific noun (headings, the tier line and Not determined lines aside) |
+| C2 | bound | unbound == 0, dangling == 0, and every [n] in the body is a B10 row with source, tag, grade, conf. and date |
+| C3 | quotes | every quoted string in B4 has a [n] |
+| C4 | custom_q | >= 2 questions in B2 carry a [n] |
+| C5 | sections | B1-B10 and P1-P9 present in order (P5 and P6 may be left out per S3-2) |
 | C6 | budgets | no section exceeds its words by > 15% |
-| C7 | never_say | no never_say phrase appears outside P7/B8 |
-| C8 | outcome | B6 Bridge contains no method verbs from checks.method_verbs |
+| C7 | never_say | no never_say phrase appears outside P8 |
+| C8 | outcome | B5 contains no method verbs from checks.method_verbs |
 | C9 | exclusions | no excluded topic keyword appears in the body |
+| C11 | plain | no plain_words.banned term or internal code outside quoted words |
+| C12 | gaps | every **Label:** Not determined has its label and a question in B10's Still open row |
+| C13 | conditional | B8's hypotheses only when the meta line says Depth deep; P6 only when B6 says Evidence tier: high |
 
 ## Deliver
 
 This host has no PDF renderer and cannot run the checks as code. Apply every check in the table above
 yourself before answering, and say they were self-checked, not machine-run. Deliver ONE document: the
-brief (B1-B9) then the meeting script (P1-P7), headed with the profile line, status and coverage. Say what
-was NOT found (coverage) before what was. Say plainly that it is not the Talyx PDF; the plug-in version
+Intelligence Brief (B1-B10) then the Meeting script (P1-P9), headed with the identity and meta lines. Say what
+was NOT found before what was. Say plainly that it is not the Talyx PDF; the plug-in version
 renders that.
 
 ## Debrief
@@ -245,9 +285,38 @@ accuracy per dimension (hit or miss), outcome -- and nothing else.
 
 Made by Talyx AI, https://talyx.ai. Free to use under the licence in the plug-in's `LICENSE` file.
 
+## Socratic questions
+
+Two uses: questions PCP asks **you** when it needs something only you know, and questions it writes for
+**the room** wherever the record could not answer.
+
+## Asking the user
+
+Ask the user only when a trigger below fires: at most 2 questions per run after setup, in one message, each skippable. Never ask what the record or the saved setup already answers. Answers are the user's own facts: tag Yours.
+
+| When | Ask |
+|---|---|
+| No meeting objective in the intake | What do you want to walk out of this meeting with? |
+| Two or more people match the name | Which of these is the person you're meeting? |
+| The intake says you already know them, and no notes came with it | When did you last speak, and what did they tell you that isn't public? |
+| You mention notes, a CRM record, a saved LinkedIn PDF or a profile on them | Can you paste it or give me the file? I'll mark it as yours, not public. |
+| Who decides, the gate or the timing is still Not determined after collection | Who else has a say in this, as far as you know? |
+
+## Questions for the room
+
+Every Not determined becomes one question to ask in the room, written in the ledger's Still open row next to what it closes. Open, non-leading, one idea each.
+
+| Kind | Use when | Example |
+|---|---|---|
+| Clarify | a word or priority they use but don't define | When you say {their word}, what does that look like at {organization}? |
+| Assumption | the read rests on something unconfirmed | What would have to be true for {plan} to make sense this year? |
+| Evidence | a fact with one weak source | What have you seen that tells you {claim}? |
+| Viewpoint | who decides, or who else matters, is unknown | Who else will weigh in on {decision}, and how do they see it? |
+| Consequence | urgency or timing is unknown | If nothing changes on {issue}, what happens by {date}? |
+
 ## Saved setup
 
-Replace this block with the one the assistant gives you after calibration.
+Replace this block with the one the assistant gives you after setup.
 
 ```yaml
 pcp_profile_format: 1
