@@ -137,6 +137,19 @@ def _gaps(secs):
     return out
 
 
+def _day(text):
+    return dt.datetime.strptime(text, "%b %d, %Y").date()
+
+
+def _url_day(src):
+    """The date in a source's URL path (/2026/10/14/ or 2026-10-14), None when it has none or it is not a date."""
+    m = re.search(r"/(20\d\d)[/-](\d{1,2})[/-](\d{1,2})(?!\d)", src)
+    try:
+        return dt.date(*map(int, m.groups())) if m else None
+    except ValueError:
+        return None
+
+
 def _words(t):
     return len(WORD.findall(CITE.sub(" ", t.replace("*", ""))))
 
@@ -156,7 +169,8 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
     if want("quality"):
         fails += source_quality(ledger(brief_md))
         run = re.search(r"\*\*Run\*\*\s*\|\s*([A-Z][a-z]{2} \d{1,2}, \d{4})", brief_md)
-        same = [m.group(1) for m in SRC_ROW.finditer(brief_md) if run and m.group(5) == run.group(1)]
+        day = run and _day(run.group(1))   # a URL dated the run day (/2026/10/14/) proves the source is: an earnings day
+        same = [m.group(1) for m in SRC_ROW.finditer(brief_md) if run and m.group(5) == run.group(1) and _url_day(m.group(3)) != day]
         if len(same) >= 3:   # v6 Moynihan dated all 20 rows the run day: read dates, not the sources' own
             fails.append(f"C18 quality: rows {same} carry the run's date {run.group(1)} unmarked; give each source's own date, "
                          "or 'seen <date>' when it has none")
@@ -514,6 +528,14 @@ def self_test(require_pdf=False):
             print(f"tripped: {case}")
         else:
             print(f"FAIL {case} must trip {cid}"); ok = False
+    dd = (fx / "dates_read_day.md").read_text()
+    dated = re.sub(r"\(https://example\.org/(\d+)\)", r"(https://example.org/2026/09/20/\1)", dd)
+    if [x for x in checks(dated) if x.startswith("C18 ")]:
+        print("FAIL C18 must pass rows dated the run day whose URLs carry that date (an earnings day)"); ok = False
+    elif not [x for x in checks(dated.replace("/2026/09/20/", "/2026/09/19/")) if x.startswith("C18 ")]:
+        print("FAIL C18 must still trip when the URLs carry another date"); ok = False
+    else:
+        print("passes: C18 on run-day rows whose URLs carry the run day; trips when the URLs carry another day")
     cell = c12.replace("- **The gate:** Not determined", "| Item | Read |\n|---|---|\n| The gate: *Not determined* | none |")
     if [x for x in checks(cell) if x.startswith("C12 ")]:
         print("FAIL C12 must read 'The gate: *Not determined*' in a table cell as the gap Still open asks about"); ok = False

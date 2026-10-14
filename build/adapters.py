@@ -168,6 +168,16 @@ def _chat_registry(R):
         if s["id"] == "S4":
             s.pop("outputs", None)   # brief.md, script.md and the PDF are files
     C["checks"] = [c for c in C["checks"] if c.get("id") != "C10"]
+    # the in-chat self-check is the same as the plug-in's: its ledger rules and worked examples, from pcp.yaml
+    src = next(r for st in R["stages"] for r in st["rows"] if r["id"] == "S4-10")["text"]
+    rules = re.search(r"(Build the ledger from your claim list.*?) If a code tool exists.*?against these worked examples: (.*?) End with ", src)
+    assert rules, "pcp.yaml S4-10 no longer holds 'Build the ledger ... worked examples: ... End with': update _chat_registry"
+    for st in C["stages"]:
+        for r in st["rows"]:
+            if r["id"] == "S4-10":
+                head, end = r["text"].split(" Apply the checks yourself and end with ")
+                r["text"] = (f"{head} {rules.group(1)} Before sending, check yourself, one line at a time, against these "
+                             f"worked examples: {rules.group(2)} End with {end}")
     return C
 
 
