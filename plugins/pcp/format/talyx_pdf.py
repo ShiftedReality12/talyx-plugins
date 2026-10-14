@@ -265,10 +265,12 @@ def columns(secs, htmls, spec):
 # --style brief: each side-by-side row of the brief takes the column split (40-60% .. 60-40%) at which it is shortest,
 # so its two columns end together (no blank quadrant) and the row needs the least height on its page; at each split,
 # each two-column table in the row first takes the first-column width (30-70%) at which it is shortest. It runs in the
-# page once the fonts have loaded, so it measures with the printed font at the printed width.
-# The script (page 3) keeps its blocks in order, down the left column then the right, and puts the column break where
-# the two columns end closest (the order holds when P5 and P6 drop); then it loosens its leading while it still fits
-# its one page with 0.35in to spare, so the page does not end in a blank band.
+# page once the fonts have loaded, so it measures with the printed font at the printed width. Then pages 1 and 2 keep
+# the rung's type and each spreads what is left on it between its blocks, rows and bullets, so neither ends in a
+# blank band (Daniel, Oct 14: every page fully used, no dead space).
+# The script (page 3) flows its blocks in order down the left column and on into the right, which end together;
+# then it takes the largest type (the rung's size up to 2pt more) and leading that still fit its one page, and spreads
+# what is left between its sections and bullets, so a short script fills the page instead of ending in a blank band.
 BALANCE = """<script>
 function shortest(lo, hi, step, set, height) {   // the lowest height; of settings within 1px of it, the nearest to 50
   const tries = [];
@@ -276,31 +278,47 @@ function shortest(lo, hi, step, set, height) {   // the lowest height; of settin
   const low = Math.min(...tries.map(t => t.h));
   set(tries.filter(t => t.h <= low + 1).sort((x, y) => Math.abs(x.p - 50) - Math.abs(y.p - 50))[0].p);
 }
+function balanceRow(row) {
+  const cols = [...row.children], tables = [...row.querySelectorAll('table:not(.src)')];
+  const fit = () => tables.forEach(t => shortest(30, 70, 2, p => t.style.setProperty('--c1', p + '%'), () => t.offsetHeight));
+  shortest(40, 60, 1, p => { row.style.gridTemplateColumns = p + 'fr ' + (100 - p) + 'fr'; fit(); },
+           () => Math.max(...cols.map(c => c.offsetHeight)));
+}
 function balance() {
-  for (const row of document.querySelectorAll('.part-0 .two')) {
-    const cols = [...row.children], tables = [...row.querySelectorAll('table:not(.src)')];
-    const fit = () => tables.forEach(t => shortest(30, 70, 2, p => t.style.setProperty('--c1', p + '%'), () => t.offsetHeight));
-    shortest(40, 60, 1, p => { row.style.gridTemplateColumns = p + 'fr ' + (100 - p) + 'fr'; fit(); },
-             () => Math.max(...cols.map(c => c.offsetHeight)));
+  document.querySelectorAll('.part-0 .two').forEach(balanceRow);
+  document.querySelectorAll('.part-0').forEach(fillBrief);
+  document.querySelectorAll('.part-1').forEach(fill);
+}
+const LIMIT = (11 - 0.42 - 0.62 - 0.2) * 96;   // a page's content height in CSS px, less 0.2in to spare
+function spread(els, height, limit = LIMIT) {   // the most --fill (space between blocks, rows and bullets) that still fits
+  const set = g => els.forEach(e => e.style.setProperty('--fill', g + 'px'));
+  let lo = 0, hi = 160;
+  for (let i = 0; i < 12; i++) { const g = (lo + hi) / 2; set(g); if (height() <= limit) lo = g; else hi = g; }
+  set(lo);
+}
+function fillBrief(part) {   // pages 1 and 2 keep the rung's type; what is left on each page goes between its blocks
+  const kids = [...part.children], k = kids.findIndex(e => e.matches('.two:has(.sec-b7), .sec-b7'));
+  if (k < 1) return;
+  const lift = -Math.min(0, parseFloat(getComputedStyle(kids[0]).marginTop));   // the logo sits that far above page 1's area
+  const pages = [[part, kids.slice(0, k), LIMIT + lift], [kids[k], kids.slice(k), LIMIT]];
+  for (const [top, els, limit] of pages) {
+    const height = () => Math.max(...els.map(e => e.getBoundingClientRect().bottom)) - top.getBoundingClientRect().top;
+    if (height() <= limit) spread(els, height, limit);
   }
-  for (const part of document.querySelectorAll('.part-1')) {
-    const limit = (11 - 0.42 - 0.62 - 0.35) * 96;   // the page's content height in CSS px, less the margin to spare
-    for (const lh of [1.5, 1.45, 1.4, 1.35, '']) {
-      part.style.lineHeight = lh; part.querySelectorAll('.two').forEach(restack);
-      if (part.offsetHeight <= limit) break;
+  part.querySelectorAll('.two').forEach(balanceRow);   // the wider spacing can move the best column split
+}
+function fill(part) {
+  const limit = LIMIT;
+  const base = parseFloat(getComputedStyle(part).fontSize) * 0.75;   // the rung's body size in pt: the floor
+  let fits = false;
+  for (let pt = base + 2; pt >= base - 0.01 && !fits; pt -= 0.25) {
+    for (const lh of pt > base ? [1.5, 1.45, 1.4, 1.35] : [1.5, 1.45, 1.4, 1.35, '']) {   // larger type keeps open leading
+      part.style.fontSize = pt + 'pt'; part.style.lineHeight = lh;
+      if (part.offsetHeight <= limit) { fits = true; break; }
     }
   }
-}
-function restack(row) {
-  const [a, b] = row.children, secs = [...a.children, ...b.children], authored = a.children.length, tries = [];
-  if (secs.length < 2) return;   // one section: nothing to move
-  for (let k = 1; k < secs.length; k++) {
-    secs.forEach((s, i) => (i < k ? a : b).appendChild(s));
-    tries.push({k, h: Math.max(a.offsetHeight, b.offsetHeight)});
-  }
-  const low = Math.min(...tries.map(t => t.h));
-  const k = tries.filter(t => t.h <= low + 1).sort((x, y) => Math.abs(x.k - authored) - Math.abs(y.k - authored))[0].k;
-  secs.forEach((s, i) => (i < k ? a : b).appendChild(s));
+  if (!fits) { part.style.fontSize = part.style.lineHeight = ''; return; }   // the page gate moves to a tighter rung
+  spread([part], () => part.offsetHeight);   // what is left goes between the sections and bullets, never a band at the bottom
 }
 document.fonts.ready.then(balance);
 </script>"""
@@ -390,20 +408,20 @@ h1.name {{ font-size:14.2pt; font-weight:700; margin:0 0 2pt; }}
 .part-0 > .sec.pre p + p {{ font-size:7.5pt; color:{GREY}; line-height:1.4; margin:0 0 7pt; }}
 .sec.pre p strong {{ font-weight:700; }}
 h1.h, .sec-head {{ display:block; font-size:7.8pt; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:{A};
-  border-bottom:1pt solid {HAIR}; padding-bottom:3pt; margin:{sg}pt 0 5pt; break-after:avoid; }}
+  border-bottom:1pt solid {HAIR}; padding-bottom:3pt; margin:calc({sg}pt + var(--fill, 0px)) 0 5pt; break-after:avoid; }}
 /* one heading rhythm: a block's last line carries no bottom margin, so every head sits {sg}pt below the text above it */
 .sec-body > :last-child, .sec-body > :last-child > li:last-child {{ margin-bottom:0; }}
 h1.h {{ margin-top:0; }} .part-1 > .sec.pre p {{ font-size:7.5pt; color:{GREY}; margin:-2pt 0 5pt; }}
 p {{ margin:0 0 {pg}pt; }} p.lbl {{ margin:0 0 {pg}pt; }}
-ul, ol {{ margin:0 0 {pg}pt; padding-left:11pt; }} li {{ margin:0 0 3pt; }} li > ul, li > ol {{ margin:1pt 0 0; }}
+ul, ol {{ margin:0 0 {pg}pt; padding-left:11pt; }} li {{ margin:0 0 calc(3pt + var(--fill, 0px) / 4); }} li > ul, li > ol {{ margin:1pt 0 0; }}
 strong {{ font-weight:700; }} em {{ font-style:italic; }}
 a {{ color:{A}; text-decoration:underline; text-decoration-thickness:0.5px; text-underline-offset:1.5px; }}
 .cite {{ color:{A}; font-size:0.8em; font-weight:500; }}
-.sub {{ font-size:8.8pt; font-weight:700; margin:2pt 0 3pt; }} .sec-b9 .sub {{ margin-top:7pt; }} .sec-b9 .sub:first-child {{ margin-top:0; }}
+.sub {{ font-size:8.8pt; font-weight:700; margin:2pt 0 3pt; }} .sec-b9 .sub {{ margin-top:calc(7pt + var(--fill, 0px) / 2); }} .sec-b9 .sub:first-child {{ margin-top:0; }}
 .two {{ display:grid; grid-template-columns:1fr 1fr; column-gap:0.28in; align-items:start; break-inside:avoid; }}
 @media screen {{ body {{ width:8.5in; }} }}   /* BALANCE measures at the printed width */
 /* the schema's page 2 opens on Who decides | Strongest case against: B1-B6 are page 1, even when page 1 has room */
-.part-0 .two:has(.sec-b7), .part-0 > .sec-b7 {{ break-before:page; }}
+.part-0 .two:has(.sec-b7), .part-0 > .sec-b7 {{ break-before:page; }} .part-0 .sec-b7 .sec-head, .part-0 .sec-b8 .sec-head {{ margin-top:{sg}pt; }}
 .sec-b1 .sec-head {{ display:none; }}
 .sec-b1 .sec-body {{ background:{A}; color:#F8F6F3; font-size:{b}pt; line-height:1.4; padding:8pt 11pt; border-radius:6pt; margin-top:2pt; }}
 .sec-b1 p {{ margin:0; }} .sec-b1 strong, .sec-b1 a {{ color:#fff; }} .sec-b1 .cite {{ color:#DDE5F0; }}
@@ -414,13 +432,13 @@ table {{ border-collapse:collapse; width:100%; margin:0 0 {pg}pt; break-inside:a
 table.src {{ break-inside:auto; }}
 th {{ text-align:left; font-size:7.4pt; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:{A};
   padding:0 6pt 3pt 0; border-bottom:1pt solid {HAIR}; }}
-td {{ vertical-align:top; padding:{cp}pt 6pt {cp}pt 0; border-bottom:0.6pt solid {HAIR}; text-wrap:pretty; }}
+td {{ vertical-align:top; padding:calc({cp}pt + var(--fill, 0px) / 4) 6pt calc({cp}pt + var(--fill, 0px) / 4) 0; border-bottom:0.6pt solid {HAIR}; text-wrap:pretty; }}
 .sec-b5 td:first-child {{ width:var(--c1, 48%); }} .sec-b6 td:first-child {{ width:var(--c1, 55%); }} .sec-b8 td:first-child {{ width:var(--c1, 50%); }}
-.sec-b6 td {{ padding-top:{max(cp - 0.6, 0.8)}pt; padding-bottom:{max(cp - 0.6, 0.8)}pt; }}
+.sec-b6 td {{ padding-top:calc({max(cp - 0.6, 0.8)}pt + var(--fill, 0px) / 4); padding-bottom:calc({max(cp - 0.6, 0.8)}pt + var(--fill, 0px) / 4); }}
 .sec-b6 p.noread {{ margin:2pt 0 {pg}pt; }}
 /* the ledger block (B10) is one scale: its note line small and grey, its table and its label grid one size, one grid */
 .sec-b10 .sec-body > p:first-child {{ font-size:7.5pt; color:{GREY}; margin:0 0 3pt; }}
-.sec-b10 table td {{ font-size:8pt; line-height:1.3; padding:1.6pt 8pt 1.6pt 0; }}
+.sec-b10 table td {{ font-size:8pt; line-height:1.3; padding:calc(1.6pt + var(--fill, 0px) / 4) 8pt calc(1.6pt + var(--fill, 0px) / 4) 0; }}
 table.src td {{ white-space:nowrap; }} table.src td:nth-child(1) {{ width:4%; }} table.src td:nth-child(2) {{ white-space:normal; width:auto; }}
 table.src td:nth-child(3) {{ width:20%; }} table.src td:nth-child(4), table.src td:nth-child(5) {{ width:11%; }}
 table.src td:first-child .cite {{ font-size:1em; color:{MIDNIGHT}; font-variant-numeric:tabular-nums; }}
@@ -428,7 +446,11 @@ table.src td.grade {{ font-size:7pt; font-weight:600; letter-spacing:0.05em; tex
 table.src td.g-derived {{ color:#1A7F64; }} table.src td.g-inference {{ color:#9A5B00; }} table.src td.g-not {{ color:#B3261E; }}
 table.grid {{ margin-top:6pt; }} table.grid td:first-child {{ width:1.35in; white-space:nowrap; font-weight:700; }}
 .sec-b10 ul.open {{ margin:0; padding-left:9pt; }} .sec-b10 ul.open li {{ margin:0; }}
-.sec-p9 .sec-head {{ display:none; }} .sec-p9 {{ margin-top:12pt; font-size:{b}pt; }}
+.sec-p9 .sec-head {{ display:none; }} .sec-p9 {{ margin-top:calc(12pt + var(--fill, 0px)); }}
+/* page 3 reads as one flow down the left column and on into the right; a bullet never splits, a head keeps its first line */
+.part-1 .two {{ display:block; columns:2; column-gap:0.28in; }} .part-1 .two > div {{ display:contents; }}
+.part-1 li, .part-1 p {{ break-inside:avoid; }}
+.part-1 .two > div:first-child > .sec:first-child .sec-head {{ margin-top:{sg}pt; }}
 .pagebreak {{ break-before:page; }}
 """
 

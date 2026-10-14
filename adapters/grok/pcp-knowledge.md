@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:1978038b120e) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:40a6d646e890) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
@@ -290,7 +290,7 @@ Never say: "Does that make sense?"; "Is this helpful?"; "No pressure"; "You'd kn
 | C16 | linkedin | B4 has exactly one **LinkedIn:** line, read from your file or not read: one of linkedin.reasons; Coverage states the same; when not read, no ledger row is tagged LinkedIn and Still open asks nothing about LinkedIn |
 | C17 | cites | every cited sentence shares content with the ledger claim it cites (2+ content words, 1 when the claim is 3 words or fewer) and every [n] is a ledger row; a hypothetical (Reverses if, Stop if) carries no citation unless the row says it |
 | C18 | quality | no ledger row cites a source_quality.exclude domain; a source_quality.weak domain is never C1 or C2; fewer than 3 ledger rows carry the run's own date unmarked (those are read dates: give the source's date, or 'seen' when it has none) |
-| C19 | render | every page: no ink within 0.12in of a page edge, no word outside the 0.3in side margins; page 1: the logo is whole in the top-right masthead; no block runs across a page break: page 2 opens on Who decides (B7, as in the schema) and no table prints its header row on two pages |
+| C19 | render | every page: no ink within 0.12in of a page edge, no word outside the 0.3in side margins; no page ends more than 0.5in above its footer margin (Oct 14: a thin run's page 3 ended 2in short); page 1: the logo is whole in the top-right masthead; no block runs across a page break: page 2 opens on Who decides (B7, as in the schema) and no table prints its header row on two pages |
 
 ## Deliver
 

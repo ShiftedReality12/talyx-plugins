@@ -645,6 +645,13 @@ def pdf_self_test(fx):
             elif name == "control_12.md":
                 print(f"pdf control_12: {len(f)} failures (C10, C11, C19)", *f, sep="\n - ")
                 ok = ok and not f
+                short = pathlib.Path(tmp, "short.pdf")   # C19 must be able to fail on a page that ends in a blank band
+                tp.render_html("<!doctype html><style>@page { size: Letter; margin: 0.42in 0.55in 0.62in; }</style>"
+                               "<p>One line, then nothing to the foot of the page.</p>", short)
+                if any("blank band" in x for x in render_check(short)):
+                    print("tripped: C19 by a page that ends in a blank band")
+                else:
+                    print("FAIL C19 must trip on a page that ends in a blank band (got", render_check(short), ")"); ok = False
                 if shutil.which("gs"):   # C19 must be able to fail: shift the page so the logo runs off the top-right
                     sh = pathlib.Path(tmp, "shifted.pdf")
                     subprocess.run(["gs", "-q", "-o", str(sh), "-sDEVICE=pdfwrite", "-c", "<</PageOffset [60 40]>> setpagedevice",
@@ -836,9 +843,10 @@ def _pgm(path):
 
 
 def render_check(pdf, dpi=72):
-    """C19: nothing is cut off. Per page: no ink within 0.12in of any page edge; no word box outside the 0.3in
-    side margins or past the page; page 1 shows the logo whole in the top-right masthead (its ink box sits
-    inside the page with a clear gap on every side)."""
+    """C19: nothing is cut off and no page ends in a blank band. Per page: no ink within 0.12in of any page edge;
+    no word box outside the 0.3in side margins or past the page; the last ink above the 0.62in footer margin ends
+    within 0.5in of it; page 1 shows the logo whole in the top-right masthead (its ink box sits inside the page
+    with a clear gap on every side)."""
     import tempfile
     fails, edge, side = [], int(0.12 * dpi), 0.3 * 72
     with tempfile.TemporaryDirectory() as td:
@@ -851,6 +859,10 @@ def render_check(pdf, dpi=72):
                                  ("left", range(edge), range(h)), ("right", range(w - edge, w), range(h))):
                 if any(ink(x, y) for y in ys for x in xs):
                     fails.append(f"C19 render: page {n}: ink within 0.12in of the {name} edge (clipped or bleeding)")
+            foot = h - int(0.62 * dpi)   # Daniel, Oct 14: every page fully used, no dead space
+            last = next((y for y in range(foot, 0, -1) if any(ink(x, y) for x in range(w))), 0)
+            if foot - last > 0.5 * dpi:
+                fails.append(f"C19 render: page {n} ends {(foot - last) / dpi:.1f}in above its footer margin (a blank band)")
             if n == 1:   # logo: top-right quarter-inch band down to 1.3in, right of 5.5in
                 x0, y0, x1, y1 = int(5.5 * dpi), 0, w, int(1.3 * dpi)
                 pts = [(x, y) for y in range(y0, y1) for x in range(x0, x1) if ink(x, y)]
@@ -1047,7 +1059,7 @@ def main():
         sys.exit(1 if f else 0)
     if a.cmd == "render":
         f = render_check(a.pdf)
-        print("\n".join(f) or "render: nothing clipped, logo whole; 0 failures")
+        print("\n".join(f) or "render: nothing clipped, logo whole, no blank band; 0 failures")
         sys.exit(1 if f else 0)
     if a.cmd == "ratchet":
         sys.exit(ratchet(a.record))
