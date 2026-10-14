@@ -114,7 +114,12 @@ def _gaps(secs):
     return out
 
 
-def checks(brief_md, script_md="", which="all", target_nouns=()):
+def _words(t):
+    return len(WORD.findall(CITE.sub(" ", t.replace("*", ""))))
+
+
+def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None):
+    """experience: the profile's Q9 answer (new|experienced|top); C15 runs only when it is given."""
     md = brief_md + "\n" + script_md
     secs = _sections(md)
     fails = []
@@ -193,6 +198,19 @@ def checks(brief_md, script_md="", which="all", target_nouns=()):
             q = item.split(": ", 1)[1] if ": " in item else item
             if not (q.rstrip().endswith("?") and q.split()[0].strip("*_").capitalize() in starts) and (gaps or "?" in item):
                 fails.append(f"C12 gaps: Still open item is not a question starting {'/'.join(starts)}: '{item[:60]}'")
+    if experience and which == "all":
+        why = {k: re.findall(r"\*\*Why:\*\*\s*(.+)", secs[k]) for k in secs if re.match(r"P\d+$", k)}
+        if experience == "new":
+            for k in ("P1", "P3", "P4"):
+                if not why.get(k):
+                    fails.append(f"C15 experience: new -- {k} has no **Why:** line")
+                fails += [f"C15 experience: new -- {k} Why line is {_words(w)} words > 12" for w in why.get(k, []) if _words(w) > 12]
+        elif any(why.values()):
+            fails.append(f"C15 experience: {experience} -- Why lines in {[k for k, v in why.items() if v]}; only new gets them")
+        if experience == "top":
+            lines = re.findall(r"\*\*Hook:\*\*\s*(.+)", secs.get("P1", "")) + \
+                re.findall(r"^\s*[-*]\s+\*\*.+?:\*\*\s*(.+)$", secs.get("P3", ""), re.M)
+            fails += [f"C15 experience: top -- '{t[:40]}...' is {_words(t)} words > 15" for t in lines if _words(t) > 15]
     if want("layout"):
         brief = re.split(r"^# ", md, maxsplit=2, flags=re.M)   # ['', name + brief, script ...]: the brief ends at the next `# `
         bsecs = list(_sections("# " + brief[1] if len(brief) > 1 else md))
@@ -329,10 +347,22 @@ def self_test():
                 print(f"tripped: {cid} by {name}")
             else:
                 print(f"FAIL {name} must trip {cid}"); ok = False
-    f = checks((fx / "control_12.md").read_text())
-    if f:
-        print("FAIL positive control must pass every check:", *f, sep="\n - "); ok = False
+    for name, kw in MUST_PASS:
+        f = checks((fx / name).read_text(), **kw)
+        if f:
+            print(f"FAIL {name} {kw or ''} must pass every check:", *f, sep="\n - "); ok = False
+        else:
+            print(f"passes: {name} {kw or ''}")
     return ok
+
+
+# fixture -> passes every check (with these arguments)
+MUST_PASS = [
+    ("control_12.md", {}),
+    ("control_12.md", {"experience": "experienced"}),
+    ("control_12.md", {"experience": "top"}),
+    ("exp_new.md", {"experience": "new"}),
+]
 
 
 # fixture -> the checks it must trip; self-test fails if any is not tripped (each check is proven able to fail)
@@ -341,6 +371,9 @@ MUST_TRIP = [
     ("layout_broken.md", {}, ["C14"]),
     ("gaps_table.md", {}, ["C12"]),
     ("gaps_statement.md", {}, ["C12"]),
+    ("exp_experienced_with_why.md", {"experience": "experienced"}, ["C15"]),
+    ("control_12.md", {"experience": "new"}, ["C15"]),
+    ("exp_top_long.md", {"experience": "top"}, ["C15"]),
 ]
 
 
@@ -402,6 +435,8 @@ def main():
     c = sub.add_parser("checks"); c.add_argument("brief"); c.add_argument("script", nargs="?"); c.add_argument("--target-nouns", default="")
     for w in CHECKS + ["all"]:
         c.add_argument(f"--{w}", action="store_true")
+    c.add_argument("--experience", choices=[o["value"] for q in R["calibration"]["questions"] if q["id"] == "Q9" for o in q["options"]],
+                   help="the profile's Q9 answer: runs C15 with --all")
     p = sub.add_parser("pdf"); p.add_argument("pdf"); p.add_argument("brief", nargs="?")
     sub.add_parser("concordance"); sub.add_parser("self-test")
     r = sub.add_parser("ratchet"); r.add_argument("--record", action="store_true")
@@ -422,7 +457,7 @@ def main():
             f = [f"C11 plain: '{h}' printed in the PDF outside quoted words" for h in plain_hits(re.sub(r"\s+", " ", "\n".join(pages)))]
         else:
             f = checks(pathlib.Path(a.brief).read_text(), pathlib.Path(a.script).read_text() if a.script else "", which,
-                       [n.strip() for n in a.target_nouns.split(",")])
+                       [n.strip() for n in a.target_nouns.split(",")], a.experience)
         print(f"checks ({which}): {len(f)} failures"); [print(" -", x) for x in f]; sys.exit(1 if f else 0)
     if a.cmd == "pdf":
         f = pdf_check(a.pdf, pathlib.Path(a.brief).read_text() if a.brief else "")

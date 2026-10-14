@@ -43,6 +43,9 @@ The PDF uses the Chrome, Edge or Chromium already on your computer. With none of
 /pcp --context path/to/your-deck.pdf      # add files about your business at any time
 ```
 
+Files about your business can be PDF, Word (`.docx`), Markdown, text or CSV. They are read once, kept as a
+short summary in your setup, and anything taken from them is marked as yours, never as public.
+
 ## How it is built (for contributors)
 
 Three files. Everything else is generated or frozen.

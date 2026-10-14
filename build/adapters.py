@@ -94,8 +94,8 @@ CHAT_ROWS = {
     "CAL-2": {"text": "A skipped answer takes the first (Recommended) option and is stored with defaulted:true; the heading shows Prepared for and Depth.",
               "test": "Skip Q5 -- the Saved setup block shows Q5 standard, defaulted true; the heading reads \"Depth: standard\"."},
     "CAL-3": None,   # the improve loop is a script
-    "CAL-4": {"text": "Files the user attaches about their business are read once; a summary of at most 150 words goes in the Saved setup block under context. Facts from them are tagged Yours, never presented as public.",
-              "test": "Attach a one-page file -- the updated Saved setup block holds its summary, and a fact from it carries tag Yours."},
+    "CAL-4": {"text": "Files the user attaches about their business are read once; a summary of at most 150 words goes in the Saved setup block under context. Facts from them are tagged Yours, never presented as public. Supported: .pdf .docx .md .txt .csv. Any other file gets one line naming the supported types, and the Saved setup block is not changed.",
+              "test": "Attach a one-page file -- the updated Saved setup block holds its summary, and a fact from it carries tag Yours. Attach a .pptx -- one line names the supported types and no new block is given."},
     "S2-2": {"test": "A claim missing any field is dropped and counted in coverage.dropped."},
     "S2-7": {"text": "LinkedIn: this host cannot open the user's browser. Offer once: save their profile as a PDF (More > Save to PDF) and attach it; it is read as Yours. Otherwise the Coverage row says 'LinkedIn not read: no browser here', and Still open carries a question that closes the gap.",
              "test": "No attachment -- Coverage reads 'LinkedIn not read: no browser here'."},
@@ -105,6 +105,7 @@ CHAT_ROWS = {
              "test": "The heading has all six fields."},
     "S4-7": {"test": "Write **Decision maker:** Not determined with no question in Still open -- check C12 fails."},
     "S4-8": {"test": "Put SOCMINT in B3 -- check C11 fails."},
+    "S4-9": {"test": "Set Q9 new -- P1, P3 and P4 each carry a Why line; set experienced -- none does. Check C15 fails otherwise."},
 }
 CHAT_INPUTS = {"arguments": {"type": "'Full Name, Organisation' | a pasted list", "source": "the user's message"},
                "profile": {"source": "Saved setup block"}}

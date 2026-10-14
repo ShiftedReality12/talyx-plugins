@@ -82,6 +82,7 @@ calibration:
   profile_path: ~/.pcp/profile.yaml
   reask_flag: --recalibrate
   profile_flag: --profile
+  context_file_types: [.pdf, .docx, .md, .txt, .csv]   # Q8 and --context; anything else is refused in one line
   calls: [[Q1, Q2, Q3, Q4], [Q5, Q6, Q7, Q9], [Q8]]
   questions:
     - id: Q1
@@ -163,7 +164,7 @@ calibration:
       consumed_by: [script.why_lines, script.say_aloud_words]
     - id: Q8
       header: Your offer
-      question: "In one line -- what do you offer, and what does a win in this meeting look like? If you have files about your business (a deck, a one-page summary, case studies), add their paths and PCP will use them. (free text)"
+      question: "In one line -- what do you offer, and what does a win in this meeting look like? If you have files about your business (a deck, a one-page summary, case studies -- PDF, Word, Markdown, text or CSV), add their paths and PCP will use them. (free text)"
       options: []
       free_text: true
       sets: {caller.offer_one_line: text, meeting.win_definition: text, context.files: paths}
@@ -182,8 +183,8 @@ calibration:
       test: Three debriefs with facts_used > 80% must produce a proposal, and the profile must be unchanged until answered.
       basis: design choice, no silent adaptation
     - id: CAL-4
-      text: "Files named in Q8 (or later with --context <path>) are read once; their paths and a summary of at most 150 words go in the profile under context. Facts taken from them are tagged Yours, never presented as public."
-      test: "Give a one-page file -- the profile holds its path and summary, and a fact from it prints with tag Yours."
+      text: "Files named in Q8 (or later with --context <path>) are read once; their paths and a summary of at most 150 words go in the profile under context. Facts taken from them are tagged Yours, never presented as public. Supported: .pdf .docx .md .txt .csv. Any other file gets one line naming the supported types, and the profile is left unchanged."
+      test: "Give a one-page file -- the profile holds its path and summary, and a fact from it prints with tag Yours. Give a .pptx -- one line names the supported types and profile.yaml's sha256 is unchanged."
       basis: "Oct 9: a user with a business context profile can upload files"
 
 # ------------------------------------------------------------------------------------------------
@@ -271,7 +272,7 @@ stages:
       - {id: S4-6, text: "A block or line prints only as its Prints when says: a line PCP cannot fill from evidence is left out, or reads Not determined where its row says so. Never filler.", test: "No recent wins found -- the Recent wins line is absent, not blank or padded.", basis: "Oct 9: if we can't produce it, parameterize it so it's conditional"}
       - {id: S4-7, text: "Every Not determined -- a **Label:** line or a table cell -- and every No read in B6 gets a question to ask in the room, in the ledger's Still open row as 'Label: question?', as references/socratic-questions.md says.", test: "Write **Decision maker:** Not determined, or a | Not determined | table cell, with no question in Still open -- eval.py checks fails C12 (fixtures control_broken.md, gaps_table.md).", basis: "Oct 9: Socratic questioning reference for things it can't find"}
       - {id: S4-8, text: "Plain words: nothing printed uses a plain_words.banned term or an internal code; the person's own quoted words are exempt.", test: "Put SOCMINT in B3 -- eval.py checks fails C11.", basis: "Oct 9: don't use mil/intel/tech words in actual outputs"}
-      - {id: S4-9, text: "Experience (Q9) shapes page 3 only: new -> P1, P3 and P4 each end with a **Why:** line of at most 12 words; top -> the Hook and each objection's answer are at most 15 words; experienced -> neither.", test: "Set Q9 new -- P1, P3 and P4 each carry a Why line; set experienced -- none does.", basis: "Oct 9: different levels of experience"}
+      - {id: S4-9, text: "Experience (Q9) shapes page 3 only: new -> P1, P3 and P4 each end with a **Why:** line of at most 12 words; top -> the Hook and each objection's answer are at most 15 words; experienced -> neither.", test: "Set Q9 new -- P1, P3 and P4 each carry a Why line; set experienced -- none does. eval.py checks --experience <Q9> fails C15 otherwise (fixtures exp_new.md passes as new, exp_experienced_with_why.md fails as experienced).", basis: "Oct 9: different levels of experience"}
 
   - id: S5
     name: Debrief + ratchet
@@ -438,6 +439,7 @@ checks:
   - {id: C12, name: gaps,        cmd: "eval.py checks --gaps",      passes_when: "every Not determined in B1-B9 (a **Label:** line or a table cell) and every No read in B6 has its label in B10's Still open row; Still open has at least one ? per gap; each Still open item is 'Label: question?', the question starting What, Who, How, When, Which, Where or If"}
   - {id: C13, name: conditional, cmd: "eval.py checks --conditional", passes_when: "B8's hypotheses only when the meta line says Depth deep; P6 only when B6 says Evidence tier: high"}
   - {id: C14, name: layout,      cmd: "eval.py checks --layout",    passes_when: "the brief has exactly the 9 blocks B1-B9 before B10, and B10 is its last block: no other block and nothing after the ledger"}
+  - {id: C15, name: experience,  cmd: "eval.py checks --experience <Q9>", passes_when: "new: P1, P3 and P4 each have a **Why:** line of at most 12 words; experienced and top: no Why line; top: the Hook and each objection's answer are at most 15 words"}
   - {method_verbs: ["we scrape", "we ingest", "our pipeline", "our model", "we crawl", "our algorithm"]}
 
 # ------------------------------------------------------------------------------------------------

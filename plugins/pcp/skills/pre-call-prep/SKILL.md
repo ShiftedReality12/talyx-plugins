@@ -8,7 +8,7 @@ description: >
   before a meeting, talking points, or shares an intake list. Do not use for general research unrelated
   to a meeting, or for notes on a meeting that has already happened.
 ---
-<!-- GENERATED from pcp.yaml (sha256:709e439c661a) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:d23f8ebdd90d) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.0.0)
 
@@ -46,7 +46,7 @@ and `linkedin` when set) and continue.
 | Q6 | Social | Public social footprint -- how far? | Professional only (Recommended) / Plus public X / Bluesky / Substack / None | socmint.scope |
 | Q7 | Compliance | Jurisdiction and compliance posture? | US (Recommended) / UK / EU (GDPR strict) / Regulated sales (FINRA / FCA style) / APAC | jurisdiction |
 | Q9 | Experience | How long have you been running meetings like this? | Experienced (Recommended) / Newer -- under two years / Top producer | caller.experience |
-| Q8 | Your offer | In one line -- what do you offer, and what does a win in this meeting look like? If you have files about your business (a deck, a one-page summary, case studies), add their paths and PCP will use them. (free text) | free text | caller.offer_one_line, meeting.win_definition, context.files |
+| Q8 | Your offer | In one line -- what do you offer, and what does a win in this meeting look like? If you have files about your business (a deck, a one-page summary, case studies -- PDF, Word, Markdown, text or CSV), add their paths and PCP will use them. (free text) | free text | caller.offer_one_line, meeting.win_definition, context.files |
 
 - **CAL-1** Ask only the questions with no saved answer in ~/.pcp/profile.yaml -- all of them the first time, all again with --recalibrate. Otherwise read it silently.  
   _Fails when:_ A profile with Q1-Q8 answered and no Q9 -- the run asks Q9 only. A complete profile -- it asks nothing.
@@ -54,8 +54,8 @@ and `linkedin` when set) and continue.
   _Fails when:_ Skip Q5 -- profile shows research.depth standard, defaulted true; the masthead reads "Depth standard".
 - **CAL-3** The improve loop may PROPOSE a profile change (one line, with the debrief evidence) but never applies one without a yes.  
   _Fails when:_ Three debriefs with facts_used > 80% must produce a proposal, and the profile must be unchanged until answered.
-- **CAL-4** Files named in Q8 (or later with --context <path>) are read once; their paths and a summary of at most 150 words go in the profile under context. Facts taken from them are tagged Yours, never presented as public.  
-  _Fails when:_ Give a one-page file -- the profile holds its path and summary, and a fact from it prints with tag Yours.
+- **CAL-4** Files named in Q8 (or later with --context <path>) are read once; their paths and a summary of at most 150 words go in the profile under context. Facts taken from them are tagged Yours, never presented as public. Supported: .pdf .docx .md .txt .csv. Any other file gets one line naming the supported types, and the profile is left unchanged.  
+  _Fails when:_ Give a one-page file -- the profile holds its path and summary, and a fact from it prints with tag Yours. Give a .pptx -- one line names the supported types and profile.yaml's sha256 is unchanged.
 
 ## Stage 1: Intake
 
@@ -171,7 +171,7 @@ and `linkedin` when set) and continue.
 - **S4-8** Plain words: nothing printed uses a plain_words.banned term or an internal code; the person's own quoted words are exempt.  
   _Fails when:_ Put SOCMINT in B3 -- eval.py checks fails C11.
 - **S4-9** Experience (Q9) shapes page 3 only: new -> P1, P3 and P4 each end with a **Why:** line of at most 12 words; top -> the Hook and each objection's answer are at most 15 words; experienced -> neither.  
-  _Fails when:_ Set Q9 new -- P1, P3 and P4 each carry a Why line; set experienced -- none does.
+  _Fails when:_ Set Q9 new -- P1, P3 and P4 each carry a Why line; set experienced -- none does. eval.py checks --experience <Q9> fails C15 otherwise (fixtures exp_new.md passes as new, exp_experienced_with_why.md fails as experienced).
 
 ## Stage 5: Debrief + ratchet
 
@@ -287,7 +287,7 @@ Never say: "Does that make sense?"; "Is this helpful?"; "No pressure"; "You'd kn
 
 ## Checks (all pass before render)
 
-Run `python3 eval.py checks brief.md script.md --target-nouns "<Full Name>,<surname>,<Organization>,<their key programmes>"`
+Run `python3 eval.py checks brief.md script.md --target-nouns "<Full Name>,<surname>,<Organization>,<their key programmes>" --experience <Q9: experienced, new, top>`
 and `python3 eval.py duf brief.md script.md`; rewrite until both are clean.
 
 | Id | Check | Command | Passes when |
@@ -306,6 +306,7 @@ and `python3 eval.py duf brief.md script.md`; rewrite until both are clean.
 | C12 | gaps | `eval.py checks --gaps` | every Not determined in B1-B9 (a **Label:** line or a table cell) and every No read in B6 has its label in B10's Still open row; Still open has at least one ? per gap; each Still open item is 'Label: question?', the question starting What, Who, How, When, Which, Where or If |
 | C13 | conditional | `eval.py checks --conditional` | B8's hypotheses only when the meta line says Depth deep; P6 only when B6 says Evidence tier: high |
 | C14 | layout | `eval.py checks --layout` | the brief has exactly the 9 blocks B1-B9 before B10, and B10 is its last block: no other block and nothing after the ledger |
+| C15 | experience | `eval.py checks --experience <Q9>` | new: P1, P3 and P4 each have a **Why:** line of at most 12 words; experienced and top: no Why line; top: the Hook and each objection's answer are at most 15 words |
 
 ## Render
 

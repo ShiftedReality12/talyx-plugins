@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:709e439c661a) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:d23f8ebdd90d) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.0.0)
 
@@ -41,14 +41,14 @@ This host runs no scripts. The saved setup is the **Saved setup** block at the e
 | Q6 | Social | Public social footprint -- how far? | Professional only (Recommended) / Plus public X / Bluesky / Substack / None | socmint.scope |
 | Q7 | Compliance | Jurisdiction and compliance posture? | US (Recommended) / UK / EU (GDPR strict) / Regulated sales (FINRA / FCA style) / APAC | jurisdiction |
 | Q9 | Experience | How long have you been running meetings like this? | Experienced (Recommended) / Newer -- under two years / Top producer | caller.experience |
-| Q8 | Your offer | In one line -- what do you offer, and what does a win in this meeting look like? If you have files about your business (a deck, a one-page summary, case studies), add their paths and PCP will use them. (free text) | free text | caller.offer_one_line, meeting.win_definition, context.files |
+| Q8 | Your offer | In one line -- what do you offer, and what does a win in this meeting look like? If you have files about your business (a deck, a one-page summary, case studies -- PDF, Word, Markdown, text or CSV), add their paths and PCP will use them. (free text) | free text | caller.offer_one_line, meeting.win_definition, context.files |
 
 - **CAL-1** Ask only the questions the Saved setup block has no answer for -- all of them the first time, all again with --recalibrate. Otherwise read it silently.  
   _Fails when:_ An empty Saved setup block -- the run asks every question. A complete one -- it asks none.
 - **CAL-2** A skipped answer takes the first (Recommended) option and is stored with defaulted:true; the heading shows Prepared for and Depth.  
   _Fails when:_ Skip Q5 -- the Saved setup block shows Q5 standard, defaulted true; the heading reads "Depth: standard".
-- **CAL-4** Files the user attaches about their business are read once; a summary of at most 150 words goes in the Saved setup block under context. Facts from them are tagged Yours, never presented as public.  
-  _Fails when:_ Attach a one-page file -- the updated Saved setup block holds its summary, and a fact from it carries tag Yours.
+- **CAL-4** Files the user attaches about their business are read once; a summary of at most 150 words goes in the Saved setup block under context. Facts from them are tagged Yours, never presented as public. Supported: .pdf .docx .md .txt .csv. Any other file gets one line naming the supported types, and the Saved setup block is not changed.  
+  _Fails when:_ Attach a one-page file -- the updated Saved setup block holds its summary, and a fact from it carries tag Yours. Attach a .pptx -- one line names the supported types and no new block is given.
 
 ## Stage 1: Intake
 
@@ -158,7 +158,7 @@ This host runs no scripts. The saved setup is the **Saved setup** block at the e
 - **S4-8** Plain words: nothing printed uses a plain_words.banned term or an internal code; the person's own quoted words are exempt.  
   _Fails when:_ Put SOCMINT in B3 -- check C11 fails.
 - **S4-9** Experience (Q9) shapes page 3 only: new -> P1, P3 and P4 each end with a **Why:** line of at most 12 words; top -> the Hook and each objection's answer are at most 15 words; experienced -> neither.  
-  _Fails when:_ Set Q9 new -- P1, P3 and P4 each carry a Why line; set experienced -- none does.
+  _Fails when:_ Set Q9 new -- P1, P3 and P4 each carry a Why line; set experienced -- none does. Check C15 fails otherwise.
 
 ## Asking questions
 
@@ -269,6 +269,7 @@ Never say: "Does that make sense?"; "Is this helpful?"; "No pressure"; "You'd kn
 | C12 | gaps | every Not determined in B1-B9 (a **Label:** line or a table cell) and every No read in B6 has its label in B10's Still open row; Still open has at least one ? per gap; each Still open item is 'Label: question?', the question starting What, Who, How, When, Which, Where or If |
 | C13 | conditional | B8's hypotheses only when the meta line says Depth deep; P6 only when B6 says Evidence tier: high |
 | C14 | layout | the brief has exactly the 9 blocks B1-B9 before B10, and B10 is its last block: no other block and nothing after the ledger |
+| C15 | experience | new: P1, P3 and P4 each have a **Why:** line of at most 12 words; experienced and top: no Why line; top: the Hook and each objection's answer are at most 15 words |
 
 ## Deliver
 
