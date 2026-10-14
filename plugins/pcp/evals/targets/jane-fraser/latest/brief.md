@@ -1,100 +1,102 @@
 # Jane Fraser
-**Citigroup** | Chair and Chief Executive Officer, CEO since 2021 | New York
-Meeting: First introduction, Oct 15, 2026 | Prepared for: Founder / principal, Talyx | Depth: standard | Sources: 8 of 12 source types, 15 cited | Status LIMITED | Prepared Oct 13, 2026
+**Citigroup** | Chair and Chief Executive Officer, since 2021 | New York
+Meeting: First intro: earn a second meeting, Oct 15, 2026 | Prepared for: Founder / principal | Depth: standard | Sources: 9 of 12 source types, 18 cited | Status FULL | Prepared Oct 14, 2026
 
 ## B1 Take
-**Take.** Jane Fraser, Citi's Chair and CEO since October 2025 [1], meets you two days after Citi's best third-quarter revenue in a decade [2], and holds her bank to results, not effort [3]. **Evidence:** [1], [2], [3]. **Action:** open on Citi's Q3 result [2] and Fraser's results standard [3], then offer one preparation outcome. **Avoid:** a general AI-tools pitch, or Citi's regulators' timetable [11].
+**Take.** Fraser has led Citi since 2021 [1]; on Oct 13 she reported the best third-quarter revenue in a decade [2] while two consent orders remain [3]. **Evidence:** revenue [2], orders [3], return target [4]. **Action:** open on "judged on our results" [5]. **Avoid:** effort-talk and preamble [5].
 
 ## B2 Questions that close gaps
-1. You wrote that Citi is "not graded on effort"; which results should leaders be better prepared for? [3]
-   - **Decides:** the outcome to measure. **Ask:** Fraser.
-2. AI and automation benefits exceeded their investment this year; how do leaders prepare for external meetings today? [10]
-   - **Decides:** whether this is a real gap. **Ask:** Fraser or her chief of staff.
-3. Who else at Citi would weigh in on a 30-minute follow-up, and how do they see it?
-   - **Decides:** who must say yes. **Ask:** Fraser.
-4. With up to 20,000 roles in the plan, which part of the transformation is furthest from done? [5]
-   - **Decides:** where your offer fits. **Ask:** Fraser.
-5. Who should I meet next, and when, if this fits what you are trying to do?
-   - **Decides:** the second meeting. **Ask:** Fraser.
+1. You expect to beat this year's return target [4]; what would you reinvest in first?
+   - **Decides:** appetite. **Ask:** Jane Fraser.
+2. You told staff "we are not graded on effort" [5]; how do you judge client meetings?
+   - **Decides:** framing. **Ask:** Jane Fraser.
+3. Nearly nine in ten Citi people use AI tools [6]; which client teams lack them?
+   - **Decides:** the gap. **Ask:** the AI tools owner.
+4. Citigold referrals are up 23% [7]; who prepares the banker for each referral?
+   - **Decides:** the need. **Ask:** Citi Wealth.
+5. Remaining order work centers on data governance [8]; how does that shape new vendors?
+   - **Decides:** the gate. **Ask:** vendor approval.
 
 ## B3 Who they are
-- **Role:** Chair and CEO of Citi; CEO since March 2021 [1].
-- **Path:** joined Citi 2004; ran Latin America, the Private Bank, Global Consumer Bank; ex-McKinsey [4].
-- **The organization:** "a fundamentally different organization than it was in 2008" [6]; Q3 revenue $23.8 billion [2].
-- **What changed:** Oct 13, 2026, best Q3 revenue in a decade [2]; Jan 2026, a plan to cut up to 20,000 roles [5]; Oct 2025, Chair and CEO combined [6].
-- **Recent wins:** Oct 13, 2026, Q3 return on tangible common equity of 11.5% [7].
+- **Role:** Chair and CEO of Citi; CEO since March 2021, chair since October 2025 [1].
+- **Path:** joined Citi in 2004; McKinsey partner before [9].
+- **The organization:** serves clients in more than 180 countries and jurisdictions [10].
+- **What changed:** Oct 13, Services revenue up 15% to $6.6B [11]; May 7, a 14-15% return target for 2029-31 [12].
 
 ## B4 In their words
-- **Fraser's staff memo, Jan 14, 2026:** "We are not graded on effort." [3] "We are judged on our results." [3]
-- **Q3 release, Oct 13, 2026:** "Our overall performance continues to demonstrate the disciplined and consistent execution of our strategy." [9]
-- **Regulators, Jul 2026:** timing is "fully at the discretion of our regulators." [11]
+- **Staff memo, Jan 14:** "We are judged on our results" [5]
+- **Q2 call, Jul 14:** "100% on the offense" [13] and "playing the long game" [13]
+- **Q2 call, Jul 14:** orders lifted "at the discretion of our regulators" [14]
 
 **LinkedIn:** not read: no browser here
 
 ## B5 Signals and what to do with them
 | Observable | What to do with it |
 |---|---|
-| Her priority: "judged on our results" [3]; the gap: AI benefits are reported bank-wide [10] | She weighs a meeting by its result for Citi leaders; name one. |
-| Your offer: meeting preparation for executive teams [15] | The bridge: leaders walk into meetings with the outcome framed. |
-| The trigger: Q3 results landed Oct 13, RoTCE 11.5% [7] | Momentum makes a 30-minute ask easy; a program ask is not. |
+| "100% on the offense" [13]; | Show a result she can see this year. |
+| "ask for the business" [15]; you offer meeting-prep tools [16] | Bankers know each client's priorities. |
+| Expenses to outpace revenue [17] | Make the result measurable. |
 
 ## B6 Meeting approach
 | What the record shows | Your move |
 |---|---|
-| Pace and control: directive memo [3], 20,000 role cuts [5] | Match their pace; propose once, then ask. |
-| How they take recognition: no record yet | No read |
-| Appetite for detail: cites RoTCE 11.5%, Wealth up 15% [7][8] | Headline, two proof points, a source on request. |
-| Appetite for risk: no record yet | No read |
-| How they take disagreement: no record yet | No read |
-| How they keep score: "best third-quarter revenue in a decade"; shares up [2][13] | One peer reference is useful; more is noise. |
+| Pace and control: "the bar is raised" [15] | Lead with the outcome in one sentence; they decide fast and dislike preamble. |
+| How they take recognition: nothing found | No read |
+| Appetite for detail: "up 23%" [7] | Headline, two proof points, a source on request. |
+| Appetite for risk: will "lean in" [18] | Pair the upside with the safeguard in the same sentence. |
+| How they take disagreement: nothing found | No read |
+| How they keep score: "best in a decade" [2] | One peer reference is useful; more is noise. |
 
 **Evidence tier:** medium: it sets how far page 3 goes
 
 ## B7 Who decides
-- **Decision maker:** Jane Fraser, Chair and CEO of Citi since October 2025 [1].
-- **The gate:** Not determined
-- **Relationship holder:** her peer network runs through the Financial Services Forum [12].
+- **Decision maker:** Not determined
+- **The gate:** data governance is the open order work [8].
+- **Relationship holder:** Not determined
 
 ## B8 Strongest case against
-- **Against:** the 2020 Fed consent order is still in force, so regulatory work may crowd out a new topic [11].
-- **Reverses if:** she asks how executive preparation fits the AI work already under way.
+- **Against:** order work is regulatory data [8].
+- **Reverses if:** she names an owner and budget for client-meeting tools.
 
 ## B9 Meeting angle
 ### This meeting
-- **Frame:** Citi leaders arriving prepared, in her terms; not a pitch.
-- **Lands:** a named result with two proof points [3][7].
-- **Repels:** effort talk [3]; the regulators' timetable [11].
-- **What to bring:** a one-page example tied to the AI benefits she reported [10].
-- **The ask:** 30 minutes with Fraser or the leader she names [14] · **Fallback:** 15 minutes with that leader. **Stop if:** she says leader preparation is covered.
+- **Frame:** banker preparation for client meetings, in her terms: results [5].
+- **Lands:** "ask for the business" [15]. **Repels:** preamble [5].
+- **What to bring:** a sample prep brief for a Citigold referral meeting [7].
+- **The ask:** 30 minutes with the owner of AI tools for bankers [6] · **Fallback:** an introduction to that person.
+- **Stop if:** bankers' tools are closed to outsiders.
 ### Meeting two
-- **Meeting two:** a working session with the leader she names, on one real upcoming meeting [10]. **Meeting three:** a review against the result she chose [3].
+- **Meeting two:** a session on a Services scenario, up 15% [11].
 ### After the meeting
-- **Capture:** who she names, and the result she counts as success.
+- **Capture:** who owns the tool decision.
 
 ## B10 Evidence ledger
-Unmarked facts are measured. 15 facts cited; status LIMITED at 8 of 12 source types.
+Unmarked facts are measured. 18 facts cited; status FULL at 9 of 12 source types.
 
-| # | What it says | Source | Tag | Grade | Conf. | Date |
-|---|---|---|---|---|---|---|
-| [1] | Chair and CEO since 2021 and 2025 | [citigroup.com](https://www.citigroup.com/global/about-us/leadership/jane-fraser) | Direct | Measured | Primary | Oct 13, 2026 |
-| [2] | Q3 revenue $23.8 billion, best in a decade | [finance.yahoo.com](https://finance.yahoo.com/markets/stocks/articles/citigroup-q3-earnings-call-highlights-190230348.html) | Search | Measured | Reputable | Oct 13, 2026 |
-| [3] | Memo: "judged on our results" | [fortune.com](https://fortune.com/2026/01/14/citigroup-ceo-jane-fraser-job-cuts-ai-bad-old-ways-restructuring/) | Search | Measured | Reputable | Jan 14, 2026 |
-| [4] | Joined 2004; ran three Citi units; McKinsey | [citigroup.com](https://www.citigroup.com/global/about-us/leadership/jane-fraser) | Direct | Measured | Primary | Oct 13, 2026 |
-| [5] | Plan could cut up to 20,000 roles | [fortune.com](https://fortune.com/2026/01/14/citigroup-ceo-jane-fraser-job-cuts-ai-bad-old-ways-restructuring/) | Search | Measured | Reputable | Jan 14, 2026 |
-| [6] | Citi "fundamentally different organization than it was in 2008" | [sec.gov](https://www.sec.gov/Archives/edgar/data/831001/000120677426000185/citi4583461-def14a.htm) | Direct | Measured | Primary | Oct 13, 2026 |
-| [7] | Q3 return on tangible common equity 11.5% | [finance.yahoo.com](https://finance.yahoo.com/markets/stocks/articles/citigroup-q3-earnings-call-highlights-190230348.html) | Search | Measured | Reputable | Oct 13, 2026 |
-| [8] | Services and Wealth revenue up 15% | [finance.yahoo.com](https://finance.yahoo.com/markets/stocks/articles/citigroup-q3-earnings-call-highlights-190230348.html) | Search | Measured | Reputable | Oct 13, 2026 |
-| [9] | "disciplined and consistent execution of our strategy" | [finance.yahoo.com](https://finance.yahoo.com/markets/stocks/articles/citigroup-q3-earnings-call-highlights-190230348.html) | Search | Measured | Reputable | Oct 13, 2026 |
-| [10] | AI benefits exceeded related investments | [finance.yahoo.com](https://finance.yahoo.com/markets/stocks/articles/citigroup-q3-earnings-call-highlights-190230348.html) | Search | Derived | Reputable | Oct 13, 2026 |
-| [11] | Order remains; "discretion of our regulators" | [efinancialcareers.com](https://www.efinancialcareers.com/news/citi-hired-md-from-regulator) | Search | Measured | Reputable | Aug 17, 2026 |
-| [12] | Chairs Financial Services Forum | [citigroup.com](https://www.citigroup.com/global/about-us/leadership/jane-fraser) | Direct | Measured | Primary | Oct 13, 2026 |
-| [13] | Shares up more than two-thirds | [fortune.com](https://fortune.com/2026/05/27/citi-ceo-jane-fraser-turnaround-fortune-mpw/) | Search | Measured | Reputable | May 27, 2026 |
-| [14] | Meeting set for Oct 15, 2026 | target.yaml | Yours | Measured | Primary | Oct 13, 2026 |
-| [15] | Talyx: meeting preparation for executives | profile.yaml | Yours | Measured | Primary | Oct 13, 2026 |
+| # | What it says | Source | Grade | Date |
+|---|---|---|---|---|
+| [1] | CEO Mar 2021; chair Oct 2025 | [citigroup.com](https://www.citigroup.com/global/about-us/leadership/jane-fraser) | Measured | Oct 14, 2026 |
+| [2] | Q3 revenue $23.8B, decade best | [sec.gov](https://www.sec.gov/Archives/edgar/data/0000831001/000110465926115323/c-ex99d1.htm) | Measured | Oct 13, 2026 |
+| [3] | Citi remains under two consent orders | [bankingdive.com](https://www.bankingdive.com/news/citi-severance-jobs-headcount-q2-earnings-fraser/825295/) | Measured | Jul 15, 2026 |
+| [4] | Expects to exceed return target | [sec.gov](https://www.sec.gov/Archives/edgar/data/0000831001/000110465926115323/c-ex99d1.htm) | Measured | Oct 13, 2026 |
+| [5] | Memo: judged on results | [fortune.com](https://fortune.com/2026/01/14/citigroup-ceo-jane-fraser-job-cuts-ai-bad-old-ways-restructuring/) | Measured | Jan 14, 2026 |
+| [6] | 9 in 10 staff use AI tools | [webull.com](https://www.webull.com/news/15267023088133120) | Measured | Jul 14, 2026 |
+| [7] | Citigold referrals +23% | [webull.com](https://www.webull.com/news/15267023088133120) | Measured | Jul 14, 2026 |
+| [8] | Orders work left: data governance | [bankingdive.com](https://www.bankingdive.com/news/citi-severance-jobs-headcount-q2-earnings-fraser/825295/) | Measured | Jul 15, 2026 |
+| [9] | Joined 2004; McKinsey before | [citigroup.com](https://www.citigroup.com/global/about-us/leadership/jane-fraser) | Measured | Oct 14, 2026 |
+| [10] | Clients in 180+ countries | [citigroup.com](https://www.citigroup.com/global/about-us) | Measured | Oct 14, 2026 |
+| [11] | Services revenue $6.6B, up 15% | [sec.gov](https://www.sec.gov/Archives/edgar/data/0000831001/000110465926115323/c-ex99d1.htm) | Measured | Oct 13, 2026 |
+| [12] | Return target 14-15% for 2029-31 | [americanbanker.com](https://www.americanbanker.com/news/2026-the-most-powerful-women-in-banking-1-jane-fraser-citi) | Measured | May 7, 2026 |
+| [13] | "100% on the offense"; "long game" | [bankingdive.com](https://www.bankingdive.com/news/citi-severance-jobs-headcount-q2-earnings-fraser/825295/) | Measured | Jul 15, 2026 |
+| [14] | Order removal: regulators decide | [bankingdive.com](https://www.bankingdive.com/news/citi-severance-jobs-headcount-q2-earnings-fraser/825295/) | Measured | Jul 15, 2026 |
+| [15] | Memo: "ask for the business" | [fortune.com](https://fortune.com/2026/01/14/citigroup-ceo-jane-fraser-job-cuts-ai-bad-old-ways-restructuring/) | Measured | Jan 14, 2026 |
+| [16] | You offer meeting-prep tools | your saved setup | Measured | Oct 14, 2026 |
+| [17] | Expenses to outpace revenue | [webull.com](https://www.webull.com/news/15267023088133120) | Measured | Jul 14, 2026 |
+| [18] | Would "lean in" on investment | [bankingdive.com](https://www.bankingdive.com/news/citi-severance-jobs-headcount-q2-earnings-fraser/825295/) | Measured | Jul 15, 2026 |
 
 | | |
 |---|---|
-| **Coverage** | 8 of 12 source types. Not found: public social posts, publications, registers, events. LinkedIn: not read: no browser here |
-| **Still open** | The gate: Who else at Citi would weigh in on a 30-minute follow-up? · How they take recognition: Which recent Citi achievement are you proudest of? · Appetite for risk: What would you want proven before trying something new? · How they take disagreement: How do you like outsiders to challenge you? · LinkedIn: What has Fraser posted lately that she wants leaders to hear? |
-| **Left out on purpose** | health, family, political giving, litigation, home address, personal finances |
-| **Run** | Oct 13, 2026 · standard · first introduction · founder / principal · US · LIMITED |
+| **Coverage** | 9 of 12 source types; no upcoming appearances or social posts found. LinkedIn: not read: no browser here |
+| **Still open** | Decision maker: Who owns the call on AI tools? · Relationship holder: Who knows our work? · How they take recognition: How is good work best noticed? · How they take disagreement: How is dissent best raised? · LinkedIn: What has she posted lately? |
+| **Left out on purpose** | Health, family, political giving, litigation, home address, finances |
+| **Run** | Oct 14, 2026 · standard · first intro · Founder / principal · US · FULL · 6.0 facts per page |

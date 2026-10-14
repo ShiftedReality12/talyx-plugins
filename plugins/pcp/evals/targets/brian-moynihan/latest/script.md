@@ -1,36 +1,43 @@
 # Meeting script
-*Facts select the moves; read the room, never the record · Brian Moynihan, Bank of America · Prepared Oct 13, 2026*
+*Facts select the moves; read the room, never the record · Brian Moynihan, Bank of America · Prepared Oct 14, 2026*
 
 ## P1 Open
-- **Hook:** *You asked "Can you apply it at scale?" [5]. I'd like to show you one place where that test is met.*
-- **Credibility:** I'm from Talyx; we make AI meeting-prep for executive teams [13].
-- **Insight:** Bank of America associates send more than 400,000 prompts a day [11]; preparing for a meeting is one more place a sourced page helps.
-- **Rule:** stop after the hook and let him answer first.
+- **Hook:** *You told investors all 213,000 people are getting AI access [2]. I would like to know what that looks like for the 20,000 managers [10].*
+- **Credibility:** Talyx builds AI meeting-prep and knowledge tools for executive teams [16].
+- **Insight:** Bank of America gave 18,000 developers coding agents, a 20% gain [11]; I found no equivalent named for managers [10].
+- **Rule:** Keep the first minutes on his AI view; hold questions until he finishes.
 
 ## P2 Question order
-- **Story:** Moynihan said "AI is kicking in more and more" [4]; where does it show first in a day at Bank of America?
-- **Process:** Moynihan asks whether AI works "at scale" [5]; what stops a Bank of America use case reaching scale?
-- **Gate:** Who besides Moynihan decides which AI tools reach the Bank of America leadership team?
-- **History:** Athanasia, DeMare and Borthwick are named as possible successors [7]; how do they prepare for decisions today?
-- **Commitment:** What would make a second 30-minute meeting worth Moynihan's time?
+- **Story:** What did Erica teach you about how Bank of America staff adopt AI tools [7]?
+- **Process:** How does Bank of America choose which of its roughly 20 AI projects scale [8]?
+- **Gate:** Who else weighs in before a new AI tool reaches Bank of America's 20,000 managers [10]?
+- **History:** What did coding agents for 18,000 developers change about how Bank of America buys AI [11]?
+- **Commitment:** If a 30-minute demo prepared one of your own meetings, who else should see it [12]?
 
 ## P3 Objections: name it, then answer
-- **"Bank of America builds its own AI."** *Yes, 114 live generative AI use cases [11]. This adds sourced preparation for one meeting.*
-- **"AI means fewer people here."** *You said attrition is not replaced in some areas [6]; this makes the people who stay better prepared.*
-- **"I have no time."** *Thirty minutes, once; I send one page first [13].*
+- **"AI will hit senior people, not help them."** *You said it reaches senior people [12]; this gives executives time back, not fewer executives.*
+- **"Headcount is falling."** *You expect it to drop in 2026 [3]; this adds capacity without hiring.*
+- **"The coding-agent pilot came first."** *Yes, 18,000 developers [11]; managers are the next group.*
 
 ## P4 Close
-- **Restate:** ask what would make it an easy yes, then say it back in his words.
-- **The ask:** a second 30-minute meeting with Moynihan or whoever prepares his meetings [13] · **Fallback:** 30 minutes with the executive who owns AI adoption at Bank of America.
-- **Follow-up:** one sample page, the next day.
+- **Restate:** ask what would make a second meeting an easy yes, then say it back in his words.
+- **Real deadline:** the 2026 headcount drop he guided to [3] is judged at year-end; propose a date before it.
+- **The ask:** 30 minutes with him or his named executive [20] · **Fallback:** an introduction to the owner of executive productivity tooling.
+- **Follow-up:** send the one-page Barclays prep [19] within a day.
+
+## P5 Read the room (watch, do not assume)
+- **Fast, wants the answer:** give the outcome in one sentence, then stop [17].
+- **Asks for terms and data:** bring the 10% to 15% efficiency range [5] and a source.
+- **Talks about people:** tie it to the 20,000 managers [10].
+- **Big picture, ideas:** frame it as reinvesting capacity [5].
 
 ## P7 If it stalls
-- **The move:** return to his words: "Can you apply it at scale?" [5].
-- **The move:** ask how the co-presidents' teams prepare for decisions [7].
+- **The move:** ask how the Erica rollout reached 24.6 million users [7].
+- **The move:** ask what the Sept 14 Barclays remarks mean for next year's technology budget [19].
 
 ## P8 Guardrails
-- **Rule:** promise no results at Bank of America; make no performance or comparative claims.
+- **Rule:** promise no results or savings figures; none are public for Talyx's tools in this record.
 - **Never say:** "Does that make sense?" · "Is this helpful?" · "No pressure" · "You'd know better than me" · "Just checking in"
 
 ## P9 Next step
-**Next step:** send one sample page by Oct 16, 2026 [13].
+**Next step:** send the one-page Barclays prep by Oct 16, 2026 [19].

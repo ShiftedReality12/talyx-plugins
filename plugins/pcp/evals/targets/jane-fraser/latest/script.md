@@ -1,43 +1,43 @@
 # Meeting script
-*Facts select the moves; read the room, never the record · Jane Fraser, Citigroup · Prepared Oct 13, 2026*
+*Facts select the moves; read the room, never the record · Jane Fraser, Citigroup · Prepared Oct 14, 2026*
 
 ## P1 Open
-- **Hook:** *Congratulations on the best third-quarter revenue in a decade. I noticed you tell Citi it is judged on results, and that is the standard I will use today.* [2][3]
-- **Credibility:** I run Talyx, which builds AI meeting-prep and knowledge tools for executive teams [15].
-- **Insight:** Citi is cutting up to 20,000 roles while raising the bar [5]; preparation is staff time, and that is the gap we close.
-- **Rule:** keep it to her results, listen first, and answer in her words.
+- **Hook:** *Congratulations on the best third-quarter revenue in a decade [2]. You told staff you are judged on results [5], so I want to ask how client meetings get judged.*
+- **Credibility:** I run Talyx, which builds meeting-prep tools for executive teams; a win today is thirty minutes, not a contract [16].
+- **Insight:** every Citigold referral is a first meeting, and referrals are up 23% [7].
+- **Rule:** hold her pace: one sentence on the outcome, then a question; no deck.
 
 ## P2 Question order
-- **Story:** You wrote that Citi is "not graded on effort"; which results do you most want Citi leaders better prepared for? [3]
-- **Process:** Your AI and automation benefits exceeded their investment this year; how do leaders prepare for external meetings today? [10]
-- **Gate:** Who else at Citi would weigh in on a 30-minute follow-up, and how do they see it?
-- **History:** With up to 20,000 roles in the plan, which part of the transformation is furthest from done? [5]
-- **Commitment:** Who should I meet next, and when, if this fits what you are trying to do?
+- **Story:** You expect to exceed this year's return target [4]; what would you reinvest in first?
+- **Process:** Citigold referrals are up 23% [7]; who prepares the banker for each referral meeting?
+- **Gate:** Remaining consent order work centers on data governance [8]; how does that shape new vendors?
+- **History:** Nearly nine in ten Citi people use AI tools [6]; which client-facing teams still lack them?
+- **Commitment:** You told staff "we are not graded on effort" [5]; how do you judge client meetings today?
 
 ## P3 Objections: name it, then answer
-- **Their likely objection:** *"We already have AI work under way."* Agree, then say ours is one use of it, for leaders' meetings, and ask where it is not reaching [10].
-- **Their likely objection:** *"We are cutting costs, not adding tools."* Agree it is a hard year; offer one result a leader can judge in a single meeting [5].
-- **Their likely objection:** *"Send it to my team."* Say yes, and ask whom she names and by when [14].
+- **Their likely objection:** *"Nine in ten of our people already use AI tools [6]."* Agreed; I am asking only about the client meeting itself: who prepares the banker, and how fast?
+- **Their likely objection:** *"Data governance comes first [8]."* Understood; I ask for no decision, only thirty minutes to learn what your data test is.
+- **Their likely objection:** *"Expenses must not outrun revenue [17]."* Then we measure it as a result: banker time saved per client meeting, agreed before any spend.
 
 ## P4 Close
-- **Restate:** ask what would make a second meeting an easy yes, then say it back in her words [3].
-- **Real deadline:** none found in the record; offer a date within the month and let her move it [14].
-- **The ask:** 30 minutes with Fraser or the leader she names · **Fallback:** a 15-minute call with that leader.
-- **Follow-up:** send the one-page example the next day [10].
+- **Restate:** ask what would make a second meeting an easy yes, then say it back in her words.
+- **Real deadline:** none found; she expects to exceed this year's return target [4], so ask what she would fund before year end.
+- **The ask:** 30 minutes with the owner of AI tools for client-facing bankers, within four weeks · **Fallback:** an introduction to that person.
+- **Follow-up:** the one-page sample prep brief, within 24 hours.
 
 ## P5 Read the room (watch, do not assume)
-- **Fast, wants the answer:** match her pace, make one proposal, then ask.
-- **Asks for terms and data:** give the headline, two proof points, and a source on request.
-- **Talks about people:** ask whom she wants in the follow-up.
-- **Big picture, ideas:** link the ask to her results standard, and stop.
+- **Fast, wants the answer:** lead with the outcome in one sentence [13].
+- **Asks for terms and data:** headline, two proof points, a source on request [7].
+- **Talks about people:** ask who owns the decision and who else weighs in [8].
+- **Big picture, ideas:** tie it to her "long game" [13], and pair upside with a safeguard [18].
 
 ## P7 If it stalls
-- **The move:** return to her words, "judged on our results" [3], and ask which single result would justify 15 minutes.
-- **The move:** offer the one-page example tied to the AI benefits she reported [10].
+- **The move:** ask which Citigold referral meetings she would judge by [7].
+- **The move:** return to her words, "ask for the business" [15], and offer the sample brief.
 
 ## P8 Guardrails
-- **Rule:** promise no outcomes, make no claims about Citi's regulators, and cite only public facts.
+- **Rule:** never promise results at Citi, and never comment on when regulators will lift the orders [14].
 - **Never say:** "Does that make sense?"; "Is this helpful?"; "No pressure"; "You'd know better than me"; "Just checking in".
 
 ## P9 Next step
-**Next step:** send the one-page example by Oct 16, 2026.
+**Next step:** send the sample brief and a 30-minute request by Oct 16, 2026.
