@@ -8,7 +8,7 @@ description: >
   before a meeting, talking points, or shares an intake list. Do not use for general research unrelated
   to a meeting, or for notes on a meeting that has already happened.
 ---
-<!-- GENERATED from pcp.yaml (sha256:de31936bb2c5) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:f518db0ede60) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
@@ -176,7 +176,7 @@ and `linkedin` when set) and continue.
   _Fails when:_ Run with no Bash tool: the reply holds the label, the three page markers, every B1-B10 and P1-P9 title in order, a ledger row per cited [n], and no plain_words.banned word; eval.py chat on the saved reply exits 0.
 - **S4-4** If the tightest density rung still overflows 3 pages, the run FAILS with the section word counts; it never truncates or spills.  
   _Fails when:_ Feed a 900-word section -- the engine must exit non-zero naming the section.
-- **S4-5** The masthead's meta line carries meeting, prepared for, depth, sources, status and date; the ledger's Run row carries the run details; the footer carries only the Intelligence Brief, the person and the page numbers. The identity line is organization | role, since year | city: the city only when a source confirms it; anything unconfirmed is left out, never printed with '(not confirmed)'.  
+- **S4-5** The masthead's meta line carries meeting, prepared for, depth, sources, status and date; the ledger's Run row carries the run details; the footer carries only the Intelligence Brief, the person and the page numbers. The identity line is organization | role, since year | city: the city only when a source confirms it; anything unconfirmed or unknown is left out, never printed as '(not confirmed)', 'not published' or 'Not determined'.  
   _Fails when:_ Extract page 1 text -- the meta line has all six fields; no page footer holds a metric.
 - **S4-6** A block or line prints only as its Prints when says: a line PCP cannot fill from evidence is left out, or reads Not determined where its row says so. Never filler.  
   _Fails when:_ No recent wins found -- the Recent wins line is absent, not blank or padded.
@@ -322,12 +322,12 @@ and `python3 eval.py duf brief.md script.md`; rewrite until both are clean.
 | C11 | plain | `eval.py checks --plain` | no plain_words.banned term or internal code outside quoted words |
 | C12 | gaps | `eval.py checks --gaps` | Still open holds at most 4 items, and at least one while B1-B9 show a gap (a Not determined **Label:** line or table cell, or a No read in B6); each item is 'Label: question?', the label a gap above, the question starting What, Who, How, When, Which, Where or If |
 | C13 | conditional | `eval.py checks --conditional` | B8's hypotheses only when the meta line says Depth deep; P6 only when B6 says Evidence tier: high; P5 not at tier low; B3's Recent wins line only with a dated, cited result (never Not determined or blank) |
-| C14 | layout | `eval.py checks --layout` | the brief has exactly the 9 blocks B1-B9 before B10, and B10 is its last block: no other block and nothing after the ledger; B9 has one label per bullet (The ask with its Fallback excepted); nothing prints '(not confirmed)' |
+| C14 | layout | `eval.py checks --layout` | the brief has exactly the 9 blocks B1-B9 before B10, and B10 is its last block: no other block and nothing after the ledger; B9 has one label per line (The ask with its Fallback excepted); nothing prints '(not confirmed)', and the identity line prints nothing unknown |
 | C15 | experience | `eval.py checks --experience <Q9>` | new: P1, P3 and P4 each have a **Why:** line of at most 12 words; experienced and top: no Why line; top: the Hook and each objection's answer are at most 15 words |
 | C16 | linkedin | `eval.py checks --linkedin` | B4 has exactly one **LinkedIn:** line, read from your file or not read: one of linkedin.reasons; Coverage states the same; when not read, no ledger row is tagged LinkedIn and Still open asks nothing about LinkedIn |
 | C17 | cites | `eval.py checks --cites (eval.py cites brief.md --fetch reads the pages too)` | every cited sentence shares content with the ledger claim it cites (2+ content words, 1 when the claim is 3 words or fewer) and every [n] is a ledger row; a hypothetical (Reverses if, Stop if) carries no citation unless the row says it |
 | C18 | quality | `eval.py checks --quality` | no ledger row cites a source_quality.exclude domain; a source_quality.weak domain is never C1 or C2; fewer than 3 ledger rows carry the run's own date unmarked (those are read dates: give the source's date, or 'seen' when it has none) |
-| C19 | render | `eval.py pdf (also eval.py render OUT.pdf)` | every page: no ink within 0.12in of a page edge, no word outside the 0.3in side margins; page 1: the logo is whole in the top-right masthead; no block runs across a page break: page 2 opens on a block title and no table prints its header row on two pages |
+| C19 | render | `eval.py pdf (also eval.py render OUT.pdf)` | every page: no ink within 0.12in of a page edge, no word outside the 0.3in side margins; page 1: the logo is whole in the top-right masthead; no block runs across a page break: page 2 opens on Who decides (B7, as in the schema) and no table prints its header row on two pages |
 
 ## Render
 

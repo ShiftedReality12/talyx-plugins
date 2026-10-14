@@ -1,5 +1,5 @@
 # Jane Doe
-**Alder Grey Capital** | Managing Partner, since 2021 | Chicago (not confirmed)
+**Alder Grey Capital** | Managing Partner, start year not published | Chicago (not confirmed)
 Meeting: First intro: earn a second meeting | Prepared for: Founder / principal | Depth: standard | Sources: 10 of 12 source types, 12 cited | Status FULL | Prepared Sep 20, 2026
 
 ## B1 Take

@@ -401,6 +401,8 @@ a {{ color:{A}; text-decoration:underline; text-decoration-thickness:0.5px; text
 .sub {{ font-size:8.8pt; font-weight:700; margin:2pt 0 3pt; }} .sec-b9 .sub {{ margin-top:7pt; }} .sec-b9 .sub:first-child {{ margin-top:0; }}
 .two {{ display:grid; grid-template-columns:1fr 1fr; column-gap:0.28in; align-items:start; break-inside:avoid; }}
 @media screen {{ body {{ width:8.5in; }} }}   /* BALANCE measures at the printed width */
+/* the schema's page 2 opens on Who decides | Strongest case against: B1-B6 are page 1, even when page 1 has room */
+.part-0 .two:has(.sec-b7), .part-0 > .sec-b7 {{ break-before:page; }}
 .sec-b1 .sec-head {{ display:none; }}
 .sec-b1 .sec-body {{ background:{A}; color:#F8F6F3; font-size:{b}pt; line-height:1.4; padding:8pt 11pt; border-radius:6pt; margin-top:2pt; }}
 .sec-b1 p {{ margin:0; }} .sec-b1 strong, .sec-b1 a {{ color:#fff; }} .sec-b1 .cite {{ color:#DDE5F0; }}

@@ -264,12 +264,15 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
             fails += [f"C15 experience: top -- '{t[:40]}...' is {_words(t)} words > 15" for t in lines if _words(t) > 15]
     if want("layout"):
         b9 = secs.get("B9", "")
-        for ln in re.findall(r"^\s*[-*]\s+(.+)$", b9, re.M):
+        for ln in [x for x in b9.splitlines() if x.strip() and not x.lstrip().startswith("#")]:   # bullets and plain lines
             labels = re.findall(r"\*\*([^*]+?):\*\*", ln)
             if len([x for x in labels if x not in ("Fallback",)]) > 1:
                 fails.append(f"C14 layout: B9 bullet carries {len(labels)} labels {labels}; one label per bullet (The ask with its Fallback excepted)")
         if "(not confirmed)" in md:
             fails.append("C14 layout: '(not confirmed)' printed; leave an unconfirmed item out")
+        ident = (md.split("\n", 2) + ["", ""])[1]   # the identity line under '# Full Name'
+        if re.search(r"not confirmed|unconfirmed|not published|not determined", ident, re.I):
+            fails.append(f"C14 layout: the identity line prints what is not known ('{ident[:80]}'); leave it out")
         brief = re.split(r"^# ", md, maxsplit=2, flags=re.M)   # ['', name + brief, script ...]: the brief ends at the next `# `
         bsecs = list(_sections("# " + brief[1] if len(brief) > 1 else md))
         blocks = [s["id"] for s in R["brief"]["sections"]][:-1]
@@ -397,15 +400,15 @@ def script_numbers(page, n):
 
 
 def block_breaks(pages, brief_md=""):
-    """C19: no block of the brief runs across a page break (v6 printed half of B6 at the top of page 2). Each brief page
-    after the first opens on a block title, and no table's header row prints on two pages (a split table repeats it)."""
-    n, bp = R["names"], R["page_budget"]["brief_pages"]
-    titles = [_flat(re.sub(r"\{(\w+)\}", lambda m: n[m.group(1)], s["title"])) for s in R["brief"]["sections"][1:]]
+    """C19: no block of the brief runs across a page break (v6 printed half of B6 at the top of page 2). Page 2 opens on
+    Who decides (B7), as in the schema, and no table's header row prints on two pages (a split table repeats it)."""
+    bp = R["page_budget"]["brief_pages"]
+    b7 = _flat(next(s["title"] for s in R["brief"]["sections"] if s["id"] == "B7"))   # the schema's page 2 opens on B7
     fails = []
     for i, p in enumerate(pages[1:bp], 2):
         first = re.sub(r"\s+", "", next((ln for ln in p.splitlines() if ln.strip()), ""))   # titles print in capitals
-        if len(first) < 6 or not any(t.startswith(first) or first.startswith(t) for t in titles):
-            fails.append(f"C19 render: page {i} opens inside a block ('{first[:30]}'), not on a block title")
+        if not first.startswith(b7):
+            fails.append(f"C19 render: page {i} opens on '{first[:30]}', not on {b7} (B7): a block ran across the page or moved")
     for head in re.findall(r"^\|(.+)\|[ \t]*\n\|[ \t:|-]+\|[ \t]*$", brief_md, re.M):
         cells = [re.sub(r"\s+", "", c).upper() for c in head.split("|") if c.strip() not in ("", "#")]
         on = [i + 1 for i, p in enumerate(pages[:bp]) if cells and all(c in re.sub(r"\s+", "", p) for c in cells)]
@@ -469,7 +472,7 @@ def self_test(require_pdf=False):
     else:
         print("FAIL C10 must trip on page-3 numbers 1, 2, 3, 4, 6"); ok = False
     split = block_breaks((fx / "split_table_pages.txt").read_text().split("\f"), (fx / "control_12.md").read_text())
-    if len(split) == 2 and "page 2 opens inside a block" in split[0] and "split across pages [1, 2]" in split[1]:
+    if len(split) == 2 and "page 2 opens on 'WHATTHERECORD" in split[0] and "split across pages [1, 2]" in split[1]:
         print("tripped: C19 by split_table_pages.txt (a v6 render: page 2 opens on the rest of B6's table)")
     else:
         print("FAIL split_table_pages.txt must trip C19 twice (page 2 opens inside a block; B6 split):", split); ok = False
@@ -508,8 +511,8 @@ FINANCE = ["Runs J.P. Morgan Asset & Wealth Management [3].", "Asset and wealth 
 
 def pdf_self_test(fx):
     """Render control_12.md and jargon.md the way SKILL.md says, then read them back: the control passes `pdf`,
-    the jargon PDF's printed text trips C11 on every word, and control_12.md rendered without --brief-pages (the 3.0.0
-    flags: the ledger on page 1) trips C10. None if this computer cannot render or read a PDF."""
+    the jargon PDF's printed text trips C11 on every word, and control_12.md rendered with --brief-pages 3 (4 pages,
+    the ledger on page 3) trips C10. None if this computer cannot render or read a PDF."""
     import importlib.util
     import tempfile
     sys.dont_write_bytecode = True   # importing the renderer must not leave __pycache__ in the plug-in
@@ -529,7 +532,8 @@ def pdf_self_test(fx):
             cut = [m.start() for m in re.finditer(r"^# ", md, re.M)][1]
             b, s, out = pathlib.Path(tmp, "brief.md"), pathlib.Path(tmp, "script.md"), pathlib.Path(tmp, name[:-3] + ".pdf")
             b.write_text(md[:cut]); s.write_text(md[cut:])
-            pages = ["--brief-pages", str(pb["brief_pages"]), "--max-pages", str(pb["total_pages"])] if layout else ["--max-pages", str(pb["total_pages"])]
+            pages = (["--brief-pages", str(pb["brief_pages"]), "--max-pages", str(pb["total_pages"])] if layout   # as SKILL.md says
+                     else ["--brief-pages", str(pb["brief_pages"] + 1), "--max-pages", str(pb["total_pages"] + 1)])   # the brief over 3 pages
             r = subprocess.run([sys.executable, str(HERE / "format/talyx_pdf.py"), "--style", "brief", "--brief", str(b), "--script", str(s),
                                 "--columns", pb["columns"], "--classification", n["classification"],
                                 "--footer", f"{n['deliverable']} · Jane Doe, Alder Grey Capital · Prepared for you (internal)",
@@ -542,9 +546,9 @@ def pdf_self_test(fx):
                 return None
             if not layout:
                 if any(x.startswith("C10 ") for x in f):
-                    print("tripped: C10 by control_12.pdf rendered without --brief-pages (the ledger not on its page)")
+                    print("tripped: C10 by control_12.pdf rendered with --brief-pages 3 (4 pages, the ledger on page 3)")
                 else:
-                    print("FAIL control_12.pdf without --brief-pages must trip C10 (got", f, ")"); ok = False
+                    print("FAIL control_12.pdf rendered with --brief-pages 3 must trip C10 (got", f, ")"); ok = False
             elif name == "control_12.md":
                 print(f"pdf control_12: {len(f)} failures (C10, C11, C19)", *f, sep="\n - ")
                 ok = ok and not f

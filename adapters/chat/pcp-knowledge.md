@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:de31936bb2c5) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:f518db0ede60) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
@@ -285,12 +285,12 @@ Never say: "Does that make sense?"; "Is this helpful?"; "No pressure"; "You'd kn
 | C11 | plain | no plain_words.banned term or internal code outside quoted words |
 | C12 | gaps | Still open holds at most 4 items, and at least one while B1-B9 show a gap (a Not determined **Label:** line or table cell, or a No read in B6); each item is 'Label: question?', the label a gap above, the question starting What, Who, How, When, Which, Where or If |
 | C13 | conditional | B8's hypotheses only when the meta line says Depth deep; P6 only when B6 says Evidence tier: high; P5 not at tier low; B3's Recent wins line only with a dated, cited result (never Not determined or blank) |
-| C14 | layout | the brief has exactly the 9 blocks B1-B9 before B10, and B10 is its last block: no other block and nothing after the ledger; B9 has one label per bullet (The ask with its Fallback excepted); nothing prints '(not confirmed)' |
+| C14 | layout | the brief has exactly the 9 blocks B1-B9 before B10, and B10 is its last block: no other block and nothing after the ledger; B9 has one label per line (The ask with its Fallback excepted); nothing prints '(not confirmed)', and the identity line prints nothing unknown |
 | C15 | experience | new: P1, P3 and P4 each have a **Why:** line of at most 12 words; experienced and top: no Why line; top: the Hook and each objection's answer are at most 15 words |
 | C16 | linkedin | B4 has exactly one **LinkedIn:** line, read from your file or not read: one of linkedin.reasons; Coverage states the same; when not read, no ledger row is tagged LinkedIn and Still open asks nothing about LinkedIn |
 | C17 | cites | every cited sentence shares content with the ledger claim it cites (2+ content words, 1 when the claim is 3 words or fewer) and every [n] is a ledger row; a hypothetical (Reverses if, Stop if) carries no citation unless the row says it |
 | C18 | quality | no ledger row cites a source_quality.exclude domain; a source_quality.weak domain is never C1 or C2; fewer than 3 ledger rows carry the run's own date unmarked (those are read dates: give the source's date, or 'seen' when it has none) |
-| C19 | render | every page: no ink within 0.12in of a page edge, no word outside the 0.3in side margins; page 1: the logo is whole in the top-right masthead; no block runs across a page break: page 2 opens on a block title and no table prints its header row on two pages |
+| C19 | render | every page: no ink within 0.12in of a page edge, no word outside the 0.3in side margins; page 1: the logo is whole in the top-right masthead; no block runs across a page break: page 2 opens on Who decides (B7, as in the schema) and no table prints its header row on two pages |
 
 ## Deliver
 
