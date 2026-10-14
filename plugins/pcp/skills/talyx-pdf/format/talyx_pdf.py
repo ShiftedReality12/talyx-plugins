@@ -222,7 +222,7 @@ def b6_html(body):
     if labels:
         line = (f'<p class="lbl noread"><strong>No read:</strong> {" · ".join(labels)}'
                 + (f" \u2014 {'; '.join(notes)}" if notes else "") + "</p>")
-        body = re.sub(r"<table>(?:(?!</table>).)*<tbody></tbody></table>", "", body)   # every row was No read
+        body = re.sub(r"<table[^>]*>(?:(?!</table>).)*<tbody></tbody></table>", "", body)   # every row was No read
         body = body.replace("</table>", "</table>" + line, 1) if "</table>" in body else line + body
     return body
 

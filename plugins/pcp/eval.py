@@ -105,11 +105,19 @@ def plain_hits(text):
     return sorted(set(hits))
 
 
+# a period that ends no sentence: a title, "No. 2", "Oct. 12", "U.S. economy" (the Barra chat run split at "No.")
+ABBR = re.compile(r"\b(?:Mr|Mrs|Ms|Dr|U\.S|e\.g|i\.e)\.|\b(?:No|Nos|Inc|Co|Corp|Ltd|vs|St|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept?|Oct|Nov|Dec)\.(?=\s+[a-z0-9])")
+QUOTE_SPAN = re.compile(r'"[^"\n]*"|\u201c[^\u201d\n]*\u201d')
+
+
 def _sentences(txt):
     txt = re.sub(r"\|.*\|", " ", txt)  # tables are rows, not sentences
     txt = "\n".join(ln for ln in txt.splitlines()   # structure and the registry's own fallback lines, not claims
                     if not re.match(r"\s*#|.*(?:Not determined|Evidence tier:|No counter-evidence found)", ln))
-    return [s.strip() for s in re.split(r"(?<=[.!?])\s+", txt) if len(s.strip()) > 25]
+    hide = lambda m: m.group(0).translate(str.maketrans(".!?", "\x00\x01\x02"))   # a quote is one span, cited after it
+    txt = QUOTE_SPAN.sub(hide, ABBR.sub(hide, txt))
+    back = str.maketrans("\x00\x01\x02", ".!?")
+    return [s.strip().translate(back) for s in re.split(r"(?<=[.!?])\s+(?!\[\d)", txt) if len(s.strip()) > 25]   # "Inc. [1]": the cite is this sentence's
 
 
 def _gaps(secs):
@@ -117,13 +125,14 @@ def _gaps(secs):
     Not determined or No read cell (its label: the row's first other cell, up to a colon), in B1-B9."""
     out = []
     for k in [k for k in secs if re.match(r"B[1-9]$", k)]:
-        out += [(k, label, "Not determined") for label in re.findall(r"\*\*([^*]+?):\*\*\s*Not determined", secs[k])]
+        out += [(k, label, "Not determined") for label in re.findall(r"\*\*([^*]+?):\*\*\s*[*_]?Not determined", secs[k])]
         for ln in secs[k].splitlines():
-            cells = [c.strip() for c in ln.strip().strip("|").split("|")] if ln.lstrip().startswith("|") else []
-            gap = next((c.rstrip(".") for c in cells if c.rstrip(".") in ("Not determined", "No read")), None)
-            if gap:
-                other = next((c for c in cells if c.rstrip(".") != gap), "")
-                label = CITE.sub("", re.sub(r"\*\*|\*", "", other)).split(":")[0].strip()
+            cells = [re.sub(r"\*\*|\*|_", "", c).strip() for c in ln.strip().strip("|").split("|")] if ln.lstrip().startswith("|") else []
+            hit = next((m for m in (re.fullmatch(r"(?:([^:]+):\s*)?(Not determined|No read)\.?", c) for c in cells) if m), None)
+            if hit:   # "Not determined" alone, or "The trigger: Not determined" in one cell
+                gap = hit.group(2)
+                other = hit.group(1) or next((c for c in cells if c != hit.group(0)), "")
+                label = CITE.sub("", other).split(":")[0].strip()
                 out.append((k, label or gap, gap))
     return out
 
@@ -216,13 +225,13 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
         starts, cap = room["question_starts"], room["max_open"]
         cell = re.sub(r"\*\*Still open\*\*|\*\*", "", still).strip(" |")
         items = [i.strip() for i in re.split(r"\s+·\s+", cell) if i.strip()]
-        asked = [i for i in items if "?" in i]
+        asked = [q for i in items for q in re.findall(r"[^?]*\?", i)]   # two questions in one item count as two
         if gaps and not asked:   # Daniel, Oct 14: at most 4 questions, highest value first -- not one per gap
             fails.append(f"C12 gaps: {len(gaps)} gaps in B1-B9 but no question in Still open")
         if len(asked) > cap:
             fails.append(f"C12 gaps: Still open asks {len(asked)} questions; at most {cap}, highest value first")
         labels = {g[1].lower() for g in gaps}
-        for item in asked:
+        for item in [i for i in items if "?" in i]:
             if item.split(": ", 1)[0].strip("*_ ").lower() not in labels:
                 fails.append(f"C12 gaps: Still open item '{item[:40]}' is not on a gap above (a Not determined or No read label)")
         for item in items:
@@ -247,7 +256,7 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
             if tagged:
                 fails.append(f"C16 linkedin: LinkedIn {li['not_read']}, yet ledger rows {tagged} are tagged LinkedIn")
             still = next((ln for ln in grid.splitlines() if "Still open" in ln), "")
-            if re.search(r"LinkedIn:[^·|]*\?", still):   # Oct 14: an unread LinkedIn is stated in Coverage, not asked
+            if any("linkedin" in i.lower() and "?" in i for i in re.split(r"\s+·\s+|\|", still)):   # Oct 14: an unread LinkedIn is stated in Coverage, not asked
                 fails.append("C16 linkedin: LinkedIn not read belongs in Coverage only, not as a Still open question")
     if experience and which == "all":
         why = {k: re.findall(r"\*\*Why:\*\*\s*(.+)", secs[k]) for k in secs if re.match(r"P\d+$", k)}
@@ -265,10 +274,10 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
     if want("layout"):
         b9 = secs.get("B9", "")
         for ln in [x for x in b9.splitlines() if x.strip() and not x.lstrip().startswith("#")]:   # bullets and plain lines
-            labels = re.findall(r"\*\*([^*]+?):\*\*", ln)
-            if len([x for x in labels if x not in ("Fallback",)]) > 1:
+            labels = [a or b for a, b in re.findall(r"\*\*([^*]+?):\*\*|\*\*([^*]+?)\*\*:", ln)]   # **Label:** or **Label**:
+            if len([x for x in labels if not (x == "Fallback" and "The ask" in labels)]) > 1:
                 fails.append(f"C14 layout: B9 bullet carries {len(labels)} labels {labels}; one label per bullet (The ask with its Fallback excepted)")
-        if "(not confirmed)" in md:
+        if re.search(r"\((?:not confirmed|unconfirmed)\)", md, re.I):
             fails.append("C14 layout: '(not confirmed)' printed; leave an unconfirmed item out")
         ident = (md.split("\n", 2) + ["", ""])[1]   # the identity line under '# Full Name'
         if re.search(r"not confirmed|unconfirmed|not published|not determined", ident, re.I):
@@ -406,7 +415,8 @@ def block_breaks(pages, brief_md=""):
     b7 = _flat(next(s["title"] for s in R["brief"]["sections"] if s["id"] == "B7"))   # the schema's page 2 opens on B7
     fails = []
     for i, p in enumerate(pages[1:bp], 2):
-        first = re.sub(r"\s+", "", next((ln for ln in p.splitlines() if ln.strip()), ""))   # titles print in capitals
+        body = [ln for ln in p.splitlines() if ln.strip() and not re.match(r"\s*page \d+ of \d+", ln)]   # pypdf reads the footer first
+        first = re.sub(r"\s+", "", body[0] if body else "")   # titles print in capitals
         if not first.startswith(b7):
             fails.append(f"C19 render: page {i} opens on '{first[:30]}', not on {b7} (B7): a block ran across the page or moved")
     for head in re.findall(r"^\|(.+)\|[ \t]*\n\|[ \t:|-]+\|[ \t]*$", brief_md, re.M):
@@ -476,12 +486,50 @@ def self_test(require_pdf=False):
         print("tripped: C19 by split_table_pages.txt (a v6 render: page 2 opens on the rest of B6's table)")
     else:
         print("FAIL split_table_pages.txt must trip C19 twice (page 2 opens inside a block; B6 split):", split); ok = False
+    pypdf_page2 = "page 2 of 3Intelligence Brief · Jane Doe, Alder Grey Capital · Prepared for you (internal)\nW H O  D E C I D E S\nDecision maker"
+    if block_breaks(["", pypdf_page2]):
+        print("FAIL C19 must read past the footer line pypdf puts first:", block_breaks(["", pypdf_page2])); ok = False
+    elif not block_breaks(["", pypdf_page2.replace("W H O  D E C I D E S", "W H A T  T H E  R E C O R D")]):
+        print("FAIL C19 must still trip when page 2 opens on another block after the footer line"); ok = False
+    else:
+        print("passes: C19 reads past pypdf's footer line; trips when page 2 opens on another block")
+    c12 = (fx / "control_12.md").read_text()
+    blind = [   # (case, check id, the control_12.md edit the check missed before Oct 14)
+        ("C12 on a gap in a table cell ('The gate: *Not determined*') with no question asked", "C12",
+         c12.replace("- **The gate:** Not determined", "| Item | Read |\n|---|---|\n| The gate: *Not determined* | none |")
+            .replace("The gate: what must be true before the committee says yes?", "none")),
+        ("C12 on two questions in one Still open item", "C12",
+         c12.replace("The gate: what must be true before the committee says yes? |",
+                     "The gate: who signs? What must be true? Who else? When? Why now? |")),
+        ("C14 on '**Label**:' twice in one B9 bullet", "C14",
+         c12.replace("- **What to bring:** the introduction", "- **What to bring**: the deck. **Why**: the introduction")),
+        ("C14 on a Fallback without The ask", "C14",
+         c12.replace("- **What to bring:** the introduction", "- **What to bring:** the deck. **Fallback:** the introduction")),
+        ("C14 on '(Unconfirmed)'", "C14", c12.replace("the introduction to the custodian [12]", "the custodian (Unconfirmed) [12]")),
+        ("C16 on an unread LinkedIn asked inside another Still open item", "C16",
+         (fx / "linkedin_declined.md").read_text().replace("says yes? |", "says yes? · The gate: could you share the LinkedIn profile? |")),
+    ]
+    for case, cid, md in blind:
+        if any(x.startswith(cid + " ") for x in checks(md)):
+            print(f"tripped: {case}")
+        else:
+            print(f"FAIL {case} must trip {cid}"); ok = False
+    cell = c12.replace("- **The gate:** Not determined", "| Item | Read |\n|---|---|\n| The gate: *Not determined* | none |")
+    if [x for x in checks(cell) if x.startswith("C12 ")]:
+        print("FAIL C12 must read 'The gate: *Not determined*' in a table cell as the gap Still open asks about"); ok = False
     for name, kw in MUST_PASS:
         f = checks((fx / name).read_text(), **kw)
         if f:
             print(f"FAIL {name} {kw or ''} must pass every check:", *f, sep="\n - "); ok = False
         else:
             print(f"passes: {name} {kw or ''}")
+    ss = _sentences('Fortune ranks her No. 2 on its list [14]. "We are focused. That is where we are" [3].\n'
+                    'She has led many large teams over a long career. It holds [2]. Started Alder Grey, Inc. [1]; CEO since 2021 [8].')
+    if ss == ['Fortune ranks her No. 2 on its list [14].', '"We are focused. That is where we are" [3].',
+              "She has led many large teams over a long career.", "Started Alder Grey, Inc. [1]; CEO since 2021 [8]."]:
+        print("passes: C1 sentences: 'No. 2', a quoted period and 'Inc. [1]' end no sentence; an uncited sentence still stands alone")
+    else:
+        print("FAIL C1 sentence split:", ss); ok = False
     hits = {h.lower() for h in plain_hits((fx / "jargon.md").read_text())}
     if hits != {w.lower() for w in JARGON}:
         print(f"FAIL jargon.md: C11 must list exactly {JARGON} (got {sorted(hits)})"); ok = False
@@ -801,7 +849,13 @@ def chat_check(text, target_nouns=(), experience=None, authority=None):
               for x in R["brief"]["sections"] + R["script"]["blocks"]}
     def add_id(m):
         t = m.group(1).strip()
-        return m.group(0) if re.match(r"[BP]\d+\b", t) else f"## {titles.get(t.lower().rstrip(':'), '')} {t}".replace("##  ", "## ")
+        if re.match(r"[BP]\d+\b", t):
+            return m.group(0)
+        num = re.match(r"\d+\.?\s+(.+)$", t)   # page 3's sections print numbered, as in the PDF; brief blocks never do
+        if num:
+            key = titles.get(num.group(1).lower().rstrip(':'), '')
+            return f"## {key} {num.group(1)}" if key.startswith("P") else m.group(0)
+        return f"## {titles.get(t.lower().rstrip(':'), '')} {t}".replace("##  ", "## ")
     body = re.sub(r"^## (.+)$", add_id, re.sub(r"^--- Page \d ---\s*$", "", text, flags=re.M), flags=re.M)
     m = re.search(r"^# " + re.escape(n["script"]) + r"\s*$", body, re.M | re.I)
     if not m or (pos[2] != -1 and m.start() < 0):

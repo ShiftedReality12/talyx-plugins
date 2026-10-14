@@ -103,7 +103,7 @@ that each carry a falsification test. Every fact traces to a source. Nothing is 
 The deliverable is one 3-page PDF, the {n['deliverable']}. Nothing else is emitted.
 
 **No shell or code tool (plain chat)?** Run the same stages anyway; never stop or refuse for lack of tools.
-Research with the host's own web search and fetch tools. Keep claims, coverage and the meeting approach in
+Research with the host's own web search and fetch tools. Keep claims, coverage and the behavioral read in
 the conversation instead of files. Apply the checks yourself. Then deliver the full {n['deliverable']} in chat
 exactly as S4-10 says (label, page markers, every block, the ledger, the {n['script']}). Profile answers
 given in the message stand in for the saved setup file.

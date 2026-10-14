@@ -18,7 +18,7 @@ it), every fact cited.
 3. **Behavioral profile.** Reads six dimensions, each only from cited observations; the evidence tier
    decides how far the script goes.
 4. **The Intelligence Brief.** Pages 1-2: the Take, questions that close gaps, who they are, in their
-   words, signals, meeting approach, who decides, strongest case against, meeting angle, and the
+   words, signals, behavioral profile, who decides, strongest case against, meeting angle, and the
    evidence ledger. Page 3: the meeting script. Whatever the record could not show becomes a question
    to ask in the room. Hard page gate: it fails rather than spills.
 5. **After the call.** Four fields feed proposals back into the registry; a change lands only

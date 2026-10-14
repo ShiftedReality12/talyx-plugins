@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:f518db0ede60) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:29327d9fadee) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
@@ -8,7 +8,7 @@ that each carry a falsification test. Every fact traces to a source. Nothing is 
 The deliverable is one document: the Intelligence Brief, then the Meeting script. Nothing else is emitted.
 
 **No shell or code tool (plain chat)?** Run the same stages anyway; never stop or refuse for lack of tools.
-Research with the host's own web search and fetch tools. Keep claims, coverage and the meeting approach in
+Research with the host's own web search and fetch tools. Keep claims, coverage and the behavioral read in
 the conversation instead of files. Apply the checks yourself. Then deliver the full Intelligence Brief in chat
 exactly as S4-10 says (label, page markers, every block, the ledger, the Meeting script). Profile answers
 given in the message stand in for the saved setup file.
@@ -94,7 +94,7 @@ This host runs no scripts. The saved setup is the **Saved setup** block at the e
 
 **Context contract** -- read, in this order: resolved_families with query templates, exclusions, target identity, known_context. Budget: 1200 words. Not read: rubric, brief structure, script structure.
 
-**Outputs:** `claims.jsonl` (id, claim, family, url, retrieved_at, tag, grade, confidence, exclusion_hit); `coverage` (families_attempted, families_total, hits_by_family, failed_urls, linkedin, status)
+**Outputs:** `claims.jsonl` (id, claim, family, url, retrieved_at, published, tag, grade, confidence, exclusion_hit); `coverage` (families_attempted, families_total, hits_by_family, failed_urls, linkedin, status)
 
 **Rows:**
 
@@ -110,8 +110,8 @@ This host runs no scripts. The saved setup is the **Saved setup** block at the e
   _Fails when:_ Remove all C1/C2 claims from one family below threshold -- status flips to LIMITED.
 - **S2-6** Run the counter-evidence family last: search for what would contradict the strategic read.  
   _Fails when:_ With depth standard or deep, coverage must show family F12 attempted.
-- **S2-7** LinkedIn: this host cannot open the user's browser. Offer once: save their profile as a PDF (More > Save to PDF) and attach it; it is read as Yours. Either way B4's last line is '**LinkedIn:** not read: no browser here' and the Coverage row says 'LinkedIn: not read: no browser here'; no fact is tagged LinkedIn, and Still open carries a LinkedIn question that closes the gap.  
-  _Fails when:_ No attachment -- B4 and Coverage both read 'LinkedIn: not read: no browser here' (check C16).
+- **S2-7** LinkedIn only from a profile the user saves and attaches; never open LinkedIn. Ask once, in one line: 'Do you have <name>'s LinkedIn profile saved as a PDF (on their profile: More > Save to PDF) or as copied text? Attach it and I'll use it as your file; nothing else from LinkedIn is read.' Attached: its facts are tagged Yours, the source is the file name, and B4's last line is '**LinkedIn:** read from your file' and the Coverage row 'LinkedIn: read from your file'. Not attached: '**LinkedIn:** not read: file not given' and 'LinkedIn: not read: file not given'; no fact is tagged LinkedIn, and Still open asks nothing about LinkedIn.  
+  _Fails when:_ No attachment -- B4 and Coverage both read 'LinkedIn: not read: file not given' and Still open asks nothing about LinkedIn; a profile PDF attached -- both read 'read from your file' and its facts carry tag Yours (check C16).
 - **S2-8** Source quality: prefer the primary source (the organisation, filings, the person's own words). Never cite a source_quality.exclude domain (people-search and unreachable sites); a source_quality.weak domain is at most C3 and never the only support for a fact on page 1. Cite a fact only where the ledger row says it: hypotheticals (Reverses if, Stop if) carry no citation. Before render, check every link: dead links are replaced or the fact is dropped; blocked links (the site refuses bots) are kept.  
   _Fails when:_ A brief citing mexc.com as C2 fails C18; a Reverses if line citing the intake row fails C17; the link check reports blocked separately from dead.
 
