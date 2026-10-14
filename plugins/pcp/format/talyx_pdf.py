@@ -193,14 +193,50 @@ def sec_html(num, title, body, style="house"):
     if style == "brief":   # brief blocks print no number; script sections print "1."
         sid = re.match(r"([BP])(\d+)\s", title)
         num_html = f'<span class="sec-num">{num}.</span> ' if sid and sid.group(1) == "P" else ""
-        if sid and sid.group(0).strip() == "B6":   # each row leads with its dimension: set the label apart from the evidence
-            body = re.sub(r"<tr><td>([^<:]{3,40}):\s*", r'<tr><td><strong class="dim">\1:</strong> ', body)
-            body = re.sub(r"<tr>(?=<td>(?:(?!</tr>).)*</td><td>\s*No read\.?\s*</td></tr>)", '<tr class="noread">', body, flags=re.I)
+        body = {"B6": b6_html, "B10": b10_html}.get(sid and sid.group(0).strip(), lambda b: b)(body)
         return (f'<div class="sec{" sec-" + sid.group(0).strip().lower() if sid else ""}"><h2 class="sec-head">'
                 f'{num_html}<span class="sec-title">{t}</span></h2><div class="sec-body">{body}</div></div>')
     return (f'<div class="sec{ref}"><h2 class="sec-head">'
             f'<span class="sec-num">{num:02d}</span> <span class="sec-title">{t}</span></h2>'
             f'<div class="sec-body">{body}</div></div>')
+
+
+NO_READ = re.compile(r"(?:no read|none found|nothing found|not determined)\.?", re.I)
+
+
+def b6_html(body):
+    """B6: each row leads with its dimension label, set in bold. The dimensions with no read print as ONE line under
+    the table, not a row each (Daniel, Oct 14); when no dimension has a read, that line stands in for the table. Their
+    labels and any cited text print once each; only the repeated 'No read' / 'none found' markers go."""
+    labels, notes = [], []
+
+    def take(m):
+        label, _, rest = m.group(1).strip().partition(":")
+        labels.append(label.strip())
+        rest = rest.strip()
+        if rest and not NO_READ.fullmatch(re.sub(r"<[^>]+>", "", rest).strip()) and rest not in notes:
+            notes.append(rest)
+        return ""
+    body = re.sub(r"<tr><td>((?:(?!</td>).)*)</td><td>\s*No read\.?\s*</td></tr>", take, body, flags=re.I)
+    body = re.sub(r"<tr><td>([^<:]{3,40}):\s*", r'<tr><td><strong class="dim">\1:</strong> ', body)
+    if labels:
+        line = (f'<p class="lbl noread"><strong>No read:</strong> {" · ".join(labels)}'
+                + (f" \u2014 {'; '.join(notes)}" if notes else "") + "</p>")
+        body = re.sub(r"<table>(?:(?!</table>).)*<tbody></tbody></table>", "", body)   # every row was No read
+        body = body.replace("</table>", "</table>" + line, 1) if "</table>" in body else line + body
+    return body
+
+
+def b10_html(body):
+    """B10: Still open prints one question per line; a grade of Measured is quiet ink and colour marks the others;
+    a source shows its domain without www."""
+    def bullets(m):
+        items = [i.strip() for i in re.split(r"\s+·\s+", m.group(2)) if i.strip()]
+        return m.group(1) + '<ul class="open">' + "".join(f"<li>{i}</li>" for i in items) + "</ul></td></tr>"
+    body = re.sub(r"(<tr><td><strong>Still open</strong></td><td>)((?:(?!</td>).)*)</td></tr>", bullets, body)
+    body = re.sub(r"<td>(Measured|Derived|Inference|Not determined)</td>",
+                  lambda m: f'<td class="grade g-{m.group(1).split()[0].lower()}">{m.group(1)}</td>', body)
+    return re.sub(r'(<a href="[^"]+">)www\.', r"\1", body)
 
 
 def columns(secs, htmls, spec):
@@ -350,10 +386,17 @@ th {{ text-align:left; font-size:7.4pt; font-weight:700; letter-spacing:0.08em; 
 td {{ vertical-align:top; padding:{cp}pt 6pt {cp}pt 0; border-bottom:0.6pt solid {HAIR}; text-wrap:pretty; }}
 .sec-b5 td:first-child {{ width:var(--c1, 48%); }} .sec-b6 td:first-child {{ width:var(--c1, 55%); }} .sec-b8 td:first-child {{ width:var(--c1, 50%); }}
 .sec-b6 td {{ padding-top:{max(cp - 0.6, 0.8)}pt; padding-bottom:{max(cp - 0.6, 0.8)}pt; }}
-.sec-b6 tr.noread td {{ white-space:nowrap; }}   /* a dimension with no read is one line */
-table.src td {{ font-size:7.6pt; padding:2pt 6pt 2pt 0; white-space:nowrap; }} table.src td:nth-child(2) {{ white-space:normal; width:100%; }}
-table.src td:nth-child(4) {{ font-size:6.8pt; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#1A7F64; }}
+.sec-b6 p.noread {{ margin:2pt 0 {pg}pt; }}
+/* the ledger block (B10) is one scale: its note line small and grey, its table and its label grid one size, one grid */
+.sec-b10 .sec-body > p:first-child {{ font-size:7.5pt; color:{GREY}; margin:0 0 3pt; }}
+.sec-b10 table td {{ font-size:8pt; line-height:1.3; padding:1.6pt 8pt 1.6pt 0; }}
+table.src td {{ white-space:nowrap; }} table.src td:nth-child(1) {{ width:4%; }} table.src td:nth-child(2) {{ white-space:normal; width:auto; }}
+table.src td:nth-child(3) {{ width:20%; }} table.src td:nth-child(4), table.src td:nth-child(5) {{ width:11%; }}
+table.src td:first-child .cite {{ font-size:1em; color:{MIDNIGHT}; font-variant-numeric:tabular-nums; }}
+table.src td.grade {{ font-size:7pt; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#5F6B78; }}
+table.src td.g-derived {{ color:#1A7F64; }} table.src td.g-inference {{ color:#9A5B00; }} table.src td.g-not {{ color:#B3261E; }}
 table.grid {{ margin-top:6pt; }} table.grid td:first-child {{ width:1.35in; white-space:nowrap; font-weight:700; }}
+.sec-b10 ul.open {{ margin:0; padding-left:9pt; }} .sec-b10 ul.open li {{ margin:0; }}
 .sec-p9 .sec-head {{ display:none; }} .sec-p9 {{ margin-top:12pt; font-size:{b}pt; }}
 .pagebreak {{ break-before:page; }}
 """
