@@ -112,6 +112,8 @@ given in the message stand in for the saved setup file.
 
 {chr(10).join('- ' + fill(R, c) for c in R['concepts'])}
 
+**Sources never cited:** {', '.join(R['source_quality']['exclude'])}. **Weak (never C1/C2, never the only support on page 1):** {', '.join(R['source_quality']['weak'])}.
+
 **Plain words.** {R['plain_words']['rule']} Never write a word banned: {', '.join(R['plain_words']['banned'])}, or an internal id
 (C1-C4, F1-F12, row ids). Allowed only inside these phrases: {', '.join(R['plain_words']['allowed'])}.
 Use "source types", not families; "the person you're meeting", not target. Call the deliverable the {n['deliverable']}, nothing else.
