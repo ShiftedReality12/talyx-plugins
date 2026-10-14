@@ -1,1 +1,31 @@
-{"policy": "floor_is_best_ever_never_regress", "baseline": {"measured": false, "note": "run the 5 frozen targets with the current plugin and record duf_pp per target here before any improvement claim"}, "floors": {}}
+{
+  "policy": "floor_is_best_ever_never_regress",
+  "baseline": {
+    "measured": true,
+    "date": "2026-10-13",
+    "targets": 5,
+    "command": "eval.py ratchet --record (each target: a real /pcp run with its target.yaml)"
+  },
+  "floors": {
+    "brian-moynihan": {
+      "duf_pp": 5.67,
+      "recorded": "2026-10-13"
+    },
+    "jamie-dimon": {
+      "duf_pp": 5.0,
+      "recorded": "2026-10-13"
+    },
+    "jane-fraser": {
+      "duf_pp": 5.0,
+      "recorded": "2026-10-13"
+    },
+    "mary-barra": {
+      "duf_pp": 5.67,
+      "recorded": "2026-10-13"
+    },
+    "satya-nadella": {
+      "duf_pp": 3.67,
+      "recorded": "2026-10-13"
+    }
+  }
+}

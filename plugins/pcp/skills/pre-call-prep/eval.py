@@ -91,7 +91,8 @@ def plain_hits(text):
     own = QUOTED.sub(" ", text)
     if pw.get("allowed"):
         own = re.sub(r"\b(?:" + "|".join(re.escape(w) for w in pw["allowed"]) + r")\b", " ", own, flags=re.I)
-    hits = re.findall(r"\b(?:" + "|".join(re.escape(w) for w in pw["banned"]) + r")\b", own, re.I) + re.findall(pw["codes"], own)
+    words = pw["banned"] + pw.get("names_banned", [])   # the deliverable has one name (Intelligence Brief)
+    hits = re.findall(r"\b(?:" + "|".join(re.escape(w) for w in words) + r")\b", own, re.I) + re.findall(pw["codes"], own)
     return sorted(set(hits))
 
 
@@ -716,6 +717,9 @@ def ratchet(record=False):
         if record and rep["ok"] and rep["duf_pp"] > floor:
             floors["floors"][tid] = {"duf_pp": rep["duf_pp"], "recorded": dt.date.today().isoformat()}
     if record:
+        if not bad:
+            floors["baseline"] = {"measured": True, "date": dt.date.today().isoformat(), "targets": len(runs),
+                                  "command": "eval.py ratchet --record (each target: a real /pcp run with its target.yaml)"}
         rf.write_text(json.dumps(floors, indent=2))
         print("floors written", rf.relative_to(HERE))
     print(f"ratchet population: {len(runs)} targets, {len(bad)} regress")
