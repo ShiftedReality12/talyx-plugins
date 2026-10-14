@@ -252,6 +252,9 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
             fails.append(f"C13 conditional: P6 Influence printed at evidence tier {tier}")
         if "P5" in secs and tier == "low":
             fails.append("C13 conditional: P5 Read the room printed at evidence tier low")
+        for w in re.findall(r"\*\*Recent wins:\*\*(.*)", secs.get("B3", "")):
+            if not (CITE.search(w) and re.search(r"\b(?:19|20)\d\d\b|\b[A-Z][a-z]{2} \d{1,2}\b", w)) or "Not determined" in w:
+                fails.append(f"C13 conditional: B3 Recent wins printed without a dated, cited result: '{w.strip()[:50]}'")
     return fails
 
 
@@ -370,6 +373,14 @@ def self_test():
                 print(f"tripped: {cid} by {name}")
             else:
                 print(f"FAIL {name} must trip {cid}"); ok = False
+    ids = {c["id"] for c in R["checks"] if "id" in c}
+    blocks = {b["id"]: b for b in R["brief"]["sections"] + R["script"]["blocks"]}
+    conditional = [(e["id"], blocks[e["id"]]["prints"], e.get("check")) for e in R["inventory"]["blocks"] if blocks[e["id"]]["prints"] != "always"]
+    conditional += [(p["id"], p.get("prints"), p.get("check")) for p in R["inventory"]["parts"] if p["status"] == "conditional"]
+    for pid, prints, cid in conditional:
+        if cid not in ids:
+            print(f"FAIL inventory {pid}: prints only when '{prints}' but no check enforces it (check: {cid})"); ok = False
+    print(f"inventory: {len(conditional)} conditional parts, each enforced by a check:", ", ".join(f"{p} {c}" for p, _, c in conditional))
     for name, kw in MUST_PASS:
         f = checks((fx / name).read_text(), **kw)
         if f:
@@ -400,6 +411,7 @@ MUST_TRIP = [
     ("exp_top_long.md", {"experience": "top"}, ["C15"]),
     ("linkedin_missing.md", {}, ["C16"]),
     ("linkedin_declined_with_row.md", {}, ["C16"]),
+    ("recent_wins_unsourced.md", {}, ["C13"]),
 ]
 
 

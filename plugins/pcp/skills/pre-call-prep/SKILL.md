@@ -8,7 +8,7 @@ description: >
   before a meeting, talking points, or shares an intake list. Do not use for general research unrelated
   to a meeting, or for notes on a meeting that has already happened.
 ---
-<!-- GENERATED from pcp.yaml (sha256:7ab2f8560c18) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:a20ce703918f) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.0.0)
 
@@ -307,7 +307,7 @@ and `python3 eval.py duf brief.md script.md`; rewrite until both are clean.
 | C10 | pages | `format/talyx_pdf.py --style brief --brief-pages 2 --max-pages 3; eval.py pdf` | exactly 3 pages: the brief on pages 1-2 with the evidence ledger last on page 2, the script on page 3, page 3 of 3 in the footer, a link for every ledger row not tagged Yours |
 | C11 | plain | `eval.py checks --plain` | no plain_words.banned term or internal code outside quoted words |
 | C12 | gaps | `eval.py checks --gaps` | every Not determined in B1-B9 (a **Label:** line or a table cell) and every No read in B6 has its label in B10's Still open row; Still open has at least one ? per gap; each Still open item is 'Label: question?', the question starting What, Who, How, When, Which, Where or If |
-| C13 | conditional | `eval.py checks --conditional` | B8's hypotheses only when the meta line says Depth deep; P6 only when B6 says Evidence tier: high |
+| C13 | conditional | `eval.py checks --conditional` | B8's hypotheses only when the meta line says Depth deep; P6 only when B6 says Evidence tier: high; P5 not at tier low; B3's Recent wins line only with a dated, cited result (never Not determined or blank) |
 | C14 | layout | `eval.py checks --layout` | the brief has exactly the 9 blocks B1-B9 before B10, and B10 is its last block: no other block and nothing after the ledger |
 | C15 | experience | `eval.py checks --experience <Q9>` | new: P1, P3 and P4 each have a **Why:** line of at most 12 words; experienced and top: no Why line; top: the Hook and each objection's answer are at most 15 words |
 | C16 | linkedin | `eval.py checks --linkedin` | B4 has exactly one **LinkedIn:** line, read in your session or not read: one of linkedin.reasons; Coverage states the same; when not read, no ledger row is tagged LinkedIn and Still open has a LinkedIn question |

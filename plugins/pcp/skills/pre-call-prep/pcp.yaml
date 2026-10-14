@@ -1,7 +1,7 @@
 # pcp.yaml — THE registry for the pcp plug-in (v3.0.0).
 #
 # Every parameter, instruction, question, source family, rubric band and page budget lives here and
-# nowhere else. skills/pre-call-prep/SKILL.md, commands/pcp.md, the Socratic reference and pcp.json
+# nowhere else. skills/pre-call-prep/SKILL.md, commands/pcp.md, the Socratic reference, INVENTORY.md and pcp.json
 # (this file as JSON, read by the scripts at run time) are GENERATED from this file by render_skill.py;
 # eval.py `concordance` fails if they drift. A behaviour that is not a row here does not exist. Every
 # `always` carries a `test:` (how it can be seen to fail). Every row carries `basis:`.
@@ -19,6 +19,7 @@ generated_files:
   - skills/pre-call-prep/SKILL.md
   - skills/pre-call-prep/references/socratic-questions.md
   - commands/pcp.md
+  - INVENTORY.md
   - pcp.json
 render_header: "<!-- GENERATED from pcp.yaml (sha256:{sha}) by render_skill.py -- edit pcp.yaml, never this file -->"
 
@@ -417,6 +418,50 @@ script:
     - {id: P7, title: If it stalls, words: 60, prints: always, content: "2-3 bullets: **The move:** what restarts the conversation, from a fact in this brief [n]."}
     - {id: P8, title: Guardrails, words: 50, prints: always, content: "Bullets: **Rule:** what never to promise or claim, for the jurisdiction (Q7). **Never say:** the guardrails.never_say phrases and the domain's forbidden claims, quoted."}
     - {id: P9, title: Next step, words: 25, prints: always, content: "One line: **Next step:** the one action and its date."}
+# ------------------------------------------------------------------------------------------------
+# INVENTORY -- rendered to INVENTORY.md. Oct 9: "inventory of parts/components; what it produces ... if we can't
+# produce it, parameterize it so it's conditional". Every part the user sees has one status: always, conditional
+# (its Prints when, and the check that enforces it) or removed. No part is unknown. Blocks take their status from
+# their own `prints:` above; `check:` names the check that enforces a conditional one.
+# ------------------------------------------------------------------------------------------------
+inventory:
+  blocks:
+    - {id: B1, produces: "the one-paragraph read: Take, Evidence, Action, Avoid", sources: [B2-B9]}
+    - {id: B2, produces: "five questions, each on a cited fact, with what the answer decides and whom to ask", sources: [F1, F3, F5, F11, Q4]}
+    - {id: B3, produces: "role, path, the organization, what changed and recent wins", sources: [F1, F2, F3, F4, F9]}
+    - {id: B4, produces: "their own words, quoted and cited, and the LinkedIn status line", sources: [F5, F6, F8, LinkedIn]}
+    - {id: B5, produces: "three signals -- their priority, where your offer connects, why now -- and what to do with each", sources: [F3, F10, F11, Q8]}
+    - {id: B6, produces: "six observations and the move each one implies, and the evidence tier", sources: [F1, F5, F6, F7]}
+    - {id: B7, produces: "decision maker, the gate and the relationship holder", sources: [F1, F3, F9, F11]}
+    - {id: B8, produces: "the best evidence against the read and what would reverse it", sources: [F12]}
+    - {id: B9, produces: "the frame, what lands and repels, what to bring, the ask and fallback, meetings two and three, what to capture", sources: [Q8, B3-B8]}
+    - {id: B10, produces: "every cited fact with source, tag, grade, confidence and date; then Coverage, Still open, Left out on purpose and Run", sources: [F1-F12, Q8]}
+    - {id: P1, produces: "the hook said aloud, credibility, one insight, the rapport rule", sources: [B3, B4, Q8]}
+    - {id: P2, produces: "B2's questions in the order the room needs", sources: [B2, Q4]}
+    - {id: P3, produces: "the likely objections, named first, each with a short answer", sources: [B5, B8]}
+    - {id: P4, produces: "restate, a real deadline, the ask and fallback, the follow-up", sources: [B9]}
+    - {id: P5, produces: "what to do for each way they show up in the room", sources: [B6], check: C13}
+    - {id: P6, produces: "influence principles, only where a cited fact backs one", sources: [B6, Q1], check: C13}
+    - {id: P7, produces: "what restarts a stalled conversation, from a fact in the brief", sources: [B3-B9]}
+    - {id: P8, produces: "what never to promise or say, for the jurisdiction and domain", sources: [Q2, Q7]}
+    - {id: P9, produces: "the one next step and its date", sources: [B9]}
+  parts:
+    - {id: band, part: Classification band, produces: "the line above the name", sources: [names.classification], status: always}
+    - {id: name, part: Name, produces: "the person's full name", sources: [S1], status: always}
+    - {id: identity, part: Identity line, produces: "organization, role and since when, city if public", sources: [F1], status: always}
+    - {id: meta, part: Meta line, produces: "meeting, prepared for, depth, sources, status, date", sources: [profile, S2], status: always}
+    - {id: footer, part: Footer, produces: "the deliverable's name, the person, page N of 3", sources: [renderer], status: always, check: C10}
+    - {id: B3.recent_wins, part: Recent wins line (B3), produces: "none to two dated, cited results", sources: [F3, F5], status: conditional, prints: "a dated, cited result was found; otherwise the line is left out", check: C13}
+    - {id: B3.not_found, part: "Path, The organization, What changed (B3)", produces: "the fact, or Not determined and a question in Still open", sources: [F1, F2, F3, F4], status: always, check: C12}
+    - {id: B4.linkedin, part: LinkedIn line (B4), produces: "read in your session, or not read and the reason", sources: [S2-7], status: always, check: C16}
+    - {id: B6.no_read, part: No read rows (B6), produces: "No read where a dimension lacks evidence, and a question in Still open", sources: [S3-1], status: always, check: C12}
+    - {id: B7.relationship_holder, part: Relationship holder (B7), produces: "who the relationship runs through, or Not determined and a question in Still open", sources: [F11, F1], status: always, check: C12}
+    - {id: B8.hypotheses, part: What they may want (B8), produces: "up to three hypotheses, each with the claim that would disprove it", sources: [F12, S3-4], status: conditional, prints: "Depth deep", check: C13}
+    - {id: B10.coverage, part: Coverage row (B10), produces: "n of 12 source types, what was not found, LinkedIn status", sources: [S2-4, S2-7], status: always, check: C16}
+    - {id: B10.still_open, part: Still open row (B10), produces: "one question for the room per gap", sources: [socratic.room], status: always, check: C12}
+    - {id: B10.left_out, part: Left out on purpose row (B10), produces: "the excluded topics, never the facts", sources: [exclusions], status: always}
+    - {id: B10.run, part: Run row (B10), produces: "date, depth, meeting type, prepared for, jurisdiction, status", sources: [profile], status: always}
+    - {id: P.why, part: "Why lines (P1, P3, P4)", produces: "one line on why each move works", sources: [Q9], status: conditional, prints: "Q9 experience new", check: C15}
 guardrails:
   never_say: ["Does that make sense?", "Is this helpful?", "No pressure", "You'd know better than me", "Just checking in"]
   forbidden_claims_by_domain:
@@ -441,7 +486,7 @@ checks:
   - {id: C10, name: pages,       cmd: "format/talyx_pdf.py --style brief --brief-pages 2 --max-pages 3; eval.py pdf", passes_when: "exactly 3 pages: the brief on pages 1-2 with the evidence ledger last on page 2, the script on page 3, page 3 of 3 in the footer, a link for every ledger row not tagged Yours"}
   - {id: C11, name: plain,       cmd: "eval.py checks --plain",     passes_when: "no plain_words.banned term or internal code outside quoted words"}
   - {id: C12, name: gaps,        cmd: "eval.py checks --gaps",      passes_when: "every Not determined in B1-B9 (a **Label:** line or a table cell) and every No read in B6 has its label in B10's Still open row; Still open has at least one ? per gap; each Still open item is 'Label: question?', the question starting What, Who, How, When, Which, Where or If"}
-  - {id: C13, name: conditional, cmd: "eval.py checks --conditional", passes_when: "B8's hypotheses only when the meta line says Depth deep; P6 only when B6 says Evidence tier: high"}
+  - {id: C13, name: conditional, cmd: "eval.py checks --conditional", passes_when: "B8's hypotheses only when the meta line says Depth deep; P6 only when B6 says Evidence tier: high; P5 not at tier low; B3's Recent wins line only with a dated, cited result (never Not determined or blank)"}
   - {id: C14, name: layout,      cmd: "eval.py checks --layout",    passes_when: "the brief has exactly the 9 blocks B1-B9 before B10, and B10 is its last block: no other block and nothing after the ledger"}
   - {id: C15, name: experience,  cmd: "eval.py checks --experience <Q9>", passes_when: "new: P1, P3 and P4 each have a **Why:** line of at most 12 words; experienced and top: no Why line; top: the Hook and each objection's answer are at most 15 words"}
   - {id: C16, name: linkedin,    cmd: "eval.py checks --linkedin",  passes_when: "B4 has exactly one **LinkedIn:** line, read in your session or not read: one of linkedin.reasons; Coverage states the same; when not read, no ledger row is tagged LinkedIn and Still open has a LinkedIn question"}

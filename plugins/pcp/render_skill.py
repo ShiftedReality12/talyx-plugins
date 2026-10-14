@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""render_skill.py -- pcp.yaml -> SKILL.md, commands/pcp.md, the Socratic reference and pcp.json.
+"""render_skill.py -- pcp.yaml -> SKILL.md, commands/pcp.md, the Socratic reference, INVENTORY.md and pcp.json.
 
 The ONLY writer of those files. The Markdown ones carry a header with the registry sha256; eval.py
 `concordance` re-renders to memory and diffs, so a hand edit to any of them fails the gate. pcp.json is
@@ -274,6 +274,73 @@ Say what was NOT found before what was.
 """
 
 
+def _status(R, b):
+    """A block's inventory status from its own `prints:`."""
+    return ("always", "") if b["prints"] == "always" else ("conditional", b["prints"])
+
+
+def render_inventory(R, sha):
+    fam = {f["id"]: f["name"] for f in R["families"]}
+    src = lambda ss: ", ".join(f"{s} {fam[s]}" if s in fam else s for s in ss)
+    reg = {b["id"]: (b, "1-2") for b in R["brief"]["sections"]} | {b["id"]: (b, "3") for b in R["script"]["blocks"]}
+    rows = []
+    for e in R["inventory"]["blocks"]:
+        b, page = reg[e["id"]]
+        st, when = _status(R, b)
+        rows.append(f"| {e['id']} | {fill(R, b['title'])} | {page} | {e['produces']} | {src(e['sources'])} | {st} | {when or '--'} | {e.get('check', '--')} |")
+    parts = [f"| {p['id']} | {p['part']} | {p['produces']} | {src(p['sources'])} | {p['status']} | {p.get('prints', '--')} | {p.get('check', '--')} |"
+             for p in R["inventory"]["parts"]]
+    count = lambda s: sum(1 for e in R["inventory"]["blocks"] if _status(R, reg[e["id"]][0])[0] == s) + \
+        sum(1 for p in R["inventory"]["parts"] if p["status"] == s)
+    return f"""{R['render_header'].format(sha=sha)}
+
+# Inventory: what the {R['names']['deliverable']} prints (v{R['registry_version']})
+
+Every part a user sees, what it produces, where its facts come from, and one status: **always**,
+**conditional** (printed only as its Prints when says, enforced by the named check) or **removed**. Every part
+has a decided status. Totals: {count('always')} always, {count('conditional')} conditional, {count('removed')} removed.
+
+## Blocks ({len(rows)}, one per registry block)
+
+| Id | Block | Page | Produces | Comes from | Status | Prints when | Enforced by |
+|---|---|---|---|---|---|---|---|
+{chr(10).join(rows)}
+
+## Parts within and around the blocks
+
+| Id | Part | Produces | Comes from | Status | Prints when | Enforced by |
+|---|---|---|---|---|---|---|
+{chr(10).join(parts)}
+"""
+
+
+def inventory_problems(R, inventory_md, skill_md):
+    """Every registry block once; every conditional part with its Prints when and a real check; nothing unknown;
+    a removed part named nowhere in SKILL.md."""
+    out = []
+    need = [b["id"] for b in R["brief"]["sections"]] + [b["id"] for b in R["script"]["blocks"]]
+    have = [e["id"] for e in R["inventory"]["blocks"]]
+    if sorted(have) != sorted(need) or len(have) != len(set(have)):
+        out.append(f"inventory.blocks {have} must list each registry block once: {need}")
+    checks = {c["id"] for c in R["checks"] if "id" in c}
+    blocks = {b["id"]: b for b in R["brief"]["sections"] + R["script"]["blocks"]}
+    for e in R["inventory"]["blocks"]:
+        if e["id"] in blocks and _status(R, blocks[e["id"]])[0] == "conditional" and e.get("check") not in checks:
+            out.append(f"inventory {e['id']}: conditional ({blocks[e['id']]['prints']}) with no check that enforces it")
+    for p in R["inventory"]["parts"]:
+        if p["status"] not in ("always", "conditional", "removed"):
+            out.append(f"inventory {p['id']}: status {p['status']} -- always, conditional or removed")
+        if p["status"] == "conditional" and not (p.get("prints") and p.get("check") in checks):
+            out.append(f"inventory {p['id']}: conditional needs prints: and a check: that exists")
+        if p.get("check") and p["check"] not in checks:
+            out.append(f"inventory {p['id']}: check {p['check']} does not exist")
+        if p["status"] == "removed" and p["part"].lower() in skill_md.lower():
+            out.append(f"inventory {p['id']}: removed, yet SKILL.md names '{p['part']}'")
+    if re.search(r"\b(?:unknown|TBD)\b", inventory_md, re.I):
+        out.append("INVENTORY.md says unknown or TBD: every part is always, conditional or removed")
+    return out
+
+
 def plain_violations(R, texts):
     """Banned words in user-facing text: the names, the setup questions and the skill's listing text.
     A banned word inside a plain_words.allowed phrase (asset manager) is not the banned word."""
@@ -299,10 +366,19 @@ def main():
     targets = {HERE / "skills/pre-call-prep/SKILL.md": render_skill(R, sha),
                HERE / "skills/pre-call-prep/references/socratic-questions.md": render_socratic(R, sha),
                HERE / "commands/pcp.md": render_command(R, sha),
+               HERE / "INVENTORY.md": render_inventory(R, sha),
                HERE / "pcp.json": json.dumps(R, ensure_ascii=False, separators=(",", ":"), default=str) + "\n"}
+    if sorted(str(p.relative_to(HERE)) for p in targets) != sorted(R["generated_files"]):
+        print("GENERATED FILES FAIL -- pcp.yaml generated_files differs from what this writes:",
+              sorted(str(p.relative_to(HERE)) for p in targets))
+        sys.exit(1)
     bad_words = plain_violations(R, user_facing(R))
     if bad_words:
         print("PLAIN WORDS FAIL -- user-facing text in pcp.yaml uses:", ", ".join(bad_words))
+        sys.exit(1)
+    inv = inventory_problems(R, targets[HERE / "INVENTORY.md"], targets[HERE / "skills/pre-call-prep/SKILL.md"])
+    if inv:
+        print("INVENTORY FAIL --", *inv, sep="\n  ")
         sys.exit(1)
     if a.check:
         bad = [str(p.relative_to(HERE)) for p, txt in targets.items() if not p.exists() or p.read_text() != txt]
