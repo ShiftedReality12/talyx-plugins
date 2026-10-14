@@ -31,7 +31,7 @@ names:
   deliverable: Intelligence Brief            # Sep 28: "intelligence brief" everywhere
   profile: Meeting approach                  # Oct 9: "Behavioral profile" flagged as risky; Ben suggested "Human intelligence". One value.
   script: Meeting script
-  collection: Intelligence collection        # Sep 28: "collect" -> "intelligence collection"
+  collection: Research        # Oct 9 notes: no military/intel words in outputs (was "Intelligence collection")
   classification: "INTERNAL | PREPARED FOR YOU | NOT FOR THE PERSON DESCRIBED"
 
 # ------------------------------------------------------------------------------------------------
@@ -235,6 +235,7 @@ stages:
       - {id: S2-5, text: "Status FULL requires >= 1 C1/C2 claim in >= research.full_threshold[depth] families; else LIMITED, stamped in the masthead.", test: "Remove all C1/C2 claims from one family below threshold -- status flips to LIMITED.", basis: "original plugin FULL/LIMITED, made numeric"}
       - {id: S2-6, text: "Run the counter-evidence family last: search for what would contradict the strategic read.", test: "With depth standard or deep, coverage must show family F12 attempted.", basis: analysis of competing hypotheses}
       - {id: S2-7, text: "LinkedIn, up to 3 people per run. If the host has a browser or computer-use tool, ask each run, in one line: 'Open LinkedIn in your browser to read <name>'s profile? Read-only. LinkedIn's terms bar automated access and it can restrict your account; they may see you viewed them; the page text goes to your AI provider. Yes / No -- or save their profile as a PDF (More > Save to PDF) and give me the file.' With a yes: open the profile by URL (from the intake or a web search, never LinkedIn's own search), confirm the name and employer match, then read the profile and at most 10 public posts from the last 90 days -- 5 page loads at most. Never message, connect, follow, like or comment; never open Contact info or posts limited to connections; infer nothing from the photo. Stop at any login wall, security check or restriction notice, save linkedin: paused in the profile, and do not try again until the user says it is resolved. Facts read there are tagged LinkedIn. Every run states LinkedIn's status, the same in two places: B4's last line and the Coverage row. Read: '**LinkedIn:** read in your session' and 'LinkedIn: read in your session'. No tool, a no, or a stop: '**LinkedIn:** not read: <reason>' and 'LinkedIn: not read: <reason>', the reason one of linkedin.reasons word for word; no fact is tagged LinkedIn, and Still open carries a LinkedIn question that closes the gap.", test: "Answer No -- no LinkedIn page opens, B4 and Coverage both read 'LinkedIn: not read: you declined', and no ledger row is tagged LinkedIn (eval.py checks fails C16 otherwise; fixtures linkedin_missing.md, linkedin_declined_with_row.md).", basis: "Sep 28 (00:24:09-00:25:16): use the user's logged-in browser; guards from OSINT-C3, Oct 12; AID-9: a plain note B4 expects"}
+      - {id: S2-8, text: "Source quality: prefer the primary source (the organisation, filings, the person's own words). Never cite a source_quality.exclude domain (people-search and unreachable sites); a source_quality.weak domain is at most C3 and never the only support for a fact on page 1. Cite a fact only where the ledger row says it: hypotheticals (Reverses if, Stop if) carry no citation. Before render, check every link: dead links are replaced or the fact is dropped; blocked links (the site refuses bots) are kept.", test: "A brief citing mexc.com as C2 fails C18; a Reverses if line citing the intake row fails C17; the link check reports blocked separately from dead.", basis: "Live test runs Oct 13 (R1 weak sources, R2 citations on hypotheticals)"}
 
   - id: S3
     name: "{profile}"
@@ -314,6 +315,9 @@ linkedin:   # AID-9: until browser access to LinkedIn is tested, every run state
   read: read in your session
   not_read: not read   # spec Q9 ("not checked" or "not read"?) is open: 3.0.0's wording stays until Daniel decides
   reasons: [you declined, no browser here, login wall or security check, paused, scope none]
+source_quality:   # C18 (eval.py checks/cites). Weak: never C1/C2. Exclude: never cited. Prefer primary sources.
+  weak: [mexc.com, medium.com, substack.com, quora.com, reddit.com, wikipedia.org, crunchbase.com, zoominfo.com, rocketreach.co, signalhire.com, contactout.com, theorg.com, famousbirthdays.com, celebsages.com, wealthygorilla.com, idcrawl.com]
+  exclude: [goodfest.westfield.com, peoplefinders.com, spokeo.com, whitepages.com, beenverified.com, radaris.com, truthfinder.com, mylife.com]
 registers:
   general:  []
   wealth:   [{name: FINRA BrokerCheck, url: "https://brokercheck.finra.org"}, {name: SEC IAPD, url: "https://adviserinfo.sec.gov"}, {name: SEC EDGAR, url: "https://www.sec.gov/edgar"}]
@@ -495,6 +499,8 @@ checks:
   - {id: C14, name: layout,      cmd: "eval.py checks --layout",    passes_when: "the brief has exactly the 9 blocks B1-B9 before B10, and B10 is its last block: no other block and nothing after the ledger"}
   - {id: C15, name: experience,  cmd: "eval.py checks --experience <Q9>", passes_when: "new: P1, P3 and P4 each have a **Why:** line of at most 12 words; experienced and top: no Why line; top: the Hook and each objection's answer are at most 15 words"}
   - {id: C16, name: linkedin,    cmd: "eval.py checks --linkedin",  passes_when: "B4 has exactly one **LinkedIn:** line, read in your session or not read: one of linkedin.reasons; Coverage states the same; when not read, no ledger row is tagged LinkedIn and Still open has a LinkedIn question"}
+  - {id: C17, name: cites,       cmd: "eval.py checks --cites (eval.py cites brief.md --fetch reads the pages too)", passes_when: "every cited sentence shares content with the ledger claim it cites (2+ content words, 1 when the claim is 3 words or fewer) and every [n] is a ledger row; a hypothetical (Reverses if, Stop if) carries no citation unless the row says it"}
+  - {id: C18, name: quality,     cmd: "eval.py checks --quality",   passes_when: "no ledger row cites a source_quality.exclude domain; a source_quality.weak domain is never C1 or C2"}
   - {method_verbs: ["we scrape", "we ingest", "our pipeline", "our model", "we crawl", "our algorithm"]}
 
 # ------------------------------------------------------------------------------------------------

@@ -8,11 +8,11 @@ description: >
   before a meeting, talking points, or shares an intake list. Do not use for general research unrelated
   to a meeting, or for notes on a meeting that has already happened.
 ---
-<!-- GENERATED from pcp.yaml (sha256:21a348c41061) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:1546c368b2c6) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
-Stages, dependency-ordered: **setup once -> intake -> intelligence collection -> meeting approach -> Intelligence Brief -> debrief.**
+Stages, dependency-ordered: **setup once -> intake -> research -> meeting approach -> Intelligence Brief -> debrief.**
 Every stage declares its inputs before its behaviour, reads only its listed context, and follows rows
 that each carry a falsification test. Every fact traces to a source. Nothing is invented.
 The deliverable is one 3-page PDF, the Intelligence Brief. Nothing else is emitted.
@@ -81,7 +81,7 @@ and `linkedin` when set) and continue.
 - **S1-4** Ask the user only as references/socratic-questions.md says: when a trigger fires, at most 2 questions after setup, in one message, each skippable.  
   _Fails when:_ An intake with an objective and no relationship -- the run asks nothing before collection.
 
-## Stage 2: Intelligence collection
+## Stage 2: Research
 
 **Input contract** (declared before behaviour):
 
@@ -111,6 +111,8 @@ and `linkedin` when set) and continue.
   _Fails when:_ With depth standard or deep, coverage must show family F12 attempted.
 - **S2-7** LinkedIn, up to 3 people per run. If the host has a browser or computer-use tool, ask each run, in one line: 'Open LinkedIn in your browser to read <name>'s profile? Read-only. LinkedIn's terms bar automated access and it can restrict your account; they may see you viewed them; the page text goes to your AI provider. Yes / No -- or save their profile as a PDF (More > Save to PDF) and give me the file.' With a yes: open the profile by URL (from the intake or a web search, never LinkedIn's own search), confirm the name and employer match, then read the profile and at most 10 public posts from the last 90 days -- 5 page loads at most. Never message, connect, follow, like or comment; never open Contact info or posts limited to connections; infer nothing from the photo. Stop at any login wall, security check or restriction notice, save linkedin: paused in the profile, and do not try again until the user says it is resolved. Facts read there are tagged LinkedIn. Every run states LinkedIn's status, the same in two places: B4's last line and the Coverage row. Read: '**LinkedIn:** read in your session' and 'LinkedIn: read in your session'. No tool, a no, or a stop: '**LinkedIn:** not read: <reason>' and 'LinkedIn: not read: <reason>', the reason one of linkedin.reasons word for word; no fact is tagged LinkedIn, and Still open carries a LinkedIn question that closes the gap.  
   _Fails when:_ Answer No -- no LinkedIn page opens, B4 and Coverage both read 'LinkedIn: not read: you declined', and no ledger row is tagged LinkedIn (eval.py checks fails C16 otherwise; fixtures linkedin_missing.md, linkedin_declined_with_row.md).
+- **S2-8** Source quality: prefer the primary source (the organisation, filings, the person's own words). Never cite a source_quality.exclude domain (people-search and unreachable sites); a source_quality.weak domain is at most C3 and never the only support for a fact on page 1. Cite a fact only where the ledger row says it: hypotheticals (Reverses if, Stop if) carry no citation. Before render, check every link: dead links are replaced or the fact is dropped; blocked links (the site refuses bots) are kept.  
+  _Fails when:_ A brief citing mexc.com as C2 fails C18; a Reverses if line citing the intake row fails C17; the link check reports blocked separately from dead.
 
 ## Stage 3: Meeting approach
 
@@ -311,6 +313,8 @@ and `python3 eval.py duf brief.md script.md`; rewrite until both are clean.
 | C14 | layout | `eval.py checks --layout` | the brief has exactly the 9 blocks B1-B9 before B10, and B10 is its last block: no other block and nothing after the ledger |
 | C15 | experience | `eval.py checks --experience <Q9>` | new: P1, P3 and P4 each have a **Why:** line of at most 12 words; experienced and top: no Why line; top: the Hook and each objection's answer are at most 15 words |
 | C16 | linkedin | `eval.py checks --linkedin` | B4 has exactly one **LinkedIn:** line, read in your session or not read: one of linkedin.reasons; Coverage states the same; when not read, no ledger row is tagged LinkedIn and Still open has a LinkedIn question |
+| C17 | cites | `eval.py checks --cites (eval.py cites brief.md --fetch reads the pages too)` | every cited sentence shares content with the ledger claim it cites (2+ content words, 1 when the claim is 3 words or fewer) and every [n] is a ledger row; a hypothetical (Reverses if, Stop if) carries no citation unless the row says it |
+| C18 | quality | `eval.py checks --quality` | no ledger row cites a source_quality.exclude domain; a source_quality.weak domain is never C1 or C2 |
 
 ## Render
 

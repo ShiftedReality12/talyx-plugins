@@ -132,13 +132,17 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
     def want(name):
         return which in ("all", name)
 
+    if want("cites"):
+        fails += cite_relevance(brief_md)
+    if want("quality"):
+        fails += source_quality(ledger(brief_md))
     if want("swap"):
         nouns = [n.lower() for n in target_nouns if n]
         for k in [k for k in secs if re.match(r"B1$|B[3-8]$", k)]:   # the blocks that state facts about the person
             for s in _sentences(secs[k]):
                 if CITE.search(s):
                     continue
-                if re.match(r"[-*\s]*\*\*LinkedIn:\*\*", s):   # the mandated status line (S2-7, C16) states no fact
+                if re.match(r"[-*\s]*\*\*(LinkedIn|Reverses if|Stop if):\*\*", s):   # the mandated status line (S2-7, C16) states no fact
                     continue
                 if nouns and any(n in s.lower() for n in nouns):
                     continue
@@ -496,7 +500,129 @@ MUST_TRIP = [
     ("linkedin_missing.md", {}, ["C16"]),
     ("linkedin_declined_with_row.md", {}, ["C16"]),
     ("recent_wins_unsourced.md", {}, ["C13"]),
+    ("cites_broken.md", {}, ["C17", "C18"]),
 ]
+
+
+
+# ---------------------------------------------------------------- cites (C17, C18) -----------------------------
+STOP = set("""the and for with that this from their they them have has had was were are been being into over about
+than then when what which who whom whose where while will would could should may might must can not but also its
+his her she him our your you per via just only more most very each every some such other first second third last
+said says asked does did done make made take took""".split())
+LEDGER_ROW = re.compile(r"^\|\s*\[(\d+)\]\s*\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|", re.M)
+
+
+def _stems(t):
+    t = CITE.sub(" ", t.lower().replace("*", " "))
+    return {w[:5] for w in re.findall(r"[a-z0-9$%.]+", t) if (len(w) >= 4 or any(c.isdigit() for c in w))
+            and w.strip(".") not in STOP} - {""}
+
+
+def ledger(md):
+    rows = {}
+    for m in LEDGER_ROW.finditer(md):
+        url = re.search(r"\((https?://[^)\s]+)\)", m.group(3))
+        rows[int(m.group(1))] = {"claim": m.group(2).strip(), "source": m.group(3).strip(), "url": url.group(1) if url else "",
+                                 "tag": m.group(4).strip(), "grade": m.group(5).strip(), "conf": m.group(6).strip()}
+    return rows
+
+
+def _domain(url):
+    d = re.sub(r"^https?://", "", url).split("/")[0].lower()
+    return d[4:] if d.startswith("www.") else d
+
+
+def source_quality(rows):
+    """C18: excluded domains never cited; weak domains never graded C1/C2 (Primary/Reputable)."""
+    q, fails = R.get("source_quality", {}), []
+    for n, r in rows.items():
+        if not r["url"]:
+            continue
+        d = _domain(r["url"])
+        if any(d == x or d.endswith("." + x) for x in q.get("exclude", [])):
+            fails.append(f"C18 source quality: [{n}] {d} is on the exclude list")
+        elif any(d == x or d.endswith("." + x) for x in q.get("weak", [])) and re.search(r"C1|C2|primary|reputable", r["conf"], re.I):
+            fails.append(f"C18 source quality: [{n}] {d} is a weak domain; confidence must be C3 or lower, not '{r['conf']}'")
+    return fails
+
+
+CITE_TESTED = {"Take", "Evidence", "Role", "Path", "The organization", "What changed", "Recent wins", "Decision maker",
+               "The gate", "Relationship holder", "Against", "Reverses if", "Stop if", "Capture"}
+
+
+def cite_relevance(md, fetch=False):
+    """C17: each cited sentence shares content with the ledger claim it cites (>= 2 stems, or 1 when the claim
+    has <= 3). With fetch, a sentence that fails the ledger test passes if >= 3 of its stems appear on the page."""
+    rows, fails, pages = ledger(md), [], {}
+    secs = _sections(md)
+    for k in [k for k in secs if re.match(r"B[1-9]$|P[1-9]$", k)]:
+        prev = set()   # per block: a row's first use is tested; a later "Reverses if: it holds [11]" restates it
+        for s in _sentences(secs[k]):
+            for part in re.split(r"(?<=\])[;,.]?\s+(?=\*\*|[A-Z])", s):
+                ns = [int(x) for x in CITE.findall(part)]
+                if not ns:
+                    continue
+                if set(ns) <= prev:   # "Reverses if: it holds [11]" after a claim on [11]: same fact, already tested
+                    continue
+                prev |= set(ns)
+                lab = re.match(r"[-*\s]*\*\*([^*:]+):?\*\*", part)
+                lab = lab.group(1).strip() if lab else ""
+                # moves (what to do) cite the fact behind them; only statements of fact and hypotheticals are tested
+                if k.startswith("P") or k == "B2" or (lab and lab not in CITE_TESTED and k != "B4") or (not lab and k not in ("B1", "B4")):
+                    continue
+                ss = _stems(part)
+                ok, missing = False, []
+                for n in ns:
+                    r = rows.get(n)
+                    if not r:
+                        missing.append(n); continue
+                    cs = _stems(r["claim"])
+                    if len(ss & cs) >= (1 if len(cs) <= 3 else 2):
+                        ok = True
+                    elif fetch and r["url"]:
+                        if r["url"] not in pages:
+                            pages[r["url"]] = _fetch_text(r["url"])
+                        if pages[r["url"]] and len({w for w in ss if w in pages[r["url"]]}) >= 3:
+                            ok = True
+                if missing:
+                    fails.append(f"C17 cites: {k}: [{','.join(map(str, missing))}] not in the ledger: '{part[:60]}...'")
+                elif not ok:
+                    fails.append(f"C17 cites: {k}: cited source does not support the sentence: '{part[:70]}...'")
+    return fails
+
+
+UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36"
+
+
+def _get(url, timeout=15):
+    import urllib.request, urllib.error
+    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "text/html,*/*"})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return r.status, r.read(400000).decode("utf-8", "ignore")
+    except urllib.error.HTTPError as e:
+        return e.code, ""
+    except Exception as e:  # DNS, TLS, timeout
+        return 0, str(e)[:80]
+
+
+def _fetch_text(url):
+    code, body = _get(url)
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", body)).lower() if 200 <= code < 400 else ""
+
+
+BLOCKED = {401, 403, 405, 406, 429, 451, 999}
+
+
+def link_status(urls):
+    """ok / blocked (the site refuses bots: 401/403/429/999 -- not evidence the page is gone) / dead (404/410/5xx/DNS)."""
+    out = []
+    for u in urls:
+        code, _ = _get(u)
+        kind = "ok" if 200 <= code < 400 else "blocked" if code in BLOCKED else "dead"
+        out.append((u, code, kind))
+    return out
 
 
 # ---------------------------------------------------------------- ratchet ------------------------------------
@@ -548,7 +674,7 @@ def improve(debriefs):
 
 
 CHECKS = ["swap", "quotes", "custom-q", "sections", "budgets", "never-say", "outcome", "exclusions", "plain", "gaps", "conditional", "layout",
-          "linkedin"]
+          "linkedin", "cites", "quality"]
 
 
 def main():
@@ -562,6 +688,8 @@ def main():
     c.add_argument("--experience", choices=[o["value"] for q in R["calibration"]["questions"] if q["id"] == "Q9" for o in q["options"]],
                    help="the profile's Q9 answer: runs C15 with --all")
     p = sub.add_parser("pdf"); p.add_argument("pdf"); p.add_argument("brief", nargs="?")
+    ct = sub.add_parser("cites"); ct.add_argument("brief"); ct.add_argument("--fetch", action="store_true")
+    lk = sub.add_parser("links"); lk.add_argument("pdf")
     sub.add_parser("concordance")
     st = sub.add_parser("self-test"); st.add_argument("--require-pdf", action="store_true", help="fail, not skip, when no PDF can be rendered and read")
     r = sub.add_parser("ratchet"); r.add_argument("--record", action="store_true")
@@ -599,6 +727,18 @@ def main():
         sys.exit(0 if concordance() else 1)
     if a.cmd == "self-test":
         sys.exit(0 if self_test(a.require_pdf) else 1)
+    if a.cmd == "cites":
+        md = pathlib.Path(a.brief).read_text()
+        f = cite_relevance(md, fetch=a.fetch) + source_quality(ledger(md))
+        print("\n".join(f) or "cites: every cited sentence matches its ledger row; 0 failures")
+        sys.exit(1 if f else 0)
+    if a.cmd == "links":
+        res = link_status(sorted(set(pdf_links(a.pdf))))
+        for u, c, k in res:
+            print(f"{k:8} {c:4} {u}")
+        dead = [r for r in res if r[2] == "dead"]
+        print(f"links: {len(res)} total, {sum(r[2]=='ok' for r in res)} ok, {sum(r[2]=='blocked' for r in res)} blocked by the site (bot wall, not a failure), {len(dead)} dead")
+        sys.exit(1 if dead else 0)
     if a.cmd == "ratchet":
         sys.exit(ratchet(a.record))
     if a.cmd == "improve":
