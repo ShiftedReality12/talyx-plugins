@@ -1,6 +1,6 @@
-<!-- GENERATED from pcp.yaml (sha256:a20ce703918f) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:a9ae9e640dc2) by render_skill.py -- edit pcp.yaml, never this file -->
 
-# Inventory: what the Intelligence Brief prints (v3.0.0)
+# Inventory: what the Intelligence Brief prints (v3.1.0)
 
 Every part a user sees, what it produces, where its facts come from, and one status: **always**,
 **conditional** (printed only as its Prints when says, enforced by the named check) or **removed**. Every part

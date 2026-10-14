@@ -6,13 +6,13 @@
   },
   "metadata": {
     "description": "Free plug-ins from Talyx AI for advisors and professional-services firms.",
-    "version": "3.0.0"
+    "version": "3.1.0"
   },
   "plugins": [
     {
       "name": "pcp",
       "description": "Pre-call prep: a few one-time setup questions, research from public sources (plus LinkedIn through your browser and your own files, when you allow it), and ONE 3-page PDF: a 2-page Intelligence Brief and a 1-page meeting script. Every fact cited.",
-      "version": "3.0.0",
+      "version": "3.1.0",
       "author": {
         "name": "Talyx AI",
         "url": "https://talyx.ai"
