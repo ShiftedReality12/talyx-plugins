@@ -387,7 +387,7 @@ page_budget:
   script_pages: 1
   columns: "B3|B4,B5|B6,B7|B8,P1+P2+P3+P4|P5+P6+P7+P8"   # side-by-side blocks, as in the approved schema (Oct 8)
 brief:
-  # The approved schema (Oct 8, approved Oct 12): nine blocks and the evidence ledger. Ben's format.
+  # The approved schema (proposed Oct 8; AID-7 still In Review, not locked): nine blocks and the evidence ledger. Ben's format.
   # Before B2: `# Full Name`, then the identity line, then the meta line (S4-5).
   sections:
     - {id: B1, title: Take, words: 70, prints: always, content: "One paragraph: **Take.** who they are and why this meeting matters to them now, in one sentence, every clause cited. **Evidence:** the one to three facts it rests on [n]. **Action:** the first move in the room. **Avoid:** the one move that loses the meeting. It adds no fact the blocks below don't cite."}
@@ -419,7 +419,7 @@ script:
     - {id: P3, title: "Objections: name it, then answer", words: 110, prints: always, content: "3 bullets: **Their likely objection:** *say it before they do, then the answer, at most 30 words* [n]."}
     - {id: P4, title: Close, words: 80, prints: always, content: "Bullets: **Restate:** ask what would make it an easy yes, then say it back in their words. **Real deadline:** a date that actually moves [n]. **The ask:** B9's ask · **Fallback:** B9's fallback. **Follow-up:** what you promise to send, and when."}
     - {id: P5, title: "Read the room (watch, do not assume)", words: 60, prints: "evidence tier medium or high", content: "Bullets: **Fast, wants the answer:** **Asks for terms and data:** **Talks about people:** **Big picture, ideas:** -- what you do, from B6."}
-    - {id: P6, title: "Influence, one fact behind each", words: 80, prints: "evidence tier high and authority high", content: "Bullets, only for principles a cited fact backs: **Authority:** **Reciprocity:** **Commitment:** **Social proof:** **Liking:** **Scarcity:** (real limits only; never invented urgency) [n]."}
+    - {id: P6, title: "Influence, one fact behind each", words: 80, prints: "evidence tier high; each principle only where a cited fact backs it", content: "Bullets, only for principles a cited fact backs: **Authority:** **Reciprocity:** **Commitment:** **Social proof:** **Liking:** **Scarcity:** (real limits only; never invented urgency) [n]."}
     - {id: P7, title: If it stalls, words: 60, prints: always, content: "2-3 bullets: **The move:** what restarts the conversation, from a fact in this brief [n]."}
     - {id: P8, title: Guardrails, words: 50, prints: always, content: "Bullets: **Rule:** what never to promise or claim, for the jurisdiction (Q7). **Never say:** the guardrails.never_say phrases and the domain's forbidden claims, quoted."}
     - {id: P9, title: Next step, words: 25, prints: always, content: "One line: **Next step:** the one action and its date."}

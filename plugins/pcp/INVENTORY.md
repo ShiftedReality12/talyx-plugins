@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:a6e3f83fc888) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:21a348c41061) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Inventory: what the Intelligence Brief prints (v3.1.0)
 
@@ -25,7 +25,7 @@ has a decided status. Totals: 30 always, 5 conditional, 0 removed.
 | P3 | Objections: name it, then answer | 3 | the likely objections, named first, each with a short answer | B5, B8 | always | -- | -- |
 | P4 | Close | 3 | restate, a real deadline, the ask and fallback, the follow-up | B9 | always | -- | -- |
 | P5 | Read the room (watch, do not assume) | 3 | what to do for each way they show up in the room | B6 | conditional | evidence tier medium or high | C13 |
-| P6 | Influence, one fact behind each | 3 | influence principles, only where a cited fact backs one | B6, Q1 | conditional | evidence tier high and authority high | C13 |
+| P6 | Influence, one fact behind each | 3 | influence principles, only where a cited fact backs one | B6, Q1 | conditional | evidence tier high; each principle only where a cited fact backs it | C13 |
 | P7 | If it stalls | 3 | what restarts a stalled conversation, from a fact in the brief | B3-B9 | always | -- | -- |
 | P8 | Guardrails | 3 | what never to promise or say, for the jurisdiction and domain | Q2, Q7 | always | -- | -- |
 | P9 | Next step | 3 | the one next step and its date | B9 | always | -- | -- |

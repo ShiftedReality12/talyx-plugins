@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:a6e3f83fc888) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:21a348c41061) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
@@ -248,7 +248,7 @@ Beats by meeting format:
 | P3 | Objections: name it, then answer | 110 | always | 3 bullets: **Their likely objection:** *say it before they do, then the answer, at most 30 words* [n]. |
 | P4 | Close | 80 | always | Bullets: **Restate:** ask what would make it an easy yes, then say it back in their words. **Real deadline:** a date that actually moves [n]. **The ask:** B9's ask · **Fallback:** B9's fallback. **Follow-up:** what you promise to send, and when. |
 | P5 | Read the room (watch, do not assume) | 60 | evidence tier medium or high | Bullets: **Fast, wants the answer:** **Asks for terms and data:** **Talks about people:** **Big picture, ideas:** -- what you do, from B6. |
-| P6 | Influence, one fact behind each | 80 | evidence tier high and authority high | Bullets, only for principles a cited fact backs: **Authority:** **Reciprocity:** **Commitment:** **Social proof:** **Liking:** **Scarcity:** (real limits only; never invented urgency) [n]. |
+| P6 | Influence, one fact behind each | 80 | evidence tier high; each principle only where a cited fact backs it | Bullets, only for principles a cited fact backs: **Authority:** **Reciprocity:** **Commitment:** **Social proof:** **Liking:** **Scarcity:** (real limits only; never invented urgency) [n]. |
 | P7 | If it stalls | 60 | always | 2-3 bullets: **The move:** what restarts the conversation, from a fact in this brief [n]. |
 | P8 | Guardrails | 50 | always | Bullets: **Rule:** what never to promise or claim, for the jurisdiction (Q7). **Never say:** the guardrails.never_say phrases and the domain's forbidden claims, quoted. |
 | P9 | Next step | 25 | always | One line: **Next step:** the one action and its date. |
