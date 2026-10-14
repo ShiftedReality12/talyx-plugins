@@ -1,43 +1,43 @@
 # Meeting script
-*Facts select the moves; read the room, never the record · Jamie Dimon, JPMorgan Chase · Prepared Oct 14, 2026*
+*Facts select the moves; read the room, never the record · Jamie Dimon, JPMorganChase · Prepared Oct 14, 2026*
 
 ## P1 Open
-- **Hook:** *Your letter says AI will arrive "far faster" than electricity or the internet [4]. I'd like to show you one narrow place where that pays off the same day.*
-- **Credibility:** I'm from Talyx; we make AI meeting prep for executive teams [16].
-- **Insight:** Both co-presidents' awards vest after three years [12], so the habits the next team builds start now.
-- **Rule:** stop after the hook and let him answer first.
+- **Hook:** *You called AI "the tip of the iceberg" [5]. I want to ask what it has changed in how your leaders prepare.*
+- **Credibility:** Talyx builds AI meeting-prep and knowledge tools for executive teams [14].
+- **Insight:** your rule keeps outside agents out [3]; prep that runs inside your controls fits that rule.
+- **Rule:** after the hook, ask and stop; let him fill the silence.
 
 ## P2 Question order
-- **Story:** Your letter says AI adoption will be "far faster" than past shifts [4]; which executive decisions change first?
-- **Process:** Third-quarter net income reached $15.3 billion [6]; where does the top team still lose hours to preparation?
-- **Gate:** With Petno and Rohrbaugh as co-presidents [3], how should they be briefed for outside meetings?
-- **History:** Your letter says "the worst mistakes we can make are predictable" [7]; which one is hardest to prevent?
-- **Commitment:** What would make a second 30-minute meeting worth your time?
+- **Story:** You called AI "the tip of the iceberg" [5]; which executive habits has it changed first?
+- **Process:** You want managers working out how to use AI [8]; how do you see that happening?
+- **Gate:** Who decides which AI tools reach executives, when outside agents stay out [3]?
+- **History:** Petno and Rohrbaugh became co-presidents in June [7]; how are they being prepared for it?
+- **Commitment:** What would make a second 30-minute conversation worth your time?
 
 ## P3 Objections: name it, then answer
-- **"JPMorgan already builds its own AI."** *Likely so. This is sourced preparation for one meeting, not a platform [16].*
-- **"I have no time."** *Thirty minutes, once, and I send one page first [16].*
-- **"AI is cutting jobs."** *You said it will reduce jobs down the road [5]; this makes preparation better, not smaller.*
+- **Their likely objection:** *"No outside agent comes inside." Agreed; I am asking for 30 minutes, not access [3].*
+- **Their likely objection:** *"Our tech team builds this." Then I want to learn who owns executive tools [6].*
+- **Their likely objection:** *"AI returns are hard to prove." You set $2 billion of cost against $2 billion of benefit [4]; we can measure one team's prep that way.*
 
 ## P4 Close
 - **Restate:** ask what would make it an easy yes, then say it back in his words.
-- **Real deadline:** none found; the three-year handover is the window [2].
-- **The ask:** a second 30-minute meeting with him or whoever prepares his outside meetings [16] · **Fallback:** 30 minutes with the executive who owns AI adoption.
-- **Follow-up:** one sample page, the next day [16].
+- **Real deadline:** none found; the June 25 co-president move is context, not a deadline [7].
+- **The ask:** 30 minutes with him or the owner of executive technology, within a month · **Fallback:** an introduction to Beer's team [6].
+- **Follow-up:** a one-page briefing rule set, by Oct 17.
 
 ## P5 Read the room (watch, do not assume)
-- **Fast, wants the answer:** headline, two proof points, a source on request [17].
-- **Asks for terms and data:** bring the figures and the source for each [18].
-- **Talks about people:** tie the page to the co-presidents' roles [3].
-- **Big picture, ideas:** pair the upside with the safeguard in one sentence [14].
+- **Fast, wants the answer:** give the outcome in one sentence, then stop [3].
+- **Asks for terms and data:** headline, two proof points, a source on request [4].
+- **Talks about people:** tie it to the new co-presidents' roles [7].
+- **Big picture, ideas:** pair the upside with the safeguard in one sentence [15].
 
 ## P7 If it stalls
-- **The move:** ask how a handover in about three years changes how his team prepares [2].
-- **The move:** return to his words: "the worst mistakes we can make are predictable" [7].
+- **The move:** ask how the co-presidents' new roles change who owns executive technology [7].
+- **The move:** ask what peers in his Business Roundtable seat are doing with AI [18].
 
 ## P8 Guardrails
-- **Rule:** promise no results at JPMorgan Chase; make no performance or comparative claims.
-- **Never say:** "Does that make sense?" · "Is this helpful?" · "No pressure" · "You'd know better than me" · "Just checking in"
+- **Rule:** promise no integration with JPMorganChase systems and no result; make no claim about its AI plans; US posture.
+- **Never say:** "Does that make sense?"; "Is this helpful?"; "No pressure"; "You'd know better than me"; "Just checking in".
 
 ## P9 Next step
-**Next step:** send one sample page by Oct 16, 2026 [16].
+**Next step:** send the one-page briefing rule set by Oct 17, 2026.

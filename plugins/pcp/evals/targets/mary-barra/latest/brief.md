@@ -1,100 +1,105 @@
 # Mary Barra
-**General Motors** | Chair and CEO, since 2014 | Detroit
-Meeting: First intro: earn a second meeting, Oct 15, 2026 | Prepared for: Founder / principal | Depth: standard | Sources: 9 of 12 source types, 18 cited | Status LIMITED | Prepared Oct 14, 2026
+**General Motors** | Chair and CEO, since 2014
+Meeting: First intro: earn a second meeting, Oct 16, 2026 | Prepared for: Founder / principal | Depth: standard | Sources: 8 of 12 source types, 19 cited | Status LIMITED | Prepared Oct 14, 2026
 
 ## B1 Take
-**Take.** Mary Barra, GM Chair and CEO [1], raised 2026 profit guidance [2] and reviews AI use every other week [3]. **Evidence:** [1][2][3]. **Action:** open on her biweekly AI review [3]. **Avoid:** timeline forecasts; she says she is "done making predictions" [4].
+**Take.** Mary Barra has run GM since 2014 [1], says AI now writes nearly 90% of her autonomy team's code [2], and reports results four days after you meet [3]. **Evidence:** GM raised its 2026 profit outlook in July [4]. **Action:** open on the 90% AI-code figure [2]. **Avoid:** asking her to forecast; she says "I'm done making predictions" [5].
 
 ## B2 Questions that close gaps
-1. What has the biweekly AI review changed in how teams prepare [3]?
-   - **Decides:** need. **Ask:** Barra.
-2. Where has the skilled-trades AI example spread beyond one team [5]?
-   - **Decides:** AI reach. **Ask:** Barra.
-3. How do product choices reach you, given the product chief reports to Reuss [6]?
-   - **Decides:** pilot route. **Ask:** Barra, Reuss's office.
-4. What must you see before the next EV decision, with losses due to fall [7]?
-   - **Decides:** budget room. **Ask:** Barra.
-5. Would 30 minutes with your AI review team fit before or after Oct 20 earnings [8]?
-   - **Decides:** timing. **Ask:** Barra, chief of staff.
+1. Anderson reports to Reuss [6]; who else weighs in on new AI tools at GM?
+   - **Decides:** who must say yes. **Ask:** Mary Barra.
+2. AI adoption "far exceeded" your expectations [7]; which teams moved slowest?
+   - **Decides:** where your offer fits. **Ask:** Mary Barra.
+3. Software has better margins than hardware [8]; which line should grow fastest?
+   - **Decides:** her priority. **Ask:** Mary Barra.
+4. GM opens meetings with a safety message [9]; what must a new tool prove?
+   - **Decides:** the gate. **Ask:** Mary Barra, or the owner of tool approval.
+5. Eyes-off driving arrives in 2028 [10]; which executive decisions need the most preparation?
+   - **Decides:** urgency. **Ask:** Mary Barra.
 
 ## B3 Who they are
-- **Role:** Chair and CEO of GM [1]; CEO since 2014, Chair since 2016 [9].
-- **The organization:** about 155,000 employees [10].
-- **What changed:** Jul 2026: guidance raised to $14-16 billion [2]; Oct 2025: $1.6 billion EV charge [11].
-- **Recent wins:** Q2 2026: North America margin 8.6% [12]; over 42% of U.S. full-size pickups [13].
+- **Role:** General Motors Chair and CEO since Jan 2014 [1].
+- **Path:** joined GM 1980 as co-op; Stanford MBA, 1990 [11].
+- **The organization:** General Motors: Fortune 500 No. 23, $185 billion revenue [12].
+- **What changed:** Oct 2026, eyes-off driving set for 2028 [10]; Jul 2026, outlook raised to $14.0-16.0 billion [4].
+- **Recent wins:** Jul 2026, Q2 EBIT-adjusted $3.9 billion, up 29.8% [13].
 
 ## B4 In their words
-- **AI, Fortune podcast, Sep 10, 2026:** "Every other week, I do a deep dive with a small team and ask, 'Show me how you're using AI.'" [3]
-- **Autonomy, Fortune, Oct 2, 2026:** "I'm done making predictions" [4]
-- **Safety, Fortune podcast, Sep 10, 2026:** "Safety will be the overriding priority as we roll out this technology." [14]
+- **AI at work, Fortune, Sep 10, 2026:** "It has far exceeded my expectations for how quickly people across the company" [7]
+- **Predictions, Fortune, Oct 2, 2026:** "I'm done making predictions." [5]
+- **Software, Fortune, Sep 10, 2026:** "Generally, software has better margins than hardware." [8]
 
-**LinkedIn:** not read: you declined
+**LinkedIn:** not read: file not given
 
 ## B5 Signals and what to do with them
 | Observable | What to do with it |
 |---|---|
-| Her priority is AI in daily work [3] | Why it matters: she inspects AI use. |
-| Talyx offers meeting-prep and knowledge tools for executive teams [15] | Bridge: decisions made on checked facts. |
-| Q3 earnings land Oct 20 [8] | Ask for time after earnings only. |
+| Her priority: software's "better margins" [8] | Prepared leaders protect GM's software growth. |
+| Talyx preps executives [14]; GM's autonomy code is AI-written [2] | GM leaders enter each meeting prepared. |
+| Results Oct 20 [3]; EV adjustments [15] | Ask for time after Oct 20. |
 
 ## B6 Behavioral profile
 | What the record shows | Your move |
 |---|---|
-| Pace and control: biweekly review; safety-first meetings [3][14] | Match their pace; propose once, then ask. |
-| How they take recognition: No read | No read |
-| Appetite for detail: asks teams to show work [3]; cites share [13] | Headline, two proof points, a source on request. |
-| Appetite for risk: "done making predictions" [4]; EV charge [11] | Pair the upside with the safeguard in the same sentence. |
-| How they take disagreement: No read | No read |
-| How they keep score: growing China share [16]; pickup lead [13] | One peer reference is useful; more is noise. |
+| Pace and control: "we believe EVs are the end game" [16] | Match their pace; propose once, then ask. |
+| How they take recognition | No read |
+| Appetite for detail: cites 700,000 vehicles [17] | Bring the numbers and the sources; allow silence after a question. |
+| Appetite for risk: exited robotaxis [18] | Pair the upside with the safeguard in the same sentence. |
+| How they take disagreement | No read |
+| How they keep score: China share rank [19] | One peer reference is useful; more is noise. |
 
 **Evidence tier:** medium: it sets how far page 3 goes
 
 ## B7 Who decides
-- **Decision maker:** Not determined
-- **The gate:** product and software choices sit with the chief product officer, who reports to Reuss [6].
+- **Decision maker:** Not determined; Anderson reports to Reuss [6].
+- **The gate:** Not determined
+- **Relationship holder:** Not determined
 
 ## B8 Strongest case against
-- **Against:** Q2 net income fell 31% [17] and 2025 EV charges hit about $7.9 billion [18]; cost focus may crowd out tools. **Reverses if:** her team funds AI tooling.
+- **Against:** GM took $2.3 billion of EV adjustments and cut its net income outlook to $8.4-9.8 billion [15]; leaders may be watching cost. **Reverses if:** she names a speed target for executive work.
 
 ## B9 Meeting angle
 ### This meeting
-- **Frame:** executive preparation, in her AI terms [3].
-- **Lands:** concrete AI use [5].
-- **Repels:** timeline forecasts [4].
-- **What to bring:** a cited page on GM's public record [2].
-- **The ask:** 30 minutes with her AI review team after Oct 20 [8] · **Fallback:** 15 minutes with its lead.
-- **Stop if:** AI tooling is off her agenda.
+- **Frame:** AI adoption reaching executive meetings; not a pitch.
+- **Lands:** her own AI figure, 90% of autonomy code [2].
+- **Repels:** asking for dates on autonomy [5].
+- **What to bring:** a one-page sample built on public GM facts [14].
+- **The ask:** 30 minutes after Oct 20 with her or the AI owner [7] · **Fallback:** the owner alone.
+- **Stop if:** she says executive AI tools are off GM's agenda this year.
 ### Meeting two
-**Meeting two:** a session with her AI review team [3]. **Meeting three:** a pilot under Reuss [6].
+- **Meeting two:** 30 minutes after results [3] with the owner of AI adoption [7].
+- **Meeting three:** a trial with one GM executive team.
 ### After the meeting
-**Capture:** who owns AI adoption.
+- **Capture:** who she names as AI adoption owner.
 
 ## B10 Evidence ledger
-Unmarked facts are measured. 18 facts cited; status LIMITED at 9 of 12 source types. Dates are the sources' own; 'seen' marks the day an undated source was read.
+Unmarked facts are measured. 19 facts cited; status LIMITED at 8 of 12 source types. Dates are the sources' own; 'seen' marks an undated source.
 
 | # | What it says | Source | Grade | Date |
 |---|---|---|---|---|
-| [1] | Chair and CEO; "more to give" | [fortune.com](https://www.fortune.com/2026/09/10/gm-ceo-mary-barra-self-driving-electric-vehicles-safety-china-ai/) | Measured | Sep 10, 2026 |
-| [2] | Guidance raised to $14-16 billion | [wardsauto.com](https://www.wardsauto.com/news/gm-reports-revenue-of-48b-in-q2-updates-full-year-guidance/825852/) | Measured | Jul 22, 2026 |
-| [3] | Biweekly AI deep dive | [fortune.com](https://www.fortune.com/2026/09/10/gm-ceo-mary-barra-self-driving-electric-vehicles-safety-china-ai/) | Measured | Sep 10, 2026 |
-| [4] | "Done making predictions"; Escalade 2028 | [fortune.com](https://fortune.com/2026/10/02/gm-mary-barra-im-done-making-predictions-autonomous-driving/) | Measured | Oct 2, 2026 |
-| [5] | Trades employee used AI at startup | [fortune.com](https://www.fortune.com/2026/09/10/gm-ceo-mary-barra-self-driving-electric-vehicles-safety-china-ai/) | Measured | Sep 10, 2026 |
-| [6] | Product chief reports to Reuss | [techcrunch.com](https://techcrunch.com/2025/05/12/gm-taps-aurora-co-founder-for-new-chief-product-officer-role) | Measured | May 12, 2025 |
-| [7] | EV losses to fall $1-1.5 billion | [wardsauto.com](https://www.wardsauto.com/news/gm-reports-revenue-of-48b-in-q2-updates-full-year-guidance/825852/) | Measured | Jul 22, 2026 |
-| [8] | Q3 earnings set for Oct 20 | [investor.gm.com](https://investor.gm.com/events/event-details/general-motors-company-q2-2026-earnings-conference-call) | Measured | seen Oct 14, 2026 |
-| [9] | CEO 2014, Chair 2016 | [wikipedia.org](https://en.wikipedia.org/wiki/Mary_Barra) | Measured | seen Oct 14, 2026 |
-| [10] | About 155,000 employees | [sec.gov](https://www.sec.gov/Archives/edgar/data/1467858/000146785826000013/gm-20251231.htm) | Measured | Dec 31, 2025 |
-| [11] | $1.6 billion EV charge | [cbsnews.com](https://www.cbsnews.com/detroit/news/gm-boosts-full-year-outlook-as-it-foresees-a-smaller-impact-from-tariffs/) | Measured | Oct 21, 2025 |
-| [12] | North America margin 8.6% | [dbusiness.com](https://www.dbusiness.com/daily-news/gm-reports-q2-revenue-of-48b-net-income-of-1-3b-declares-quarterly-dividend/) | Measured | Jul 21, 2026 |
-| [13] | Over 42% of U.S. full-size pickups | [wardsauto.com](https://www.wardsauto.com/news/gm-reports-revenue-of-48b-in-q2-updates-full-year-guidance/825852/) | Measured | Jul 22, 2026 |
-| [14] | Safety "overriding priority" | [fortune.com](https://www.fortune.com/2026/09/10/gm-ceo-mary-barra-self-driving-electric-vehicles-safety-china-ai/) | Measured | Sep 10, 2026 |
-| [15] | Talyx offer and win definition | your saved setup | Measured | seen Oct 14, 2026 |
-| [16] | Only Western maker growing China share | [fortune.com](https://www.fortune.com/2026/09/10/gm-ceo-mary-barra-self-driving-electric-vehicles-safety-china-ai/) | Measured | Sep 10, 2026 |
-| [17] | Q2 net income down 31% | [dbusiness.com](https://www.dbusiness.com/daily-news/gm-reports-q2-revenue-of-48b-net-income-of-1-3b-declares-quarterly-dividend/) | Measured | Jul 21, 2026 |
-| [18] | 2025 EV charges about $7.9 billion | [wardsauto.com](https://www.wardsauto.com/news/gm-reports-revenue-of-48b-in-q2-updates-full-year-guidance/825852/) | Measured | Jul 22, 2026 |
+| [1] | CEO since Jan 2014, chair since Jan 2016 | [gsb.stanford.edu](https://www.gsb.stanford.edu/advisorycouncil/barra) | Measured | seen Oct 14, 2026 |
+| [2] | Nearly 90% of autonomy code AI-generated | [carscoops.com](https://www.carscoops.com/2026/04/gm-ai-autonomy-code/) | Measured | Apr 30, 2026 |
+| [3] | GM Q3 results due Oct 20, 2026 | [investor.gm.com](https://investor.gm.com/events/event-details/general-motors-company-q2-2026-earnings-conference-call) | Derived | seen Oct 14, 2026 |
+| [4] | 2026 EBIT-adjusted outlook raised to $14.0-16.0 billion | [sec.gov](https://www.sec.gov/Archives/edgar/data/0001467858/000146785826000049/gmq22026pressreleaseandfin.htm) | Measured | Jul 21, 2026 |
+| [5] | "I'm done making predictions" | [fortune.com](https://fortune.com/2026/10/02/gm-mary-barra-im-done-making-predictions-autonomous-driving/) | Measured | Oct 2, 2026 |
+| [6] | Anderson, chief product officer, reports to Reuss | [nbcsandiego.com](https://www.nbcsandiego.com/news/business/money-report/gm-hires-ex-tesla-aurora-exec-as-chief-product-officer/3823710/?amp=1) | Measured | May 12, 2025 |
+| [7] | AI adoption "far exceeded my expectations" | [fortune.com](https://www.fortune.com/2026/09/10/gm-ceo-mary-barra-self-driving-electric-vehicles-safety-china-ai/) | Measured | Sep 10, 2026 |
+| [8] | Software has better margins than hardware | [fortune.com](https://www.fortune.com/2026/09/10/gm-ceo-mary-barra-self-driving-electric-vehicles-safety-china-ai/) | Measured | Sep 10, 2026 |
+| [9] | GM opens meetings with a safety message | [fortune.com](https://www.fortune.com/2026/09/10/gm-ceo-mary-barra-self-driving-electric-vehicles-safety-china-ai/) | Measured | Sep 10, 2026 |
+| [10] | Eyes-off highway driving planned for 2028 | [fortune.com](https://fortune.com/2026/10/02/gm-mary-barra-im-done-making-predictions-autonomous-driving/) | Measured | Oct 2, 2026 |
+| [11] | Joined GM 1980 as co-op; Stanford MBA 1990 | [gsb.stanford.edu](https://www.gsb.stanford.edu/advisorycouncil/barra) | Measured | seen Oct 14, 2026 |
+| [12] | No. 23 Fortune 500, about $185 billion | [fortune.com](https://www.fortune.com/2026/09/10/gm-ceo-mary-barra-self-driving-electric-vehicles-safety-china-ai/) | Measured | Sep 10, 2026 |
+| [13] | Q2 EBIT-adjusted $3.9 billion, up 29.8% | [sec.gov](https://www.sec.gov/Archives/edgar/data/0001467858/000146785826000049/gmq22026pressreleaseandfin.htm) | Measured | Jul 21, 2026 |
+| [14] | Talyx builds AI meeting-prep tools | your saved setup | Measured | seen Oct 14, 2026 |
+| [15] | $2.3 billion EV adjustments; net income outlook cut | [sec.gov](https://www.sec.gov/Archives/edgar/data/0001467858/000146785826000049/gmq22026pressreleaseandfin.htm) | Measured | Jul 21, 2026 |
+| [16] | "Over time, we believe EVs are the end game" | [fortune.com](https://www.fortune.com/2026/09/10/gm-ceo-mary-barra-self-driving-electric-vehicles-safety-china-ai/) | Measured | Sep 10, 2026 |
+| [17] | Sold over 700,000 vehicles under $35,000 | [fortune.com](https://www.fortune.com/2026/09/10/gm-ceo-mary-barra-self-driving-electric-vehicles-safety-china-ai/) | Measured | Sep 10, 2026 |
+| [18] | Exited robotaxi; Cruise redirected to personal autonomy | [fortune.com](https://www.fortune.com/2026/09/10/gm-ceo-mary-barra-self-driving-electric-vehicles-safety-china-ai/) | Measured | Sep 10, 2026 |
+| [19] | Only Western maker growing China share | [fortune.com](https://www.fortune.com/2026/09/10/gm-ceo-mary-barra-self-driving-electric-vehicles-safety-china-ai/) | Measured | Sep 10, 2026 |
+
 | | |
 |---|---|
-| **Coverage** | 9 of 12 source types; not found: GM's bio page (blocked), publications, posts. LinkedIn: not read: you declined |
-| **Still open** | Decision maker: Who owns a pilot? · How they take recognition: Which result does she credit others for? · How they take disagreement: How does she respond to challenge? |
-| **Left out on purpose** | health, family, politics, litigation, address, finances |
-| **Run** | Oct 14, 2026 · standard · first intro · Founder / principal · US · LIMITED · 6.0 facts per page |
+| **Coverage** | 8 of 12 source types; not found: About page, posts, publications. LinkedIn: not read: file not given |
+| **Still open** | Decision maker: Who signs off on AI tools for GM leaders? · The gate: What must a new tool prove to GM? · Relationship holder: Who at GM carries this conversation afterward? · How they take disagreement: How does she respond when a plan is challenged? |
+| **Left out on purpose** | health, family, politics, litigation, personal finances |
+| **Run** | Oct 14, 2026 · standard · first intro · founder / principal · US · LIMITED · 6.3 facts per page |

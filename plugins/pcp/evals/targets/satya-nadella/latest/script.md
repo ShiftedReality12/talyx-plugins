@@ -2,36 +2,42 @@
 *Facts select the moves; read the room, never the record · Satya Nadella, Microsoft · Prepared Oct 14, 2026*
 
 ## P1 Open
-- **Hook:** *You said Microsoft is turning tokens into business results [2]. I want to ask what that looks like for Microsoft's own executives.*
-- **Credibility:** Talyx builds AI meeting-prep and knowledge tools for executive teams [11].
-- **Insight:** Azure passed $100 billion [3] and capacity built in 15 months beat the first 15 years [6]; executive preparation is the open question.
-- **Rule:** after the hook, ask and stop; let him fill the silence.
+- **Hook:** *Congratulations on 30 million paid Copilot seats [3]. You named knowledge work one of three domains to major on [2], so I have one question about it.*
+- **Credibility:** Talyx builds AI meeting-prep and knowledge tools for executive teams [17].
+- **Insight:** Autopilot covers recurring work and follow-ups [6]; preparing before the meeting is not in its description.
+- **Rule:** ask one question, then stop; leave the silence after his answer.
 
 ## P2 Question order
-- **Story:** When Nadella says tokens into business results, what does that look like for Microsoft's own executive teams [2]?
-- **Process:** Whose evals would govern a briefing tool at Microsoft?
-- **Gate:** Who at Microsoft owns the decision on a new tool for executive teams?
-- **History:** Azure built more capacity in 15 months than in 15 years [6]; how are executives keeping pace?
-- **Commitment:** What would make a second 30-minute conversation worth his time?
+- **Story:** You build "long-running Foundry agents" [8]; which serve executives' own meetings?
+- **Process:** Jared Spataro wrote the Copilot launch post [7]; who owns executive use?
+- **Gate:** After April's buyouts [10], what must a tool prove to earn an executive team's time?
+- **History:** How does "Use all, but be independent of all" [9] apply to small tools?
+- **Commitment:** Autopilot handles recurring work and follow-ups [6]; which meeting tasks does it skip?
 
 ## P3 Objections: name it, then answer
-- **Their likely objection:** *"Microsoft builds this itself." Probably true for the platform; we start with one executive team's meetings, which a platform rarely covers [5].*
-- **Their likely objection:** *"Leaders must commit to AI, not side tools." Then the test is cost per meeting, in line with tokens into business results [12].*
-- **Their likely objection:** *"We are reorganizing jobs, not adding tools." Briefed executives free time for that work [10].*
+- **"Copilot already does this.":** *Autopilot covers follow-ups [6]; which meeting tasks does it skip?*
+- **"No time for another vendor.":** *April's buyouts [10] show cost care; I ask for 30 minutes, nothing more.*
+- **"We build, we do not buy.":** *You said "Use all, but be independent of all" [9]; I am a replaceable tool, not a dependency.*
 
 ## P4 Close
-- **Restate:** ask what would make it an easy yes, then say it back in his words.
-- **Real deadline:** none found; Azure's July 30, 2026 result is context, not a deadline [3].
-- **The ask:** 30 minutes with him or whoever owns executive tooling, within a month · **Fallback:** a named person at Microsoft to talk to.
-- **Follow-up:** a one-page example of a briefed executive team, within two days.
+- **Restate:** ask what would make 30 more minutes an easy yes, then say it back in his words.
+- **Real deadline:** nothing of his forces a date; his October 28 results [18] are the next fixed point, so offer a slot after it.
+- **The ask:** a second 30-minute meeting [17] · **Fallback:** 15 minutes with Jared Spataro [7].
+- **Follow-up:** send the one-page example within one day.
+
+## P5 Read the room (watch, do not assume)
+- **Fast, wants the answer:** match his pace; propose once, then ask [2].
+- **Asks for terms and data:** headline, two proof points, a source on request [3].
+- **Talks about people:** no read; ask who else weighs in.
+- **Big picture, ideas:** pair the upside with the safeguard in the same sentence [9].
 
 ## P7 If it stalls
-- **The move:** return to his line on every customer turning tokens into results [2] and ask for one example.
-- **The move:** ask who leads the weekly AI accelerator meetings [9].
+- **The move:** ask which Autopilot gap matters most [6].
+- **The move:** return to 30 million seats against 450 million workers [4].
 
 ## P8 Guardrails
-- **Rule:** promise no Microsoft integration or result; make no claims about Microsoft's plans; US posture.
-- **Never say:** "Does that make sense?"; "Is this helpful?"; "No pressure"; "You'd know better than me"; "Just checking in".
+- **Rule:** in the US, promise no results from Microsoft's products; claim only what the public record shows.
+- **Never say:** "Does that make sense?" · "Is this helpful?" · "No pressure" · "You'd know better than me" · "Just checking in"
 
 ## P9 Next step
-**Next step:** send the one-page example by Oct 17, 2026.
+**Next step:** send the one-page example on Oct 17, 2026 [17].
