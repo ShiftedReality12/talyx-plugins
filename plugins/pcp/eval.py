@@ -529,6 +529,8 @@ def self_test(require_pdf=False):
         ("C14 on '(Unconfirmed)'", "C14", c12.replace("the introduction to the custodian [12]", "the custodian (Unconfirmed) [12]")),
         ("C16 on 'read from your file' while a ledger row cites a LinkedIn profile page", "C16",
          (fx / "linkedin_browser.md").read_text().replace("read in your browser", "read from your file")),
+        ("C16 on the retired reason 'no browser here' (the R9 run skipped the saved-PDF question)", "C16",
+         (fx / "linkedin_declined.md").read_text().replace("not read: you declined", "not read: no browser here")),
         ("C16 on an unread LinkedIn asked inside another Still open item", "C16",
          (fx / "linkedin_declined.md").read_text().replace("says yes? |", "says yes? · The gate: could you share the LinkedIn profile? |")),
     ]
@@ -652,6 +654,16 @@ def pdf_self_test(fx):
             elif name == "control_12.md":
                 print(f"pdf control_12: {len(f)} failures (C10, C11, C19)", *f, sep="\n - ")
                 ok = ok and not f
+                stacked = pathlib.Path(tmp, "stacked.pdf")   # C19 must fail a render whose schema pairs are stacked
+                subprocess.run([sys.executable, str(HERE / "format/talyx_pdf.py"), "--style", "brief", "--brief", str(b), "--script", str(s),
+                                "--columns", "B3+B4|B5+B6,B7+B8|B9," + pb["columns"].split(",", 3)[3], "--classification", n["classification"],
+                                "--footer", "Intelligence Brief · Jane Doe, Alder Grey Capital · Prepared for you (internal)",
+                                "--brief-pages", str(pb["brief_pages"]), "--max-pages", str(pb["total_pages"]), "--out", str(stacked)],
+                               capture_output=True, text=True, timeout=300)
+                if stacked.exists() and len([x for x in side_by_side(stacked) if "side by side" in x]) == 3:
+                    print("tripped: C19 by control_12.pdf rendered with B3|B4, B5|B6 and B7|B8 stacked (three pairs)")
+                else:
+                    print("FAIL C19 must trip on all three stacked pairs (got", side_by_side(stacked) if stacked.exists() else "no render", ")"); ok = False
                 short = pathlib.Path(tmp, "short.pdf")   # C19 must be able to fail on a page that ends in a blank band
                 tp.render_html("<!doctype html><style>@page { size: Letter; margin: 0.42in 0.55in 0.62in; }</style>"
                                "<p>One line, then nothing to the foot of the page.</p>", short)
@@ -850,6 +862,34 @@ def _pgm(path):
     return w, h, data[i + 1:]
 
 
+def side_by_side(pdf):
+    """C19: each side-by-side pair of the schema (page_budget.columns: B3|B4, B5|B6, B7|B8) prints its two titles
+    on one line, one per column (the R9 run, Oct 14, stacked them to fit two pages instead of cutting words)."""
+    if shutil.which("pdftotext") is None:
+        return []
+    x = subprocess.run(["pdftotext", "-bbox-layout", str(pdf), "-"], capture_output=True, text=True).stdout
+    flat = lambda t: re.sub(r"\s+", "", t).upper()
+    lines, page = {}, 0
+    for blk in re.split(r"(?=<page |<line )", x):
+        if blk.startswith("<page "):
+            page += 1; continue
+        m = re.match(r'<line xMin="([\d.]+)" yMin="([\d.]+)"', blk)
+        if m:
+            lines.setdefault(flat(" ".join(re.findall(r">([^<]+)</word>", blk))), (page, float(m.group(1)), float(m.group(2))))
+    title = {s["id"]: flat(s["title"].format(**R["names"])) for s in R["brief"]["sections"]}
+    fails = []
+    for group in R["page_budget"]["columns"].split(","):
+        cols = [c.split("+")[0] for c in group.split("|")]
+        if len(cols) != 2 or not all(c in title for c in cols):
+            continue   # the script's columns (page 3) flow; only the brief's pairs are fixed
+        a, b = (lines.get(title[c]) for c in cols)
+        if not (a and b and a[0] == b[0] and abs(a[2] - b[2]) <= 6 and b[1] - a[1] >= 150):
+            at = lambda v: f"page {v[0]}, x {v[1]:.0f}, y {v[2]:.0f}" if v else "not found"
+            fails.append(f"C19 render: {cols[0]} and {cols[1]} do not print side by side as the schema's columns "
+                         f"({cols[0]} {at(a)}; {cols[1]} {at(b)}): cut words to fit, never change --columns")
+    return fails
+
+
 def render_check(pdf, dpi=72):
     """C19: nothing is cut off and no page ends in a blank band. Per page: no ink within 0.12in of any page edge;
     no word box outside the 0.3in side margins or past the page; the last ink above the 0.62in footer margin ends
@@ -881,6 +921,7 @@ def render_check(pdf, dpi=72):
                     bx1, by1 = max(p[0] for p in pts), max(p[1] for p in pts)
                     if by0 <= edge or bx1 >= w - edge or (bx1 - bx0) < 0.6 * dpi or (by1 - by0) < 0.4 * dpi:
                         fails.append(f"C19 render: page 1: logo cut off or too small (box {bx0},{by0}-{bx1},{by1} px at {dpi} dpi)")
+    fails += side_by_side(pdf)
     r = subprocess.run(["pdftotext", "-bbox", str(pdf), "-"], capture_output=True, text=True)
     page, pw, ph = 0, 612.0, 792.0
     for ln in r.stdout.splitlines():
