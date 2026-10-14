@@ -21,6 +21,7 @@ from pcp.yaml; this writes only what each host needs to find and install it:
   adapters/perplexity/pre-call-prep.zip      Perplexity: the pre-call-prep skill folder
   adapters/chat/{instructions.txt,pcp-knowledge.md}   Gemini app (Gem), Microsoft 365 Copilot: no scripts,
                                              no PDF; the chat wording lives here, pcp.yaml stays as it is
+  adapters/grok/{instructions.txt,pcp-knowledge.md}   the Grok app (a Project): the same two files
 
 Usage:
   python3 build/adapters.py            write them
@@ -207,7 +208,7 @@ def chat_knowledge():
 
 # user-facing documents, held to plain words like the listing; a README's contributor section is not user-facing
 USER_DOCS = {"README.md": None, "plugins/pcp/README.md": "## How it is built (for contributors)",
-             "adapters/chat/README.md": None}
+             "adapters/chat/README.md": None, "adapters/grok/README.md": None}
 
 
 def check_listing(files):
@@ -300,6 +301,8 @@ def render():
     files["adapters/perplexity/pre-call-prep.zip"] = perplexity_zip(files)
     files["adapters/chat/instructions.txt"] = CHAT_INSTRUCTIONS
     files["adapters/chat/pcp-knowledge.md"] = chat_knowledge()
+    files["adapters/grok/instructions.txt"] = files["adapters/chat/instructions.txt"]   # the Grok app: the same chat brief (S4-10)
+    files["adapters/grok/pcp-knowledge.md"] = files["adapters/chat/pcp-knowledge.md"]
     return files
 
 

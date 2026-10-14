@@ -15,7 +15,7 @@ it), every fact cited.
    public social, affiliations, publications, registers, events, shared context, counter-evidence),
    a LinkedIn profile you save as a PDF and give it, and your own files and notes. Excluded
    topics are dropped before anything is written.
-3. **Behavioral profile.** Six dimensions, each read only from cited observations; the evidence tier
+3. **Behavioral profile.** Reads six dimensions, each only from cited observations; the evidence tier
    decides how far the script goes.
 4. **The Intelligence Brief.** Pages 1-2: the Take, questions that close gaps, who they are, in their
    words, signals, meeting approach, who decides, strongest case against, meeting angle, and the
