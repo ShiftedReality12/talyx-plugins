@@ -31,7 +31,7 @@ CITE = re.compile(r"\[(\d+)\]")
 TAGS, GRADES, CONFS = "Direct|Search|LinkedIn|Yours", "Measured|Derived|Inference|Not determined", "Primary|Reputable|Single source|Inferred"
 # Printed ledger (Ben, Oct 13): | # | What it says | Source | Grade | Date |. Tag and confidence stay in claims.jsonl.
 SRC_ROW = re.compile(r"^\|\s*\[(\d+)\]\s*\|\s*([^|]+?)\s*\|\s*([^|\s][^|]*?)\s*\|\s*(" + GRADES + r")\s*\|\s*"
-                     r"((?:seen )?[A-Z][a-z]{2} \d{1,2}, \d{4})\s*\|", re.M)
+                     r"((?:seen )?[A-Z][a-z]{2}(?: \d{1,2},)? \d{4})\s*\|", re.M)
 
 
 def _tag(source):
