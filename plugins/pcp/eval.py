@@ -308,10 +308,14 @@ def _flat(t):
 
 
 def pdf_check(pdf, brief_md=""):
-    """The rendered PDF, as the reader gets it (C10, and C11 on the printed text). [] = pass; None = no PDF text tool."""
+    """The rendered PDF, as the reader gets it (C10, C11 on the printed text, C19 nothing cut off). [] = pass; None = no PDF text tool."""
     pages = pdf_pages(pdf)
     if pages is None:
         return None
+    if shutil.which("pdftoppm"):
+        c19 = render_check(pdf)
+    else:
+        c19 = []
     pb, n = R["page_budget"], R["names"]
     total, bp = pb["total_pages"], pb["brief_pages"]
     fails = []
@@ -350,7 +354,7 @@ def pdf_check(pdf, brief_md=""):
         links = pdf_links(pdf)
         if len(links) < len(rows):
             fails.append(f"C10 links: {len(links)} links in the PDF < {len(rows)} ledger rows not tagged Yours")
-    return fails
+    return fails + c19
 
 
 # ---------------------------------------------------------------- concordance --------------------------------
@@ -467,8 +471,17 @@ def pdf_self_test(fx):
                 else:
                     print("FAIL control_12.pdf without --brief-pages must trip C10 (got", f, ")"); ok = False
             elif name == "control_12.md":
-                print(f"pdf control_12: {len(f)} failures", *f, sep="\n - ")
+                print(f"pdf control_12: {len(f)} failures (C10, C11, C19)", *f, sep="\n - ")
                 ok = ok and not f
+                if shutil.which("gs"):   # C19 must be able to fail: shift the page so the logo runs off the top-right
+                    sh = pathlib.Path(tmp, "shifted.pdf")
+                    subprocess.run(["gs", "-q", "-o", str(sh), "-sDEVICE=pdfwrite", "-c", "<</PageOffset [60 40]>> setpagedevice",
+                                    "-f", str(out)], capture_output=True, timeout=120)
+                    rf = render_check(sh) if sh.exists() else []
+                    if any("logo" in x for x in rf):
+                        print("tripped: C19 by control_12.pdf shifted off the page (logo cut off)")
+                    else:
+                        print("FAIL C19: a shifted PDF must trip the logo check (got", rf, ")"); ok = False
             else:
                 got = {re.match(r"C11 plain: '(.+?)'", x).group(1).lower() for x in f if x.startswith("C11 ")}
                 if got != {w.lower() for w in JARGON}:
@@ -625,6 +638,62 @@ def link_status(urls):
     return out
 
 
+
+# ---------------------------------------------------------------- render (C19) --------------------------------
+def _pgm(path):
+    data = open(path, "rb").read()
+    parts, i = [], 0
+    while len(parts) < 4:   # P5 w h maxval, whitespace separated
+        while data[i:i + 1].isspace():
+            i += 1
+        j = i
+        while not data[j:j + 1].isspace():
+            j += 1
+        parts.append(data[i:j]); i = j
+    w, h = int(parts[1]), int(parts[2])
+    return w, h, data[i + 1:]
+
+
+def render_check(pdf, dpi=72):
+    """C19: nothing is cut off. Per page: no ink within 0.12in of any page edge; no word box outside the 0.3in
+    side margins or past the page; page 1 shows the logo whole in the top-right masthead (its ink box sits
+    inside the page with a clear gap on every side)."""
+    import tempfile
+    fails, edge, side = [], int(0.12 * dpi), 0.3 * 72
+    with tempfile.TemporaryDirectory() as td:
+        subprocess.run(["pdftoppm", "-gray", "-r", str(dpi), str(pdf), f"{td}/p"], check=True)
+        pages = sorted(pathlib.Path(td).glob("p-*.pgm"))
+        for n, pg in enumerate(pages, 1):
+            w, h, px = _pgm(pg)
+            ink = lambda x, y: px[y * w + x] < 200
+            for name, xs, ys in (("top", range(w), range(edge)), ("bottom", range(w), range(h - edge, h)),
+                                 ("left", range(edge), range(h)), ("right", range(w - edge, w), range(h))):
+                if any(ink(x, y) for y in ys for x in xs):
+                    fails.append(f"C19 render: page {n}: ink within 0.12in of the {name} edge (clipped or bleeding)")
+            if n == 1:   # logo: top-right quarter-inch band down to 1.3in, right of 5.5in
+                x0, y0, x1, y1 = int(5.5 * dpi), 0, w, int(1.3 * dpi)
+                pts = [(x, y) for y in range(y0, y1) for x in range(x0, x1) if ink(x, y)]
+                if not pts:
+                    fails.append("C19 render: page 1: no logo in the top-right masthead")
+                else:
+                    bx0, by0 = min(p[0] for p in pts), min(p[1] for p in pts)
+                    bx1, by1 = max(p[0] for p in pts), max(p[1] for p in pts)
+                    if by0 <= edge or bx1 >= w - edge or (bx1 - bx0) < 0.6 * dpi or (by1 - by0) < 0.4 * dpi:
+                        fails.append(f"C19 render: page 1: logo cut off or too small (box {bx0},{by0}-{bx1},{by1} px at {dpi} dpi)")
+    r = subprocess.run(["pdftotext", "-bbox", str(pdf), "-"], capture_output=True, text=True)
+    page, pw, ph = 0, 612.0, 792.0
+    for ln in r.stdout.splitlines():
+        m = re.search(r'<page width="([\d.]+)" height="([\d.]+)"', ln)
+        if m:
+            page += 1; pw, ph = float(m.group(1)), float(m.group(2)); continue
+        m = re.search(r'xMin="([\d.]+)" yMin="([\d.]+)" xMax="([\d.]+)" yMax="([\d.]+)">([^<]*)<', ln)
+        if m:
+            x0, y0, x1, y1 = map(float, m.groups()[:4])
+            if x0 < side or x1 > pw - side or y0 < 0 or y1 > ph:
+                fails.append(f"C19 render: page {page}: word '{m.group(5)}' outside the margins (x {x0:.0f}-{x1:.0f} of {pw:.0f}pt)")
+    return fails
+
+
 # ---------------------------------------------------------------- ratchet ------------------------------------
 def ratchet(record=False):
     rf = HERE / R["eval"]["ratchet_file"]
@@ -690,6 +759,7 @@ def main():
     p = sub.add_parser("pdf"); p.add_argument("pdf"); p.add_argument("brief", nargs="?")
     ct = sub.add_parser("cites"); ct.add_argument("brief"); ct.add_argument("--fetch", action="store_true")
     lk = sub.add_parser("links"); lk.add_argument("pdf")
+    rc = sub.add_parser("render"); rc.add_argument("pdf")
     sub.add_parser("concordance")
     st = sub.add_parser("self-test"); st.add_argument("--require-pdf", action="store_true", help="fail, not skip, when no PDF can be rendered and read")
     r = sub.add_parser("ratchet"); r.add_argument("--record", action="store_true")
@@ -739,6 +809,10 @@ def main():
         dead = [r for r in res if r[2] == "dead"]
         print(f"links: {len(res)} total, {sum(r[2]=='ok' for r in res)} ok, {sum(r[2]=='blocked' for r in res)} blocked by the site (bot wall, not a failure), {len(dead)} dead")
         sys.exit(1 if dead else 0)
+    if a.cmd == "render":
+        f = render_check(a.pdf)
+        print("\n".join(f) or "render: nothing clipped, logo whole; 0 failures")
+        sys.exit(1 if f else 0)
     if a.cmd == "ratchet":
         sys.exit(ratchet(a.record))
     if a.cmd == "improve":

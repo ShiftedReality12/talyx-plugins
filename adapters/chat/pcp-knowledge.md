@@ -1,8 +1,8 @@
-<!-- GENERATED from pcp.yaml (sha256:1546c368b2c6) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:1a48e2b95a1c) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
-Stages, dependency-ordered: **setup once -> intake -> research -> meeting approach -> Intelligence Brief -> debrief.**
+Stages, dependency-ordered: **setup once -> intake -> intelligence collection -> meeting approach -> Intelligence Brief -> debrief.**
 Every stage declares its inputs before its behaviour, reads only its listed context, and follows rows
 that each carry a falsification test. Every fact traces to a source. Nothing is invented.
 The deliverable is one document: the Intelligence Brief, then the Meeting script. Nothing else is emitted.
@@ -74,7 +74,7 @@ This host runs no scripts. The saved setup is the **Saved setup** block at the e
 - **S1-4** Ask the user only as the Socratic questions section below says: when a trigger fires, at most 2 questions after setup, in one message, each skippable.  
   _Fails when:_ An intake with an objective and no relationship -- the run asks nothing before collection.
 
-## Stage 2: Research
+## Stage 2: Intelligence collection
 
 **Input contract** (declared before behaviour):
 
@@ -278,6 +278,7 @@ Never say: "Does that make sense?"; "Is this helpful?"; "No pressure"; "You'd kn
 | C16 | linkedin | B4 has exactly one **LinkedIn:** line, read in your session or not read: one of linkedin.reasons; Coverage states the same; when not read, no ledger row is tagged LinkedIn and Still open has a LinkedIn question |
 | C17 | cites | every cited sentence shares content with the ledger claim it cites (2+ content words, 1 when the claim is 3 words or fewer) and every [n] is a ledger row; a hypothetical (Reverses if, Stop if) carries no citation unless the row says it |
 | C18 | quality | no ledger row cites a source_quality.exclude domain; a source_quality.weak domain is never C1 or C2 |
+| C19 | render | every page: no ink within 0.12in of a page edge, no word outside the 0.3in side margins; page 1: the logo is whole in the top-right masthead |
 
 ## Deliver
 
