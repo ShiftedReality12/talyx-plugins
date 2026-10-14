@@ -26,8 +26,8 @@ Usage:
 naming the longest sections. It never truncates and never spills silently. Exit 0 prints: pages, rung, path.
 --brief-pages N: the first part (the brief) fills exactly N pages and its last section (the evidence ledger) starts
 on page N, so the next part (the script) starts on page N + 1. When the sections before the ledger end on page N - 1,
-the ledger moves to page N (never padding); when they end earlier still, exits 3. With --brief-pages 2
---max-pages 3 the PDF is exactly 3 pages: the ledger last on page 2, the script on page 3.
+the ledger moves to page N (never padding); when they end earlier still, exits 3. With a one-page script and
+--max-pages N + 1 the PDF is exactly N + 1 pages: the ledger last on page N, the script on the last page.
 """
 import argparse
 import base64

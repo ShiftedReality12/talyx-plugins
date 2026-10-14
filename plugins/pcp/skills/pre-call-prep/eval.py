@@ -414,6 +414,7 @@ def pdf_self_test(fx):
     the jargon PDF's printed text trips C11 on every word. None if this computer cannot render or read a PDF."""
     import importlib.util
     import tempfile
+    sys.dont_write_bytecode = True   # importing the renderer must not leave __pycache__ in the plug-in
     spec = importlib.util.spec_from_file_location("talyx_pdf", HERE / "format/talyx_pdf.py")
     tp = importlib.util.module_from_spec(spec); spec.loader.exec_module(tp)
     try:
