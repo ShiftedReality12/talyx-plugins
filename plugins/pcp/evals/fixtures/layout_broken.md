@@ -14,7 +14,7 @@ Meeting: First intro: earn a second meeting | Prepared for: Founder / principal 
 ## B4 In their words
 - **On patience, 2025 letter:** "We buy patience" [3]
 
-**LinkedIn:** read in your session
+**LinkedIn:** read from your file
 
 ## B5 Signals and what to do with them
 | Observable | What to do with it |

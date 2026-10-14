@@ -52,7 +52,7 @@ def description(R):
     """The skill's listing text: user-facing, so it is held to plain words."""
     n = R["names"]
     return (f"Prepare for an upcoming meeting with a named person, company or deal. A few one-time setup\n"
-            f"  questions, research from public sources (plus LinkedIn through your browser and your own files, when\n"
+            f"  questions, research from public sources (plus a LinkedIn profile PDF you save and your own files, when\n"
             f"  you allow it), and ONE 3-page PDF: a 2-page {n['deliverable']} and a 1-page meeting script, every fact\n"
             f"  cited. Use when the user mentions pre-call prep, meeting prep, call preparation, researching someone\n"
             f"  before a meeting, talking points, or shares an intake list. Do not use for general research unrelated\n"

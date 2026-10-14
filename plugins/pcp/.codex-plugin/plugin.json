@@ -1,7 +1,7 @@
 {
   "name": "pcp",
   "version": "3.1.0",
-  "description": "Pre-call prep: a few one-time setup questions, research from public sources (plus LinkedIn through your browser and your own files, when you allow it), and ONE 3-page PDF: a 2-page Intelligence Brief and a 1-page meeting script. Every fact cited.",
+  "description": "Pre-call prep: a few one-time setup questions, research from public sources (plus a LinkedIn profile PDF you save and your own files, when you allow it), and ONE 3-page PDF: a 2-page Intelligence Brief and a 1-page meeting script. Every fact cited.",
   "author": {
     "name": "Talyx AI",
     "url": "https://talyx.ai"
@@ -22,7 +22,7 @@
     "displayName": "Talyx Pre-call Prep",
     "developerName": "Talyx AI",
     "shortDescription": "One cited Intelligence Brief and meeting script before any call",
-    "longDescription": "Sets up once, then researches the person, company or deal you are about to meet from public sources, LinkedIn through your browser and your own files when you allow it, and renders one 3-page PDF: a 2-page Intelligence Brief and a 1-page meeting script. Every fact carries a source; what it could not find becomes a question to ask in the room.",
+    "longDescription": "Sets up once, then researches the person, company or deal you are about to meet from public sources, a LinkedIn profile PDF you save and your own files when you allow it, and renders one 3-page PDF: a 2-page Intelligence Brief and a 1-page meeting script. Every fact carries a source; what it could not find becomes a question to ask in the room.",
     "category": "Productivity",
     "capabilities": [
       "Read",

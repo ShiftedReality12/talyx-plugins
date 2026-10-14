@@ -5,7 +5,7 @@ compounding intelligence from what they already know.
 
 | Plug-in | What it does |
 |---|---|
-| [`pcp`](plugins/pcp) | Pre-call prep (v3). Sets up once, researches public sources (plus LinkedIn and your own files, when you allow it), and produces one 3-page PDF: a 2-page Intelligence Brief and a 1-page meeting script, with every fact cited. |
+| [`pcp`](plugins/pcp) | Pre-call prep (v3). Sets up once, researches public sources (plus a LinkedIn profile PDF you save and your own files, when you allow it), and produces one 3-page PDF: a 2-page Intelligence Brief and a 1-page meeting script, with every fact cited. |
 
 ## Install
 

@@ -63,7 +63,7 @@ Unmarked facts are measured. 12 facts cited; status FULL at 10 of 12 source type
 | [12] | Introduction to the custodian offered | [example.org](https://example.org/12) | Not determined | Sep 20, 2026 |
 | | |
 |---|---|
-| **Coverage** | 10 of 12 source types · LinkedIn: read in your session |
+| **Coverage** | 10 of 12 source types · LinkedIn: read from your file |
 | **Still open** | The gate: what must be true before the committee says yes? |
 | **Left out on purpose** | health, family, politics, litigation, personal finances |
 | **Run** | Sep 20, 2026 · standard · first intro · founder / principal · US · FULL |
