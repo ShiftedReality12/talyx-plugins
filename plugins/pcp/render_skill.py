@@ -196,8 +196,11 @@ and `python3 eval.py duf brief.md script.md`; rewrite until both are clean.
 python3 format/talyx_pdf.py --style brief --brief brief.md --script script.md \\
     --columns "{pb['columns']}" --classification "{n['classification']}" \\
     --footer "{n['deliverable']} · <Full Name>, <Organization> · Prepared for you (internal)" \\
-    --max-pages {pb['total_pages']} --out <dir>/<date>-<slug>-intelligence-brief.pdf
+    --brief-pages {pb['brief_pages']} --max-pages {pb['total_pages']} --out <dir>/<date>-<slug>-intelligence-brief.pdf
 ```
+
+The PDF is exactly {pb['total_pages']} pages: the brief fills pages 1-{pb['brief_pages']} (a short brief puts the ledger on page {pb['brief_pages']}, never
+filler) and the script starts on page {pb['brief_pages'] + 1}. Then `python3 eval.py pdf <the PDF> brief.md` must exit 0.
 
 It uses Playwright's Chromium if installed, else the Chrome, Edge or Chromium already on the computer. If it
 reports that neither is there, run `python3 format/talyx_pdf.py --setup` once and render again.
@@ -244,10 +247,10 @@ Two uses: questions PCP asks **you** when it needs something only you know, and 
 
 
 def render_command(R, sha):
-    n = R["names"]
+    n, pb = R["names"], R["page_budget"]
     return f"""{R['render_header'].format(sha=sha)}
 ---
-description: Prepare for a meeting. Sets up once, researches the person, and writes ONE 3-page PDF -- the {n['deliverable']} and a meeting script.
+description: Prepare for a meeting. Sets up once, researches the person, and writes ONE {pb['total_pages']}-page PDF -- the {n['deliverable']} and a meeting script.
 argument-hint: "[intake.csv | \\"Full Name, Organisation\\"] [--recalibrate] [--profile <name>] [--context <file>] [--out <dir>]"
 ---
 
@@ -261,7 +264,7 @@ Follow the `pre-call-prep` skill in this plug-in exactly, in stage order:
 1. **Intake** -- resolve `$ARGUMENTS` (CSV path, `"Name, Org"`, or ask). Never start without a full name and an organisation. Ask the user only as `references/socratic-questions.md` says.
 2. **{n['collection']}** -- run the enabled source types, LinkedIn only with a yes each run; write `claims.jsonl` and the coverage ledger. Drop excluded claims before writing.
 3. **{n['profile']}** -- score six dimensions from claim ids only; set the evidence tier.
-4. **{n['deliverable']}** -- write `brief.md` (B1-B10) and `script.md` (P1-P9); run `python3 eval.py checks brief.md script.md --target-nouns \"<name>,<org>\"` and `python3 eval.py duf brief.md script.md`; rewrite until clean; render with `format/talyx_pdf.py --style brief --max-pages 3`. Deliver the PDF path. Delete `brief.md`/`script.md` after a clean render.
+4. **{n['deliverable']}** -- write `brief.md` (B1-B10) and `script.md` (P1-P9); run `python3 eval.py checks brief.md script.md --target-nouns \"<name>,<org>\"` and `python3 eval.py duf brief.md script.md`; rewrite until clean; render with `format/talyx_pdf.py --style brief --brief-pages {pb['brief_pages']} --max-pages {pb['total_pages']}` and check it with `python3 eval.py pdf <the PDF> brief.md`. Deliver the PDF path. Delete `brief.md`/`script.md` after a clean render.
 5. **After the call** -- offer the four-field template in `evals/debrief_template.yaml`; never ask for more.
 
 Say what was NOT found before what was.

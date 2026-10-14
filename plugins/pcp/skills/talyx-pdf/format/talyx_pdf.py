@@ -15,15 +15,19 @@ Markdown it understands (minimal, generic):
 
 Usage:
   talyx_pdf.py --input doc.md --out doc.pdf [--title ..] [--subtitle ..] [--footer ..] [--max-pages N]
-  talyx_pdf.py --brief brief.md --script script.md [--gaps gaps.md] --out x.pdf --max-pages 3
+  talyx_pdf.py --brief brief.md --script script.md [--gaps gaps.md] --out x.pdf --max-pages N
       # each later part starts on its own page under its own masthead
   talyx_pdf.py --style brief --brief brief.md --script script.md --columns "B3|B4,P1+P2|P5+P6" \
-      --classification "INTERNAL | ..." --out x.pdf --max-pages 3
+      --classification "INTERNAL | ..." --out x.pdf --brief-pages N --max-pages N
       # the Intelligence Brief look: the brief's lines under `# Name` are its identity and meta lines; section
       # B1 is the Take box; --columns sets blocks side by side (| between columns, + within a column)
 
 --max-pages N: renders on a density ladder (loose -> compact). If the tightest rung still overflows, exits 2
 naming the longest sections. It never truncates and never spills silently. Exit 0 prints: pages, rung, path.
+--brief-pages N: the first part (the brief) fills exactly N pages and its last section (the evidence ledger) starts
+on page N, so the next part (the script) starts on page N + 1. When the sections before the ledger end on page N - 1,
+the ledger moves to page N (never padding); when they end earlier still, exits 3. With --brief-pages 2
+--max-pages 3 the PDF is exactly 3 pages: the ledger last on page 2, the script on page 3.
 """
 import argparse
 import base64
@@ -444,6 +448,23 @@ def set_outline_titles(path, names):
     w.write(str(path))
 
 
+def fill_brief(parts, rung, a, out):
+    """--brief-pages N: the brief (the first part) fills exactly N pages and its last section (the evidence ledger)
+    starts on page N, so the next part starts on page N + 1. When the sections before the ledger end before page N,
+    the ledger moves to page N; nothing is padded. Returns the parts to render, None if the brief overflows N pages
+    at this rung, False if it cannot fill them (the sections before the ledger end before page N - 1)."""
+    t, s, h = parts[0]
+    pages = lambda ps: render_html(build_doc(ps, rung, a.footer, a.style, a.classification), out)
+    k = pages([(t, s, h[:-1])])           # where the sections before the ledger end
+    if k > a.brief_pages:
+        return None
+    if k < a.brief_pages - 1:
+        return False
+    if k == a.brief_pages - 1:            # the ledger would start on page N - 1: it starts page N instead
+        parts = [(t, s, h[:-1] + ['<div class="pagebreak">' + h[-1] + "</div>"])] + parts[1:]
+    return parts if pages(parts[:1]) == a.brief_pages else None
+
+
 def word_report(md):
     _, secs = sections(md)
     return sorted(((len(re.sub(r"<[^>]+>", " ", h).split()), t or "(preamble)") for _, t, h in secs), reverse=True)[:4]
@@ -476,16 +497,30 @@ def run(a):
     last = None
     names = outline_titles([(p[0], s) for p, s in zip(parts, part_secs)])
     for rung in rungs:
-        pages = render_html(build_doc(parts, rung, a.footer, a.style, a.classification), out)
+        doc_parts = parts
+        if a.brief_pages and len(parts) > 1:   # the next part (the script) must start on page brief_pages + 1
+            fit = fill_brief(parts, rung, a, out)
+            if fit is None:                    # the brief overflows its pages at this rung: try a tighter one
+                last = (rung["name"], None); continue
+            if fit is False:
+                out.unlink(missing_ok=True)
+                print(json.dumps(dict(ok=False, path=None, rung=rung["name"], brief_pages=a.brief_pages,
+                                      reason="the brief cannot fill its pages even with its last section on a page of its own")))
+                return 3
+            doc_parts = fit
+        pages = render_html(build_doc(doc_parts, rung, a.footer, a.style, a.classification), out)
         set_outline_titles(out, names)
         last = (rung["name"], pages)
         if not a.max_pages or pages <= a.max_pages:
-            print(json.dumps(dict(ok=True, pages=pages, rung=rung["name"], path=str(out), max_pages=a.max_pages)))
+            print(json.dumps(dict(ok=True, pages=pages, rung=rung["name"], path=str(out), max_pages=a.max_pages,
+                                  brief_pages=a.brief_pages)))
             return 0
     longest = sorted((w for md in mds for w in word_report(md)), reverse=True)[:4]
     out.unlink(missing_ok=True)   # no deliverable exists: never leave an over-length PDF to be picked up
     print(json.dumps(dict(ok=False, pages=last[1], rung=last[0], max_pages=a.max_pages, path=None,
-                          reason="overflow at tightest rung -- cut these sections", longest_sections=longest)))
+                          reason=("overflow at tightest rung -- cut these sections" if last[1] is not None else
+                                  f"the brief overflows its {a.brief_pages} pages at the tightest rung -- cut these sections"),
+                          longest_sections=longest)))
     return 2
 
 
@@ -503,6 +538,7 @@ def main():
     ap.add_argument("--script-after", help="brief section id (e.g. B5): the script follows it; the rest of the brief follows the script")
     ap.add_argument("--out"); ap.add_argument("--title"); ap.add_argument("--subtitle", default="")
     ap.add_argument("--footer", default="Talyx AI · talyx.ai"); ap.add_argument("--max-pages", type=int)
+    ap.add_argument("--brief-pages", type=int, help="the first part fills exactly N pages; the next part starts on page N + 1")
     ap.add_argument("--style", choices=["house", "brief"], default="house", help="brief: the Intelligence Brief look")
     ap.add_argument("--columns", default="", help='side-by-side sections, e.g. "B3|B4,P1+P2|P5+P6"')
     ap.add_argument("--classification", default="", help="--style brief: the line above the name")

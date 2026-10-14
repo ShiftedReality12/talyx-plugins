@@ -14,8 +14,8 @@ One command, one PDF, one page gate.
 ```
 python3 format/talyx_pdf.py --input <doc.md> --out <doc.pdf> [--title "..."] [--subtitle "..."] \
     [--footer "..."] [--max-pages N]
-python3 format/talyx_pdf.py --brief <brief.md> --script <script.md> [--gaps <gaps.md>] --out <x.pdf> --max-pages 3 \
-    [--script-subtitle "..."] [--script-after B5]
+python3 format/talyx_pdf.py --brief <brief.md> --script <script.md> [--gaps <gaps.md>] --out <x.pdf> --max-pages N \
+    [--brief-pages N] [--script-subtitle "..."] [--script-after B5]
 ```
 
 It uses Playwright's Chromium if installed, else the Chrome, Edge or Chromium already on the computer. With
@@ -33,6 +33,7 @@ none of them: `python3 format/talyx_pdf.py --setup` once (installs Playwright + 
 | `\| a \| b \|` pipe tables | house table (uppercase head, hairline rows); a first header cell of `#` makes a compact one-line-per-row sources table; an empty header row makes a label grid |
 | `**bold**`, `*italic*`, `[label](https://…)`, `[n]` | emphasis and links; `[n]` prints as a small accent citation that never starts a line; ` -- ` prints as an em dash |
 | `--script <file>`, `--gaps <file>` | each starts on a new page under its own masthead (its `# ` line, else "Meeting script" / "Before you walk in") |
+| `--brief-pages N` | the brief fills exactly N pages with its last section (the evidence ledger) starting on page N, so the script starts on page N + 1; a short brief moves the ledger to page N, never padding; exits 3 if the brief ends before page N - 1 |
 | `--script-after B5` | the script follows brief section B5; the rest of the brief continues after it, without a masthead |
 | `--style brief` | the Intelligence Brief look: `--classification` line and logo stamp above the name; the lines under `# Name` print as its identity and meta lines; `## B1` is the Take box; brief blocks are unnumbered, script sections print `1.` |
 | `--columns "B3\|B4,P1+P2\|P5"` | those sections side by side (`\|` between the columns, `+` within one); the first named section sets where the pair stands |

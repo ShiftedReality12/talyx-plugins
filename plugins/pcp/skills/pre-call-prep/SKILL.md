@@ -8,7 +8,7 @@ description: >
   before a meeting, talking points, or shares an intake list. Do not use for general research unrelated
   to a meeting, or for notes on a meeting that has already happened.
 ---
-<!-- GENERATED from pcp.yaml (sha256:a836c88e385b) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:2fffd65349d0) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.0.0)
 
@@ -150,7 +150,7 @@ and `linkedin` when set) and continue.
 
 **Context contract** -- read, in this order: brief sections with word budgets, script beats and sections, claims (C1/C2 first), read.json, profile.caller, guardrails. Budget: 3000 words. Not read: rubric evidence lists, family query templates.
 
-**Outputs:** `brief.md` (pages 1-2); `script.md` (page 3); `<out>/<date>-<slug>-intelligence-brief.pdf` (ONE 3-page PDF via format/talyx_pdf.py --style brief --max-pages 3)
+**Outputs:** `brief.md` (pages 1-2); `script.md` (page 3); `<out>/<date>-<slug>-intelligence-brief.pdf` (ONE 3-page PDF via format/talyx_pdf.py --style brief --brief-pages 2 --max-pages 3; the script on page 3)
 
 **Rows:**
 
@@ -158,8 +158,8 @@ and `linkedin` when set) and continue.
   _Fails when:_ eval.py duf reports unbound or dangling > 0 -- the run must rewrite before render.
 - **S4-2** Every sentence passes the swap test against caller.offer_one_line and the target: if another target's name would leave it true, delete it.  
   _Fails when:_ A brief with a sentence containing no claim id and no target-specific noun fails checks.swap.
-- **S4-3** Render ONLY through format/talyx_pdf.py --style brief --max-pages 3; never emit Markdown or HTML as the deliverable.  
-  _Fails when:_ The output directory contains exactly one .pdf and no .md/.html after a run.
+- **S4-3** Render ONLY through format/talyx_pdf.py --style brief --brief-pages 2 --max-pages 3; never emit Markdown or HTML as the deliverable. The PDF is exactly 3 pages: the brief fills pages 1-2 (a short brief puts the evidence ledger on page 2 -- never filler) and the script is page 3. Check it with eval.py pdf.  
+  _Fails when:_ The output directory contains exactly one .pdf and no .md/.html after a run; eval.py pdf on it exits 0 (3 pages, the script on page 3 only, the ledger on page 2).
 - **S4-4** If the tightest density rung still overflows 3 pages, the run FAILS with the section word counts; it never truncates or spills.  
   _Fails when:_ Feed a 900-word section -- the engine must exit non-zero naming the section.
 - **S4-5** The masthead's meta line carries meeting, prepared for, depth, sources, status and date; the ledger's Run row carries the run details; the footer carries only the Intelligence Brief, the person and the page numbers.  
@@ -301,10 +301,11 @@ and `python3 eval.py duf brief.md script.md`; rewrite until both are clean.
 | C7 | never_say | `eval.py checks --never-say` | no never_say phrase appears outside P8 |
 | C8 | outcome | `eval.py checks --outcome` | B5 contains no method verbs from checks.method_verbs |
 | C9 | exclusions | `eval.py checks --exclusions` | no excluded topic keyword appears in the body |
-| C10 | pages | `format/talyx_pdf.py --style brief --max-pages 3` | rendered page count <= 3 |
+| C10 | pages | `format/talyx_pdf.py --style brief --brief-pages 2 --max-pages 3; eval.py pdf` | exactly 3 pages: the brief on pages 1-2 with the evidence ledger last on page 2, the script on page 3, page 3 of 3 in the footer, a link for every ledger row not tagged Yours |
 | C11 | plain | `eval.py checks --plain` | no plain_words.banned term or internal code outside quoted words |
 | C12 | gaps | `eval.py checks --gaps` | every **Label:** Not determined has its label and a question in B10's Still open row |
 | C13 | conditional | `eval.py checks --conditional` | B8's hypotheses only when the meta line says Depth deep; P6 only when B6 says Evidence tier: high |
+| C14 | layout | `eval.py checks --layout` | the brief has exactly the 9 blocks B1-B9 before B10, and B10 is its last block: no other block and nothing after the ledger |
 
 ## Render
 
@@ -312,8 +313,11 @@ and `python3 eval.py duf brief.md script.md`; rewrite until both are clean.
 python3 format/talyx_pdf.py --style brief --brief brief.md --script script.md \
     --columns "B3|B4,B5|B6,B7|B8,P1+P2+P3+P4|P5+P6+P7+P8" --classification "INTERNAL | PREPARED FOR YOU | NOT FOR THE PERSON DESCRIBED" \
     --footer "Intelligence Brief · <Full Name>, <Organization> · Prepared for you (internal)" \
-    --max-pages 3 --out <dir>/<date>-<slug>-intelligence-brief.pdf
+    --brief-pages 2 --max-pages 3 --out <dir>/<date>-<slug>-intelligence-brief.pdf
 ```
+
+The PDF is exactly 3 pages: the brief fills pages 1-2 (a short brief puts the ledger on page 2, never
+filler) and the script starts on page 3. Then `python3 eval.py pdf <the PDF> brief.md` must exit 0.
 
 It uses Playwright's Chromium if installed, else the Chrome, Edge or Chromium already on the computer. If it
 reports that neither is there, run `python3 format/talyx_pdf.py --setup` once and render again.

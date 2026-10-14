@@ -2,7 +2,9 @@
 """eval.py -- the pcp instrument. The metric comes before the feature.
 
   duf <brief.md> [script.md] [--pages N]   decision-useful facts: bound / unbound / dropped / duf_pp (+ coverage)
-  checks <brief.md> [script.md] [--all|--swap|--quotes|--custom-q|--sections|--budgets|--never-say|--outcome|--exclusions|--plain|--gaps|--conditional]
+  checks <brief.md> [script.md] [--all|--swap|--quotes|--custom-q|--sections|--budgets|--never-say|--outcome|--exclusions|--plain|--gaps|--conditional|--layout]
+  checks <OUT.pdf> --plain                  plain words on the printed text (masthead, band and footer included)
+  pdf <OUT.pdf> [brief.md]                  the rendered PDF: page count, script on its page, ledger last before it, footer, links, plain words
   concordance                               SKILL.md + commands/pcp.md match a fresh render of pcp.yaml
   self-test                                 positive + negative controls: the counter is proven able to fail
   ratchet [--record]                        every frozen target's duf_pp >= its floor; --record raises floors
@@ -91,7 +93,8 @@ def plain_hits(text):
 
 def _sentences(txt):
     txt = re.sub(r"\|.*\|", " ", txt)  # tables are rows, not sentences
-    txt = "\n".join(ln for ln in txt.splitlines() if not re.match(r"\s*#|.*(?:Not determined|Evidence tier:)", ln))  # structure, not claims
+    txt = "\n".join(ln for ln in txt.splitlines()   # structure and the registry's own fallback lines, not claims
+                    if not re.match(r"\s*#|.*(?:Not determined|Evidence tier:|No counter-evidence found)", ln))
     return [s.strip() for s in re.split(r"(?<=[.!?])\s+", txt) if len(s.strip()) > 25]
 
 
@@ -166,6 +169,19 @@ def checks(brief_md, script_md="", which="all", target_nouns=()):
             for label in re.findall(r"\*\*([^*]+?):\*\*\s*Not determined", secs[k]):
                 if label.lower() not in still.lower() or "?" not in still:
                     fails.append(f"C12 gaps: {k} '{label}' is Not determined with no question in Still open")
+    if want("layout"):
+        brief = re.split(r"^# ", md, maxsplit=2, flags=re.M)   # ['', name + brief, script ...]: the brief ends at the next `# `
+        bsecs = list(_sections("# " + brief[1] if len(brief) > 1 else md))
+        blocks = [s["id"] for s in R["brief"]["sections"]][:-1]
+        if LEDGER not in bsecs:
+            fails.append(f"C14 layout: no {LEDGER} evidence ledger in the brief (blocks {bsecs})")
+        else:
+            before, after = bsecs[:bsecs.index(LEDGER)], bsecs[bsecs.index(LEDGER) + 1:]
+            if before != blocks:
+                fails.append(f"C14 layout: {len(before)} blocks before {LEDGER}, need the {len(blocks)} blocks {blocks[0]}-{blocks[-1]} "
+                             f"(found {before})")
+            if after:
+                fails.append(f"C14 layout: {LEDGER} is not the last block of the brief (after it: {after})")
     if want("conditional"):
         if "What they may want" in secs.get("B8", "") and not re.search(r"Depth:\s*deep", md, re.I):
             fails.append("C13 conditional: B8 has hypotheses but the meta line is not Depth deep")
@@ -175,6 +191,86 @@ def checks(brief_md, script_md="", which="all", target_nouns=()):
             fails.append(f"C13 conditional: P6 Influence printed at evidence tier {tier}")
         if "P5" in secs and tier == "low":
             fails.append("C13 conditional: P5 Read the room printed at evidence tier low")
+    return fails
+
+
+# ---------------------------------------------------------------- the rendered PDF ---------------------------
+def pdf_pages(path):
+    """The text of each page: pdftotext (poppler) if installed, else pypdf. None if neither is."""
+    try:
+        r = subprocess.run(["pdftotext", "-enc", "UTF-8", str(path), "-"], capture_output=True, text=True, timeout=60)
+        if r.returncode == 0:
+            return r.stdout.split("\f")[:-1] if r.stdout.endswith("\f") else r.stdout.split("\f")
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    try:
+        from pypdf import PdfReader
+        return [p.extract_text() or "" for p in PdfReader(str(path)).pages]
+    except ImportError:
+        return None
+
+
+def pdf_links(path):
+    """The link targets (/URI) in the PDF: pypdf if installed, else poppler's pdfinfo -url, else the raw bytes."""
+    try:
+        from pypdf import PdfReader
+        return [a.get_object()["/A"]["/URI"] for p in PdfReader(str(path)).pages for a in p.get("/Annots") or []
+                if "/A" in a.get_object() and "/URI" in a.get_object()["/A"]]
+    except ImportError:
+        pass
+    try:
+        r = subprocess.run(["pdfinfo", "-url", str(path)], capture_output=True, text=True, timeout=60)
+        if r.returncode == 0:
+            return [ln.split()[-1] for ln in r.stdout.splitlines()[1:] if ln.strip()]
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    return [m.decode("latin-1") for m in re.findall(rb"/URI\s*\(([^)]*)\)", pathlib.Path(path).read_bytes())]
+
+
+def _flat(t):
+    """Letter-spaced, upper-cased headings (E V I D E N C E  L E D G E R) compare as EVIDENCELEDGER."""
+    return re.sub(r"\s+", "", t).upper()
+
+
+def pdf_check(pdf, brief_md=""):
+    """The rendered PDF, as the reader gets it (C10, and C11 on the printed text). [] = pass; None = no PDF text tool."""
+    pages = pdf_pages(pdf)
+    if pages is None:
+        return None
+    pb, n = R["page_budget"], R["names"]
+    total, bp = pb["total_pages"], pb["brief_pages"]
+    fails = []
+    if len(pages) != total:
+        fails.append(f"C10 pages: {len(pages)} pages, need exactly {total}")
+    script = _flat(n["script"])
+    if pages:
+        on_brief = sum(_flat(p).count(script) for p in pages[:bp])
+        if on_brief:
+            fails.append(f"C10 pages: '{n['script']}' on pages 1-{bp} ({on_brief}x); the script starts on page {bp + 1}")
+        if len(pages) > bp and script not in _flat(pages[bp]):
+            fails.append(f"C10 pages: page {bp + 1} does not start the {n['script']}")
+        ledger = _flat(R["brief"]["sections"][-1]["title"])
+        lp = [i + 1 for i, p in enumerate(pages) if ledger in _flat(p)]
+        if lp != [bp]:
+            fails.append(f"C10 pages: the {R['brief']['sections'][-1]['title']} is on page(s) {lp or 'none'}, need page {bp}")
+        else:
+            tail = _flat(pages[bp - 1]).split(ledger, 1)[1]
+            titles = {s["id"]: re.sub(r"\{(\w+)\}", lambda m: n[m.group(1)], s["title"]) for s in R["brief"]["sections"][1:-1]}
+            later = [k for k, t in titles.items() if _flat(t) in tail]   # B1's head is hidden (the Take box)
+            if later:
+                fails.append(f"C10 pages: block titles after the ledger on page {bp}: {later}")
+        if n["deliverable"] not in re.sub(r"\s+", " ", pages[0]):
+            fails.append(f"C10 pages: page 1 does not name the {n['deliverable']}")
+        foot = f"page {len(pages)} of {len(pages)}"
+        if pages[-1].count(foot) != 1:
+            fails.append(f"C10 pages: last page shows '{foot}' {pages[-1].count(foot)} times, need once")
+    for h in plain_hits(re.sub(r"\s+", " ", "\n".join(pages))):
+        fails.append(f"C11 plain: '{h}' printed in the PDF outside quoted words")
+    if brief_md:
+        rows = [m for m in SRC_ROW.finditer(brief_md) if m.group(4) != "Yours"]
+        links = pdf_links(pdf)
+        if len(links) < len(rows):
+            fails.append(f"C10 links: {len(links)} links in the PDF < {len(rows)} ledger rows not tagged Yours")
     return fails
 
 
@@ -201,14 +297,25 @@ def self_test():
     print("negative control:", json.dumps(neg))
     if not (neg["unbound"] == 3 and neg["dropped"] == 1 and not neg["ok"]):
         print("FAIL negative control expected unbound 3 / dropped 1 / ok False"); ok = False
-    f = checks((fx / "control_broken.md").read_text())
-    print("negative control checks:", len(f), "failures:", *[" - " + x for x in f], sep="\n")
-    for cid, what in (("C7", "never_say"), ("C9", "exclusions"), ("C11", "plain"), ("C12", "gaps"), ("C13", "conditional")):
-        if not any(x.startswith(cid + " ") for x in f):
-            print(f"FAIL negative control must trip {cid} ({what})"); ok = False
-    if checks((fx / "control_12.md").read_text()):
-        print("FAIL positive control must pass every check"); ok = False
+    for name, kw, must in MUST_TRIP:
+        f = checks((fx / name).read_text(), **kw)
+        print(f"{name} checks:", len(f), "failures:", *[" - " + x for x in f], sep="\n")
+        for cid in must:
+            if any(x.startswith(cid + " ") for x in f):
+                print(f"tripped: {cid} by {name}")
+            else:
+                print(f"FAIL {name} must trip {cid}"); ok = False
+    f = checks((fx / "control_12.md").read_text())
+    if f:
+        print("FAIL positive control must pass every check:", *f, sep="\n - "); ok = False
     return ok
+
+
+# fixture -> the checks it must trip; self-test fails if any is not tripped (each check is proven able to fail)
+MUST_TRIP = [
+    ("control_broken.md", {}, ["C7", "C9", "C11", "C12", "C13"]),
+    ("layout_broken.md", {}, ["C14"]),
+]
 
 
 # ---------------------------------------------------------------- ratchet ------------------------------------
@@ -259,13 +366,17 @@ def improve(debriefs):
     print("wrote", out.relative_to(HERE), f"({len(props)} proposals) -- apply to pcp.yaml by hand-review, then `eval.py ratchet`")
 
 
+CHECKS = ["swap", "quotes", "custom-q", "sections", "budgets", "never-say", "outcome", "exclusions", "plain", "gaps", "conditional", "layout"]
+
+
 def main():
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
     d = sub.add_parser("duf"); d.add_argument("brief"); d.add_argument("script", nargs="?"); d.add_argument("--pages", type=int)
     c = sub.add_parser("checks"); c.add_argument("brief"); c.add_argument("script", nargs="?"); c.add_argument("--target-nouns", default="")
-    for w in ["swap", "quotes", "custom-q", "sections", "budgets", "never-say", "outcome", "exclusions", "plain", "gaps", "conditional", "all"]:
+    for w in CHECKS + ["all"]:
         c.add_argument(f"--{w}", action="store_true")
+    p = sub.add_parser("pdf"); p.add_argument("pdf"); p.add_argument("brief", nargs="?")
     sub.add_parser("concordance"); sub.add_parser("self-test")
     r = sub.add_parser("ratchet"); r.add_argument("--record", action="store_true")
     i = sub.add_parser("improve"); i.add_argument("debriefs", nargs="+")
@@ -275,11 +386,23 @@ def main():
         rep = duf(pathlib.Path(a.brief).read_text(), pathlib.Path(a.script).read_text() if a.script else "", a.pages)
         print(json.dumps(rep, indent=1)); sys.exit(0 if rep["ok"] else 1)
     if a.cmd == "checks":
-        which = next((w for w in ["swap", "quotes", "custom-q", "sections", "budgets", "never-say", "outcome", "exclusions", "plain", "gaps", "conditional"]
-                      if getattr(a, w.replace("-", "_"))), "all")
-        f = checks(pathlib.Path(a.brief).read_text(), pathlib.Path(a.script).read_text() if a.script else "", which,
-                   [n.strip() for n in a.target_nouns.split(",")])
+        which = next((w for w in CHECKS if getattr(a, w.replace("-", "_"))), "all")
+        if a.brief.lower().endswith(".pdf"):   # the printed text: only plain words can be read back from a PDF
+            if which != "plain":
+                sys.exit(f"checks on a PDF: only --plain (got --{which}); use `eval.py pdf` for the layout")
+            pages = pdf_pages(a.brief)
+            if pages is None:
+                print("checks (plain): no pdftotext or pypdf to read the PDF -- not run"); sys.exit(2)
+            f = [f"C11 plain: '{h}' printed in the PDF outside quoted words" for h in plain_hits(re.sub(r"\s+", " ", "\n".join(pages)))]
+        else:
+            f = checks(pathlib.Path(a.brief).read_text(), pathlib.Path(a.script).read_text() if a.script else "", which,
+                       [n.strip() for n in a.target_nouns.split(",")])
         print(f"checks ({which}): {len(f)} failures"); [print(" -", x) for x in f]; sys.exit(1 if f else 0)
+    if a.cmd == "pdf":
+        f = pdf_check(a.pdf, pathlib.Path(a.brief).read_text() if a.brief else "")
+        if f is None:
+            print("pdf: no pdftotext or pypdf to read the PDF -- not run"); sys.exit(2)
+        print(f"pdf {a.pdf}: {len(f)} failures"); [print(" -", x) for x in f]; sys.exit(1 if f else 0)
     if a.cmd == "concordance":
         sys.exit(0 if concordance() else 1)
     if a.cmd == "self-test":

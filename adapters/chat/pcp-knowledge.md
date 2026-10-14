@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:a836c88e385b) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:2fffd65349d0) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.0.0)
 
@@ -268,6 +268,7 @@ Never say: "Does that make sense?"; "Is this helpful?"; "No pressure"; "You'd kn
 | C11 | plain | no plain_words.banned term or internal code outside quoted words |
 | C12 | gaps | every **Label:** Not determined has its label and a question in B10's Still open row |
 | C13 | conditional | B8's hypotheses only when the meta line says Depth deep; P6 only when B6 says Evidence tier: high |
+| C14 | layout | the brief has exactly the 9 blocks B1-B9 before B10, and B10 is its last block: no other block and nothing after the ledger |
 
 ## Deliver
 
