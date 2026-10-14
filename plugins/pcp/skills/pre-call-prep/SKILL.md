@@ -8,7 +8,7 @@ description: >
   before a meeting, talking points, or shares an intake list. Do not use for general research unrelated
   to a meeting, or for notes on a meeting that has already happened.
 ---
-<!-- GENERATED from pcp.yaml (sha256:d8247d8141b9) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:8ba7bf3a25b0) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
@@ -160,8 +160,10 @@ and `linkedin` when set) and continue.
   _Fails when:_ eval.py duf reports unbound or dangling > 0 -- the run must rewrite before render.
 - **S4-2** Every sentence passes the swap test against caller.offer_one_line and the target: if another target's name would leave it true, delete it.  
   _Fails when:_ A brief with a sentence containing no claim id and no target-specific noun fails checks.swap.
-- **S4-3** Render ONLY through format/talyx_pdf.py --style brief --brief-pages 2 --max-pages 3; never emit Markdown or HTML as the deliverable. The PDF is exactly 3 pages: the brief fills pages 1-2 (a short brief puts the evidence ledger on page 2 -- never filler) and the script is page 3. Check it with eval.py pdf.  
-  _Fails when:_ The output directory contains exactly one .pdf and no .md/.html after a run; eval.py pdf on it exits 0 (3 pages, the script on page 3 only, the ledger on page 2).
+- **S4-3** Where the host can run scripts and a browser engine (Claude Code, Claude Cowork, Codex, ChatGPT agent or work mode), render ONLY through format/talyx_pdf.py --style brief --brief-pages 2 --max-pages 3, never Markdown or HTML as the deliverable. The PDF is exactly 3 pages: the brief fills pages 1-2 (a short brief puts the evidence ledger on page 2 -- never filler) and the script is page 3. Check it with eval.py pdf. Where render is impossible, follow S4-10.  
+  _Fails when:_ On a script-capable host the output directory contains exactly one .pdf and no .md/.html after a run; eval.py pdf on it exits 0 (3 pages, the script on page 3 only, the ledger on page 2).
+- **S4-10** In-chat fallback. Render is impossible when the host has no shell or code tool, python3 is missing, or talyx_pdf.py exits for want of a browser engine (after one try of --setup where installs are allowed). Then deliver the full brief in the chat, never a summary: first line exactly 'Intelligence Brief (in chat: this app cannot make the PDF, so the same 3 pages follow as text)'; then the masthead lines; then the line '--- Page 1 ---' and B1-B6; '--- Page 2 ---' and B7-B10 with the same 5-column ledger and its Coverage / Still open / Left out on purpose / Run rows; '--- Page 3 ---' and '# Meeting script' with P1-P9. Same blocks, order, titles, word budgets, citations [n], grades and plain-words rules as the PDF. If a code tool exists, run eval.py checks on it; otherwise apply the checks yourself and end with 'Checks: self-reviewed, not run as code'.  
+  _Fails when:_ Run with no Bash tool: the reply holds the label, the three page markers, every B1-B10 and P1-P9 title in order, a ledger row per cited [n], and no plain_words.banned word; eval.py chat on the saved reply exits 0.
 - **S4-4** If the tightest density rung still overflows 3 pages, the run FAILS with the section word counts; it never truncates or spills.  
   _Fails when:_ Feed a 900-word section -- the engine must exit non-zero naming the section.
 - **S4-5** The masthead's meta line carries meeting, prepared for, depth, sources, status and date; the ledger's Run row carries the run details; the footer carries only the Intelligence Brief, the person and the page numbers.  

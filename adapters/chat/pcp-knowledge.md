@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:d8247d8141b9) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:8ba7bf3a25b0) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
@@ -151,6 +151,8 @@ This host runs no scripts. The saved setup is the **Saved setup** block at the e
   _Fails when:_ Check C2 finds unbound > 0 -- the answer is rewritten before it is delivered.
 - **S4-2** Every sentence passes the swap test against caller.offer_one_line and the target: if another target's name would leave it true, delete it.  
   _Fails when:_ A brief with a sentence containing no claim id and no target-specific noun fails checks.swap.
+- **S4-10** This host cannot make the PDF, so always deliver the full brief in the chat, never a summary: first line exactly 'Intelligence Brief (in chat: this app cannot make the PDF, so the same 3 pages follow as text)'; the heading lines; '--- Page 1 ---' and B1-B6; '--- Page 2 ---' and B7-B10 with the 5-column ledger and its Coverage / Still open / Left out on purpose / Run rows; '--- Page 3 ---' and '# Meeting script' with P1-P9. Same blocks, order, titles, word budgets, citations, grades and plain-words rules. Apply the checks yourself and end with 'Checks: self-reviewed, not run as code'.  
+  _Fails when:_ The reply holds the label, the three page markers and every block title in order.
 - **S4-5** The heading's meta line carries meeting, prepared for, depth, sources, status and date; the ledger's Run row carries the run details.  
   _Fails when:_ The heading has all six fields.
 - **S4-6** A block or line prints only as its Prints when says: a line PCP cannot fill from evidence is left out, or reads Not determined where its row says so. Never filler.  

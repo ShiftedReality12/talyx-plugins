@@ -101,6 +101,8 @@ CHAT_ROWS = {
              "test": "No attachment -- B4 and Coverage both read 'LinkedIn: not read: no browser here' (check C16)."},
     "S4-1": {"test": "Check C2 finds unbound > 0 -- the answer is rewritten before it is delivered."},
     "S4-3": None, "S4-4": None,   # the PDF renderer
+    "S4-10": {"text": "This host cannot make the PDF, so always deliver the full brief in the chat, never a summary: first line exactly 'Intelligence Brief (in chat: this app cannot make the PDF, so the same 3 pages follow as text)'; the heading lines; '--- Page 1 ---' and B1-B6; '--- Page 2 ---' and B7-B10 with the 5-column ledger and its Coverage / Still open / Left out on purpose / Run rows; '--- Page 3 ---' and '# Meeting script' with P1-P9. Same blocks, order, titles, word budgets, citations, grades and plain-words rules. Apply the checks yourself and end with 'Checks: self-reviewed, not run as code'.",
+              "test": "The reply holds the label, the three page markers and every block title in order."},
     "S4-5": {"text": "The heading's meta line carries meeting, prepared for, depth, sources, status and date; the ledger's Run row carries the run details.",
              "test": "The heading has all six fields."},
     "S4-7": {"test": "Write **Decision maker:** Not determined with no question in Still open -- check C12 fails."},

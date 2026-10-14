@@ -409,6 +409,15 @@ def self_test(require_pdf=False):
     for pid, prints, cid in conditional:
         if cid not in ids:
             print(f"FAIL inventory {pid}: prints only when '{prints}' but no check enforces it (check: {cid})"); ok = False
+    cf = chat_check((fx / "chat_control.md").read_text())
+    if cf:
+        print("FAIL chat_control.md (S4-10 in-chat fallback) must pass:", *cf, sep="\n - "); ok = False
+    else:
+        print("passes: chat_control.md (S4-10 in-chat brief)")
+    if any(x.startswith("S4-10") for x in chat_check((fx / "chat_broken.md").read_text())):
+        print("tripped: S4-10 by chat_broken.md (no label, page 2 marker missing)")
+    else:
+        print("FAIL chat_broken.md must trip S4-10"); ok = False
     print(f"inventory: {len(conditional)} conditional parts, each enforced by a check:", ", ".join(f"{p} {c}" for p, _, c in conditional))
     for name, kw in MUST_PASS:
         f = checks((fx / name).read_text(), **kw)
@@ -712,6 +721,42 @@ def render_check(pdf, dpi=72):
     return fails
 
 
+
+# ---------------------------------------------------------------- chat (S4-10) ----------------------------------
+CHAT_LABEL = "Intelligence Brief (in chat"
+
+
+def chat_check(text, target_nouns=(), experience=None, authority=None):
+    """S4-10: the in-chat fallback is the same brief as text. Label first, page markers 1-2-3 in order, then the
+    normal checks (sections, order, citations, ledger, plain words) on the brief and script parts."""
+    fails = []
+    lines = [ln for ln in text.splitlines() if ln.strip()]
+    if not lines or not lines[0].strip().lstrip("*#> ").startswith(CHAT_LABEL):
+        fails.append("S4-10 chat: the first line must be the in-chat label 'Intelligence Brief (in chat: ...)'")
+    pos = [text.find(f"--- Page {i} ---") for i in (1, 2, 3)]
+    if -1 in pos or pos != sorted(pos):
+        fails.append(f"S4-10 chat: page markers '--- Page 1/2/3 ---' missing or out of order ({pos})")
+    n = R["names"]
+    titles = {re.sub(r"\{(\w+)\}", lambda m: n[m.group(1)], x["title"]).lower(): x["id"]
+              for x in R["brief"]["sections"] + R["script"]["blocks"]}
+    def add_id(m):
+        t = m.group(1).strip()
+        return m.group(0) if re.match(r"[BP]\d+\b", t) else f"## {titles.get(t.lower().rstrip(':'), '')} {t}".replace("##  ", "## ")
+    body = re.sub(r"^## (.+)$", add_id, re.sub(r"^--- Page \d ---\s*$", "", text, flags=re.M), flags=re.M)
+    m = re.search(r"^# " + re.escape(n["script"]) + r"\s*$", body, re.M | re.I)
+    if not m or (pos[2] != -1 and m.start() < 0):
+        fails.append(f"S4-10 chat: no '# {n['script']}' heading for page 3")
+        return fails
+    if pos[2] != -1 and text.find("# " + n["script"]) < pos[2]:
+        fails.append(f"S4-10 chat: '# {n['script']}' must come after '--- Page 3 ---'")
+    brief, script = body[:m.start()], body[m.start():]
+    fails += checks(brief, script, "all", target_nouns, experience, authority)
+    rep = duf(brief, script)
+    if not rep["ok"]:
+        fails.append(f"S4-10 chat: citations and ledger do not bind ({ {k: rep[k] for k in ('unbound', 'dangling', 'dropped')} })")
+    return fails
+
+
 # ---------------------------------------------------------------- ratchet ------------------------------------
 def ratchet(record=False):
     rf = HERE / R["eval"]["ratchet_file"]
@@ -782,6 +827,8 @@ def main():
     ct = sub.add_parser("cites"); ct.add_argument("brief"); ct.add_argument("--fetch", action="store_true"); ct.add_argument("--claims")
     lk = sub.add_parser("links"); lk.add_argument("pdf")
     rc = sub.add_parser("render"); rc.add_argument("pdf")
+    ch = sub.add_parser("chat"); ch.add_argument("reply"); ch.add_argument("--target-nouns", default="")
+    ch.add_argument("--experience"); ch.add_argument("--authority", choices=["high", "medium"])
     sub.add_parser("concordance")
     st = sub.add_parser("self-test"); st.add_argument("--require-pdf", action="store_true", help="fail, not skip, when no PDF can be rendered and read")
     r = sub.add_parser("ratchet"); r.add_argument("--record", action="store_true")
@@ -832,6 +879,10 @@ def main():
         dead = [r for r in res if r[2] == "dead"]
         print(f"links: {len(res)} total, {sum(r[2]=='ok' for r in res)} ok, {sum(r[2]=='blocked' for r in res)} blocked by the site (bot wall, not a failure), {len(dead)} dead")
         sys.exit(1 if dead else 0)
+    if a.cmd == "chat":
+        f = chat_check(pathlib.Path(a.reply).read_text(), [x.strip() for x in a.target_nouns.split(",") if x.strip()], a.experience, a.authority)
+        print("\n".join(f) or "chat: in-chat brief follows the schema; 0 failures")
+        sys.exit(1 if f else 0)
     if a.cmd == "render":
         f = render_check(a.pdf)
         print("\n".join(f) or "render: nothing clipped, logo whole; 0 failures")
