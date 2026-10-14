@@ -251,11 +251,12 @@ Two uses: questions PCP asks **you** when it needs something only you know, and 
 
 def render_command(R, sha):
     n, pb = R["names"], R["page_budget"]
-    return f"""{R['render_header'].format(sha=sha)}
----
+    # frontmatter must be the first bytes of the file or the host drops description and argument-hint -- header after it
+    return f"""---
 description: Prepare for a meeting. Sets up once, researches the person, and writes ONE {pb['total_pages']}-page PDF -- the {n['deliverable']} and a meeting script.
 argument-hint: "[intake.csv | \\"Full Name, Organisation\\"] [--recalibrate] [--profile <name>] [--context <file>] [--out <dir>]"
 ---
+{R['render_header'].format(sha=sha)}
 
 # /pcp: pre-call prep
 

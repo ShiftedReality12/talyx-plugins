@@ -8,7 +8,7 @@ description: >
   before a meeting, talking points, or shares an intake list. Do not use for general research unrelated
   to a meeting, or for notes on a meeting that has already happened.
 ---
-<!-- GENERATED from pcp.yaml (sha256:a9ae9e640dc2) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:a6e3f83fc888) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
@@ -25,7 +25,7 @@ The deliverable is one 3-page PDF, the Intelligence Brief. Nothing else is emitt
 - Keep what was read apart from what was inferred (the grade). Check the one assumption the Take rests on (Strongest case against). On deep runs, weigh competing explanations of what they want.
 
 **Plain words.** Nothing the user reads -- the PDF, replies, setup questions, the listing -- uses military, intelligence-trade or technical jargon. Their own quoted words are exempt. Never write a word banned: OSINT, SOCINT, SOCMINT, HUMINT, human intelligence, SIGINT, intelligence cycle, tradecraft, collection plan, competing hypotheses, ACH, target package, asset, source handling, exploitation, debrief, kill chain, dossier, duf_pp, claims.jsonl, read.json, source families, scrape, scraped, scraping, crawl, LLM, or an internal id
-(C1-C4, F1-F12, row ids). Allowed only inside these phrases: asset manager, asset managers, asset management, asset class, asset classes, asset allocation, asset owner, asset owners, asset-light, asset-backed, digital asset, fixed asset.
+(C1-C4, F1-F12, row ids). Allowed only inside these phrases: asset manager, asset managers, asset management, asset & wealth management, asset and wealth management, asset class, asset classes, asset allocation, asset owner, asset owners, asset-light, asset-heavy, asset-backed, asset-based, asset-liability, asset and liability, asset base, asset quality, asset growth, asset mix, asset value, asset values, net asset value, asset price, asset prices, asset sale, asset sales, asset purchase, asset purchases, asset deal, asset finance, asset servicing, asset gathering, real asset, alternative asset, digital asset, fixed asset, financial asset, hard asset, single-asset, multi-asset.
 Use "source types", not families; "the person you're meeting", not target. Call the deliverable the Intelligence Brief, nothing else.
 
 ## Stage 0: Setup (once)

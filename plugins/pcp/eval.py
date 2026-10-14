@@ -32,7 +32,8 @@ TAGS, GRADES, CONFS = "Direct|Search|LinkedIn|Yours", "Measured|Derived|Inferenc
 SRC_ROW = re.compile(r"^\|\s*\[(\d+)\]\s*\|\s*([^|]+?)\s*\|\s*([^|\s][^|]*?)\s*\|\s*(" + TAGS + r")\s*\|\s*(" + GRADES + r")\s*\|\s*("
                      + CONFS + r")\s*\|\s*([A-Z][a-z]{2} \d{1,2}, \d{4})\s*\|", re.M)
 H2 = re.compile(r"^##\s+(.+)$", re.M)
-QUOTED = re.compile(r"[\u201c\"][^\u201d\"]*[\u201d\"]")   # their own words are exempt from plain words
+QUOTED = re.compile(r"[\u201c\"][^\u201d\"\n]{0,300}[\u201d\"]")   # their own words are exempt from plain words; one line, <= 300
+                                                                    # characters, so a stray quote mark cannot exempt the rest of the page
 WORD = re.compile(r"\S*\w\S*")
 LINK_URL = re.compile(r"\]\([^)]*\)")
 
@@ -199,7 +200,8 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
         cell = re.sub(r"\*\*Still open\*\*|\*\*", "", still).strip(" |")
         for item in [i.strip() for i in re.split(r"\s+·\s+", cell) if i.strip()]:
             q = item.split(": ", 1)[1] if ": " in item else item
-            if not (q.rstrip().endswith("?") and q.split()[0].strip("*_").capitalize() in starts) and (gaps or "?" in item):
+            first = re.match(r"[*_\s]*([A-Za-z]+)", q)   # What's, Who'd: the question word without its contraction
+            if not (q.rstrip().endswith("?") and first and first.group(1).capitalize() in starts) and (gaps or "?" in item):
                 fails.append(f"C12 gaps: Still open item is not a question starting {'/'.join(starts)}: '{item[:60]}'")
     if want("linkedin"):
         li = R["linkedin"]
@@ -353,6 +355,8 @@ def concordance():
         print("CONCORDANCE FAIL: render_skill.py --check exceeded 60s")
         return False
     print(r.stdout.strip())
+    if r.returncode != 0 and r.stderr.strip():
+        print(r.stderr.strip()[-600:])   # e.g. no PyYAML: say why, never fail silently
     return r.returncode == 0
 
 
@@ -395,6 +399,12 @@ def self_test(require_pdf=False):
         print(f"FAIL jargon.md: C11 must list exactly {JARGON} (got {sorted(hits)})"); ok = False
     else:
         print(f"tripped: C11 by jargon.md, each of {len(JARGON)} words; 'asset manager' and quoted words exempt")
+    if plain_hits(" ".join(FINANCE)):
+        print(f"FAIL C11 must pass ordinary finance terms (got {plain_hits(' '.join(FINANCE))})"); ok = False
+    elif plain_hits('He is 6\'2" tall.\nShe is a valued asset [1].\n"We buy patience" [3]') != ["asset"]:
+        print("FAIL C11: a stray quote mark must not exempt the lines after it"); ok = False
+    else:
+        print(f"passes: C11 on {len(FINANCE)} finance terms; a stray quote mark exempts nothing after its line")
     pdf = pdf_self_test(fx)
     if pdf is None:
         print("SKIP the PDF checks: no Chromium, or no pdftotext / pypdf, on this computer"
@@ -407,11 +417,14 @@ def self_test(require_pdf=False):
 
 JARGON = ["SOCINT", "HUMINT", "human intelligence", "intelligence cycle", "collection plan", "target package", "asset",
           "source handling", "exploitation", "debrief"]   # jargon.md: one always-banned word per block
+FINANCE = ["Runs J.P. Morgan Asset & Wealth Management [3].", "Asset and wealth management grew 12% [4].", "Net asset value rose 6% [5].",
+           "Citi's asset quality held [2].", "BNY's asset servicing arm [6].", "Closed the asset sale on Mar 3, 2026 [2]."]   # C11 must pass
 
 
 def pdf_self_test(fx):
     """Render control_12.md and jargon.md the way SKILL.md says, then read them back: the control passes `pdf`,
-    the jargon PDF's printed text trips C11 on every word. None if this computer cannot render or read a PDF."""
+    the jargon PDF's printed text trips C11 on every word, and control_12.md rendered without --brief-pages (the 3.0.0
+    flags: the ledger on page 1) trips C10. None if this computer cannot render or read a PDF."""
     import importlib.util
     import tempfile
     sys.dont_write_bytecode = True   # importing the renderer must not leave __pycache__ in the plug-in
@@ -426,22 +439,28 @@ def pdf_self_test(fx):
         return None
     ok, pb, n = True, R["page_budget"], R["names"]
     with tempfile.TemporaryDirectory() as tmp:
-        for name in ("control_12.md", "jargon.md"):
+        for name, layout in (("control_12.md", True), ("jargon.md", True), ("control_12.md", False)):
             md = (fx / name).read_text()
             cut = [m.start() for m in re.finditer(r"^# ", md, re.M)][1]
             b, s, out = pathlib.Path(tmp, "brief.md"), pathlib.Path(tmp, "script.md"), pathlib.Path(tmp, name[:-3] + ".pdf")
             b.write_text(md[:cut]); s.write_text(md[cut:])
+            pages = ["--brief-pages", str(pb["brief_pages"]), "--max-pages", str(pb["total_pages"])] if layout else ["--max-pages", str(pb["total_pages"])]
             r = subprocess.run([sys.executable, str(HERE / "format/talyx_pdf.py"), "--style", "brief", "--brief", str(b), "--script", str(s),
                                 "--columns", pb["columns"], "--classification", n["classification"],
                                 "--footer", f"{n['deliverable']} · Jane Doe, Alder Grey Capital · Prepared for you (internal)",
-                                "--brief-pages", str(pb["brief_pages"]), "--max-pages", str(pb["total_pages"]), "--out", str(out)],
+                                *pages, "--out", str(out)],
                                capture_output=True, text=True, timeout=300)
             if r.returncode != 0:
                 print(f"FAIL render {name}: exit {r.returncode} {r.stdout.strip()} {r.stderr.strip()[-300:]}"); ok = False; continue
             f = pdf_check(out, md[:cut])
             if f is None:
                 return None
-            if name == "control_12.md":
+            if not layout:
+                if any(x.startswith("C10 ") for x in f):
+                    print("tripped: C10 by control_12.pdf rendered without --brief-pages (the ledger not on its page)")
+                else:
+                    print("FAIL control_12.pdf without --brief-pages must trip C10 (got", f, ")"); ok = False
+            elif name == "control_12.md":
                 print(f"pdf control_12: {len(f)} failures", *f, sep="\n - ")
                 ok = ok and not f
             else:

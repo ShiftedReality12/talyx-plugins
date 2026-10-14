@@ -1,8 +1,8 @@
-<!-- GENERATED from pcp.yaml (sha256:a9ae9e640dc2) by render_skill.py -- edit pcp.yaml, never this file -->
 ---
 description: Prepare for a meeting. Sets up once, researches the person, and writes ONE 3-page PDF -- the Intelligence Brief and a meeting script.
 argument-hint: "[intake.csv | \"Full Name, Organisation\"] [--recalibrate] [--profile <name>] [--context <file>] [--out <dir>]"
 ---
+<!-- GENERATED from pcp.yaml (sha256:a6e3f83fc888) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # /pcp: pre-call prep
 

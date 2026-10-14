@@ -129,9 +129,9 @@ yourself before answering, and say they were self-checked, not machine-run. Deli
 was NOT found before what was. Say plainly that it is not the Talyx PDF; the plug-in version
 renders that.
 
-## Debrief
+## After the call
 
-After the call, ask for the four debrief fields -- facts used (claim ids), questions that landed, band
+After the call, ask for four things -- facts used (claim ids), questions that landed, band
 accuracy per dimension (hit or miss), outcome -- and nothing else.
 
 """

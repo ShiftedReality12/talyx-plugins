@@ -41,7 +41,12 @@ plain_words:
   rule: "Nothing the user reads -- the PDF, replies, setup questions, the listing -- uses military, intelligence-trade or technical jargon. Their own quoted words are exempt."
   banned: [OSINT, SOCINT, SOCMINT, HUMINT, human intelligence, SIGINT, intelligence cycle, tradecraft, collection plan, competing hypotheses, ACH, target package, asset, source handling, exploitation, debrief, kill chain, dossier, duf_pp, claims.jsonl, read.json, source families, scrape, scraped, scraping, crawl, LLM]
   # a banned word inside one of these phrases is the finance term, not the trade word ("asset" = a recruited source)
-  allowed: [asset manager, asset managers, asset management, asset class, asset classes, asset allocation, asset owner, asset owners, asset-light, asset-backed, digital asset, fixed asset]
+  # (red-team Oct 13: wealth and bank briefs print these daily -- J.P. Morgan's "Asset & Wealth Management", NAV, a bank's asset quality)
+  allowed: [asset manager, asset managers, asset management, asset & wealth management, asset and wealth management, asset class, asset classes,
+            asset allocation, asset owner, asset owners, asset-light, asset-heavy, asset-backed, asset-based, asset-liability, asset and liability,
+            asset base, asset quality, asset growth, asset mix, asset value, asset values, net asset value, asset price, asset prices,
+            asset sale, asset sales, asset purchase, asset purchases, asset deal, asset finance, asset servicing, asset gathering,
+            real asset, alternative asset, digital asset, fixed asset, financial asset, hard asset, single-asset, multi-asset]
   # Oct 9 / AID-58: Ben's executive words. Not enforced until Daniel decides (spec Q3, Q5); move a word to banned to adopt it.
   pending: [intelligence collection, behavioral profile, behavioral profile analysis, counter-evidence]
   # the deliverable has one name (names.deliverable); build/adapters.py --check fails on these anywhere in the repo
