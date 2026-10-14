@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:a1399daa2e17) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:f5216e7ed72d) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Inventory: what the Intelligence Brief prints (v3.1.0)
 
@@ -15,11 +15,11 @@ has a decided status. Totals: 30 always, 5 conditional, 0 removed.
 | B3 | Who they are | 1-2 | role, path, the organization, what changed and recent wins | F1 identity, F2 career timeline, F3 org news, F4 org self-description, F9 registers | always | -- | -- |
 | B4 | In their words | 1-2 | their own words, quoted and cited, and the LinkedIn status line | F5 voice, F6 public social, F8 publications, LinkedIn | always | -- | -- |
 | B5 | Signals and what to do with them | 1-2 | three signals -- their priority, where your offer connects, why now -- and what to do with each | F3 org news, F10 events, F11 shared context, Q8 | always | -- | -- |
-| B6 | Meeting approach | 1-2 | six observations and the move each one implies, and the evidence tier | F1 identity, F5 voice, F6 public social, F7 affiliations | always | -- | -- |
+| B6 | Behavioral profile | 1-2 | six observations and the move each one implies, and the evidence tier | F1 identity, F5 voice, F6 public social, F7 affiliations | always | -- | -- |
 | B7 | Who decides | 1-2 | decision maker, the gate and the relationship holder | F1 identity, F3 org news, F9 registers, F11 shared context | always | -- | -- |
 | B8 | Strongest case against | 1-2 | the best evidence against the read and what would reverse it | F12 counter-evidence | always | -- | -- |
 | B9 | Meeting angle | 1-2 | the frame, what lands and repels, what to bring, the ask and fallback, meetings two and three, what to capture | Q8, B3-B8 | always | -- | -- |
-| B10 | Evidence ledger | 1-2 | every cited fact with source, tag, grade, confidence and date; then Coverage, Still open, Left out on purpose and Run | F1-F12, Q8 | always | -- | -- |
+| B10 | Evidence ledger | 1-2 | every cited fact with what it says, source, grade and date; then Coverage, Still open, Left out on purpose and Run | F1-F12, Q8 | always | -- | -- |
 | P1 | Open | 3 | the hook said aloud, credibility, one insight, the rapport rule | B3, B4, Q8 | always | -- | -- |
 | P2 | Question order | 3 | B2's questions in the order the room needs | B2, Q4 | always | -- | -- |
 | P3 | Objections: name it, then answer | 3 | the likely objections, named first, each with a short answer | B5, B8 | always | -- | -- |

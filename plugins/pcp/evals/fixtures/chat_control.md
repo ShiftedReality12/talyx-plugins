@@ -31,7 +31,7 @@ Meeting: First intro: earn a second meeting | Prepared for: Founder / principal 
 |---|---|
 | The second vehicle needs three references [10] | Warm introductions land in weeks |
 
-## Meeting approach
+## Behavioral profile
 | What the record shows | Your move |
 |---|---|
 | Pace and control: sets agendas on panels [7] | Lead with the outcome in one sentence; they decide fast and dislike preamble. |
@@ -56,18 +56,18 @@ Unmarked facts are measured. 12 facts cited; status FULL at 10 of 12 source type
 
 | # | What it says | Source | Grade | Date |
 |---|---|---|---|---|
-| [1] | Jane Doe leads Alder Grey Capital | [example.org](https://example.org/1) | Measured | Sep 20, 2026 |
-| [2] | The firm manages family capital | [example.org](https://example.org/2) | Measured | Sep 20, 2026 |
-| [3] | Letter: "We buy patience" | [example.org](https://example.org/3) | Measured | Sep 20, 2026 |
-| [4] | Avoids fee-led pitches | [example.org](https://example.org/4) | Measured | Sep 20, 2026 |
-| [5] | Raising a second vehicle this year | [example.org](https://example.org/5) | Measured | Sep 20, 2026 |
-| [6] | Fact 6 about Alder Grey Capital | [example.org](https://example.org/6) | Derived | Sep 20, 2026 |
-| [7] | Sets agendas on panels | [example.org](https://example.org/7) | Inference | Sep 20, 2026 |
-| [8] | Second close announced | [example.org](https://example.org/8) | Measured | Sep 20, 2026 |
-| [9] | Investment committee signs off on custodians | [example.org](https://example.org/9) | Measured | Sep 20, 2026 |
-| [10] | The second vehicle needs three references | notes-alder-grey.pdf | Measured | Sep 20, 2026 |
-| [11] | Close date moved once before this year | [example.org](https://example.org/11) | Measured | Sep 20, 2026 |
-| [12] | Introduction to the custodian offered | [example.org](https://example.org/12) | Not determined | Sep 20, 2026 |
+| [1] | Jane Doe leads Alder Grey Capital | [example.org](https://example.org/1) | Measured | Sep 12, 2026 |
+| [2] | The firm manages family capital | [example.org](https://example.org/2) | Measured | Sep 12, 2026 |
+| [3] | Letter: "We buy patience" | [example.org](https://example.org/3) | Measured | Sep 12, 2026 |
+| [4] | Avoids fee-led pitches | [example.org](https://example.org/4) | Measured | Sep 12, 2026 |
+| [5] | Raising a second vehicle this year | [example.org](https://example.org/5) | Measured | Sep 12, 2026 |
+| [6] | Fact 6 about Alder Grey Capital | [example.org](https://example.org/6) | Derived | Sep 12, 2026 |
+| [7] | Sets agendas on panels | [example.org](https://example.org/7) | Inference | Sep 12, 2026 |
+| [8] | Second close announced | [example.org](https://example.org/8) | Measured | Sep 12, 2026 |
+| [9] | Investment committee signs off on custodians | [example.org](https://example.org/9) | Measured | Sep 12, 2026 |
+| [10] | The second vehicle needs three references | notes-alder-grey.pdf | Measured | Sep 12, 2026 |
+| [11] | Close date moved once before this year | [example.org](https://example.org/11) | Measured | Sep 12, 2026 |
+| [12] | Introduction to the custodian offered | [example.org](https://example.org/12) | Not determined | Sep 12, 2026 |
 | | |
 |---|---|
 | **Coverage** | 10 of 12 source types · LinkedIn: read from your file |

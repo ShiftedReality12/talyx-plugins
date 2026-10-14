@@ -21,7 +21,7 @@ Meeting: First intro: earn a second meeting | Prepared for: Founder / principal 
 |---|---|
 | The second vehicle needs references [2] | Warm introductions land in weeks |
 
-## B6 Meeting approach
+## B6 Behavioral profile
 **Evidence tier:** low: it sets how far page 3 goes
 
 ## B7 Who decides
@@ -41,9 +41,9 @@ Unmarked facts are measured. 3 facts cited; status FULL at 10 of 12 source types
 
 | # | What it says | Source | Grade | Date |
 |---|---|---|---|---|
-| [1] | Jane Doe leads Alder Grey Capital | [example.org](https://example.org/1) | Measured | Sep 20, 2026 |
-| [2] | The firm manages family capital | [example.org](https://example.org/2) | Measured | Sep 20, 2026 |
-| [3] | Letter: "We buy patience" | [example.org](https://example.org/3) | Measured | Sep 20, 2026 |
+| [1] | Jane Doe leads Alder Grey Capital | [example.org](https://example.org/1) | Measured | Sep 12, 2026 |
+| [2] | The firm manages family capital | [example.org](https://example.org/2) | Measured | Sep 12, 2026 |
+| [3] | Letter: "We buy patience" | [example.org](https://example.org/3) | Measured | Sep 12, 2026 |
 ## Sources
 - example.org, three pages.
 

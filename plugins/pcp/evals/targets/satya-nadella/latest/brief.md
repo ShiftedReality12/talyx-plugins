@@ -37,7 +37,7 @@ Meeting: First introduction: earn a second meeting, Oct 15, 2026 | Prepared for:
 | Talyx offers AI meeting-prep tools for executive teams [11] | Bridge: executives walk in already briefed |
 | Microsoft reported Azure past $100 billion on July 30, 2026 [3] | A fresh reason to talk; not his deadline |
 
-## B6 Meeting approach
+## B6 Behavioral profile
 | What the record shows | Your move |
 |---|---|
 | Pace and control: AI decisions centralised [9]; job is the agentic system [5] | Match their pace; propose once, then ask. |
@@ -63,33 +63,35 @@ Meeting: First introduction: earn a second meeting, Oct 15, 2026 | Prepared for:
 - **Lands:** results over features; Nadella prefers reorganizing jobs to cutting them [10].
 - **Repels:** ignoring Microsoft's agentic system [5].
 - **What to bring:** one briefed-team example [11].
-- **The ask:** 30 minutes with him or the tooling owner, within a month · **Fallback:** a named person. **Stop if:** Microsoft builds it in-house.
+- **The ask:** 30 minutes with him or the tooling owner, within a month · **Fallback:** a named person.
+- **Stop if:** Microsoft builds it in-house.
 ### Meeting two
-- **Meeting two:** a working session on one team's prep, on his tokens-into-results line [2]. **Meeting three:** a pilot.
+- **Meeting two:** a working session on one team's prep, on his tokens-into-results line [2].
+- **Meeting three:** a pilot.
 ### After the meeting
 - **Capture:** who he says decides.
 
 ## B10 Evidence ledger
-Unmarked facts are measured. 12 facts cited; status LIMITED at 6 of 12 source types.
+Unmarked facts are measured. 12 facts cited; status LIMITED at 6 of 12 source types. Dates are the sources' own; 'seen' marks the day an undated source was read.
 
 | # | What it says | Source | Grade | Date |
 |---|---|---|---|---|
-| [1] | Chairman and CEO; CEO since February 2014 | [news.microsoft.com](https://news.microsoft.com/exec/satya-nadella/) | Measured | Oct 14, 2026 |
+| [1] | Chairman and CEO; CEO since February 2014 | [news.microsoft.com](https://news.microsoft.com/exec/satya-nadella/) | Measured | seen Oct 14, 2026 |
 | [2] | Nadella: tokens into business results for every customer | [sec.gov](https://www.sec.gov/Archives/edgar/data/0000789019/000119312526323632/msft-ex99_1.htm) | Measured | Jul 29, 2026 |
 | [3] | Azure annual revenue passed $100 billion first time | [ianslive.in](https://ianslive.in/microsoft-q4-revenue-rises-18-pc-to-90-billion-azure-annual-revenue-tops-100-billion--20260730100216) | Measured | Jul 30, 2026 |
 | [4] | Azure and other cloud services grew 43% | [sec.gov](https://www.sec.gov/Archives/edgar/data/0000789019/000119312526323632/msft-ex99_1.htm) | Measured | Jul 29, 2026 |
 | [5] | Nadella: job is the agentic system, not Azure networking | [latent.space](https://www.latent.space/p/satya-2026) | Measured | Jun 3, 2026 |
 | [6] | Azure capacity built in 15 months exceeds first 15 years | [latent.space](https://www.latent.space/p/satya-2026) | Measured | Jun 3, 2026 |
-| [7] | Joined Microsoft 1992 from Sun; led Cloud and Enterprise | [news.microsoft.com](https://news.microsoft.com/exec/satya-nadella/) | Measured | Oct 14, 2026 |
-| [8] | Mission: empower every person and organization to achieve more | [microsoft.com](https://www.microsoft.com/en-us/about) | Measured | Oct 14, 2026 |
+| [7] | Joined Microsoft 1992 from Sun; led Cloud and Enterprise | [news.microsoft.com](https://news.microsoft.com/exec/satya-nadella/) | Measured | seen Oct 14, 2026 |
+| [8] | Mission: empower every person and organization to achieve more | [microsoft.com](https://www.microsoft.com/en-us/about) | Measured | seen Oct 14, 2026 |
 | [9] | Weekly AI accelerator meetings; centralised AI decisions | [letsdatascience.com](https://letsdatascience.com/news/nadella-restructures-microsoft-around-accelerated-ai-agenda-59eda4a8) | Measured | Dec 17, 2025 |
 | [10] | Nadella: think about reorganizing the jobs | [futurism.com](https://futurism.com/future-society/microsoft-ceo-satya-nadella-ai-society) | Measured | Jun 22, 2026 |
-| [11] | Talyx offers AI meeting-prep tools for executive teams | your saved setup | Measured | Oct 14, 2026 |
+| [11] | Talyx offers AI meeting-prep tools for executive teams | your saved setup | Measured | seen Oct 14, 2026 |
 | [12] | Pressure on senior leaders to commit or depart | [letsdatascience.com](https://letsdatascience.com/news/nadella-restructures-microsoft-around-accelerated-ai-agenda-59eda4a8) | Measured | Dec 17, 2025 |
 
 | | |
 |---|---|
 | **Coverage** | 6 of 12 source types. Not found: books, registers, events. LinkedIn: not read: no browser here |
-| **Still open** | Decision maker: Who signs off on executive tools? · The gate: Who must agree before a yes? · Relationship holder: Who holds this relationship? · LinkedIn: What has he posted lately? |
+| **Still open** | Decision maker: Who signs off on executive tools? · The gate: Who must agree before a yes? · Relationship holder: Who holds this relationship? |
 | **Left out on purpose** | health, family, politics, litigation, personal finances |
 | **Run** | Oct 14, 2026 · standard · first introduction · Founder / principal · US · LIMITED · decision-useful facts per page: 4.0 |

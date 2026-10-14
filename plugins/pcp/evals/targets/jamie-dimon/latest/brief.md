@@ -37,7 +37,7 @@ Meeting: First intro: earn a second meeting | Prepared for: Founder / principal 
 | Talyx offers AI meeting prep for executive teams [16] | Leaders enter each room knowing the person |
 | Co-presidents' awards vest after three years [12] | The handover window; habits start now |
 
-## B6 Meeting approach
+## B6 Behavioral profile
 | What the record shows | Your move |
 |---|---|
 | Pace and control: No read | No read |
@@ -62,7 +62,9 @@ Meeting: First intro: earn a second meeting | Prepared for: Founder / principal 
 ## B9 Meeting angle
 ### This meeting
 - **Frame:** his team prepared through the next three years [2]; not a pitch.
-- **Lands:** figures with sources [17]. **Repels:** AI replacing people [5]. **What to bring:** one sourced page [16].
+- **Lands:** figures with sources [17].
+- **Repels:** AI replacing people [5].
+- **What to bring:** one sourced page [16].
 - **The ask:** a second 30-minute meeting with him or whoever prepares his meetings [16] · **Fallback:** 30 minutes with his AI adoption owner.
 - **Stop if:** he says executive preparation is settled.
 ### Meeting two
@@ -72,32 +74,32 @@ Meeting: First intro: earn a second meeting | Prepared for: Founder / principal 
 - **Capture:** who prepares his meetings today.
 
 ## B10 Evidence ledger
-Unmarked facts are measured. 18 facts cited; status FULL at 9 of 12 source types.
+Unmarked facts are measured. 18 facts cited; status FULL at 9 of 12 source types. Dates are the sources' own; 'seen' marks the day an undated source was read.
 
 | # | What it says | Source | Grade | Date |
 |---|---|---|---|---|
-| [1] | CEO since Jan 1, 2006 | [jpmorganchase.com](https://www.jpmorganchase.com/about/leadership/jamie-dimon) | Measured | Oct 14, 2026 |
+| [1] | CEO since Jan 1, 2006 | [jpmorganchase.com](https://www.jpmorganchase.com/about/leadership/jamie-dimon) | Measured | seen Oct 14, 2026 |
 | [2] | Plans to stay three more years | [nst.com.my](https://www.nst.com.my/amp/business/corporate/2026/06/1473089/jpmorgan-sets-new-succession-plan-dimon-plans-stay) | Derived | Jun 26, 2026 |
 | [3] | Petno, Rohrbaugh named co-presidents | [nst.com.my](https://www.nst.com.my/amp/business/corporate/2026/06/1473089/jpmorgan-sets-new-succession-plan-dimon-plans-stay) | Measured | Jun 26, 2026 |
 | [4] | Letter: AI adoption far faster | [jpmorganchase.com](https://www.jpmorganchase.com/ir/annual-report/2025/ar-ceo-letters) | Measured | Apr 6, 2026 |
 | [5] | AI will reduce jobs; wording inartful | [news.bgov.com](https://news.bgov.com/artificial-intelligence/dimon-says-jpmorgan-will-hire-more-for-ai-fewer-bankers-1) | Measured | May 21, 2026 |
 | [6] | Third-quarter net income $15.3 billion | [sec.gov](https://www.sec.gov/Archives/edgar/data/0000019617/000162828026065582/jpm-20261013.htm) | Measured | Oct 13, 2026 |
 | [7] | Letter: worst mistakes are predictable | [jpmorganchase.com](https://www.jpmorganchase.com/ir/annual-report/2025/ar-ceo-letters) | Measured | Apr 6, 2026 |
-| [8] | Citigroup president 1998; Bank One CEO 2000 | [jpmorganchase.com](https://www.jpmorganchase.com/about/leadership/jamie-dimon) | Measured | Oct 14, 2026 |
-| [9] | Tufts degree; Harvard MBA | [jpmorganchase.com](https://www.jpmorganchase.com/about/leadership/jamie-dimon) | Measured | Oct 14, 2026 |
+| [8] | Citigroup president 1998; Bank One CEO 2000 | [jpmorganchase.com](https://www.jpmorganchase.com/about/leadership/jamie-dimon) | Measured | seen Oct 14, 2026 |
+| [9] | Tufts degree; Harvard MBA | [jpmorganchase.com](https://www.jpmorganchase.com/about/leadership/jamie-dimon) | Measured | seen Oct 14, 2026 |
 | [10] | About $4.6 trillion in assets | [fortune.com](https://fortune.com/2026/06/30/jp-morgan-succession-ceo-factory-fortune-500-retention-bank/) | Measured | Jun 30, 2026 |
 | [11] | 2025 net income $57.0 billion, 20% ROTCE | [jpmorganchase.com](https://www.jpmorganchase.com/ir/annual-report/2025/ar-ceo-letters) | Measured | Apr 6, 2026 |
 | [12] | Co-presidents' $30 million awards vest three years | [fortune.com](https://fortune.com/2026/06/30/jp-morgan-succession-ceo-factory-fortune-500-retention-bank/) | Measured | Jun 30, 2026 |
 | [13] | Reagan forum speaker, May 28-29 | [reaganfoundation.org](https://www.reaganfoundation.org/reagan-institute/press-releases/jamie-dimon-gov-mike-dunleavy-director-michael-kratsios-sen-roger-marshall-md-and) | Measured | Apr 1, 2026 |
 | [14] | Letter: stickier inflation, higher rates | [jpmorganchase.com](https://www.jpmorganchase.com/ir/annual-report/2025/ar-ceo-letters) | Measured | Apr 6, 2026 |
 | [15] | Surcharge "punish our success" | [bankingdive.com](https://www.bankingdive.com/news/jpmorgan-dimon-shareholder-letter-ai-basel-credit-inflation/816722/) | Measured | Apr 6, 2026 |
-| [16] | Talyx offers AI meeting prep | your saved setup | Measured | Oct 14, 2026 |
+| [16] | Talyx offers AI meeting prep | your saved setup | Measured | seen Oct 14, 2026 |
 | [17] | Letter: $1 trillion usable liquidity undeployable | [jpmorganchase.com](https://www.jpmorganchase.com/ir/annual-report/2025/ar-ceo-letters) | Measured | Apr 6, 2026 |
 | [18] | Letter: about $40 billion excess capital | [jpmorganchase.com](https://www.jpmorganchase.com/ir/annual-report/2025/ar-ceo-letters) | Derived | Apr 6, 2026 |
 
 | | |
 |---|---|
 | **Coverage** | 9 of 12 source types. Not found: public social posts, an Oct 15 event, Q3 call remarks. LinkedIn: not read: you declined |
-| **Still open** | Decision maker: Who picks his team's tools? · The gate: What must be true before a yes? · Relationship holder: Who holds the relationship? · LinkedIn: What has he posted lately? |
+| **Still open** | Decision maker: Who picks his team's tools? · The gate: What must be true before a yes? · Relationship holder: Who holds the relationship? |
 | **Left out on purpose** | health, family, political giving, litigation, personal finances |
 | **Run** | Oct 14, 2026 · standard · first intro · founder / principal · US · FULL · 6.0 facts per page |

@@ -14,7 +14,7 @@ Meeting: First intro | Prepared for: Founder / principal | Depth: standard | Sou
 ## B5 Signals and what to do with them
 Gap: references [1]. Bridge: our pipeline ingests filings. Does that make sense?
 
-## B6 Meeting approach
+## B6 Behavioral profile
 **Evidence tier:** medium: it sets how far page 3 goes
 
 ## B7 Who decides
@@ -29,14 +29,14 @@ Gap: references [1]. Bridge: our pipeline ingests filings. Does that make sense?
 ## B10 Evidence ledger
 | # | What it says | Source | Grade | Date |
 |---|---|---|---|---|
-| [1] | Fact 1 | [example.org](https://example.org/1) | Measured | Sep 20, 2026 |
-| [2] | Fact 2 | [example.org](https://example.org/2) | Measured | Sep 20, 2026 |
-| [3] | Fact 3 | [example.org](https://example.org/3) | Measured | Sep 20, 2026 |
-| [4] | Fact 4 | [example.org](https://example.org/4) | Measured | Sep 20, 2026 |
-| [5] | Fact 5 | [example.org](https://example.org/5) | Measured | Sep 20, 2026 |
-| [6] | Fact 6 | [example.org](https://example.org/6) | Measured | Sep 20, 2026 |
-| [7] | Fact 7 | [example.org](https://example.org/7) | Measured | Sep 20, 2026 |
-| [8] | Fact 8 with no source |  | Measured | Sep 20, 2026 |
+| [1] | Fact 1 | [example.org](https://example.org/1) | Measured | Sep 12, 2026 |
+| [2] | Fact 2 | [example.org](https://example.org/2) | Measured | Sep 12, 2026 |
+| [3] | Fact 3 | [example.org](https://example.org/3) | Measured | Sep 12, 2026 |
+| [4] | Fact 4 | [example.org](https://example.org/4) | Measured | Sep 12, 2026 |
+| [5] | Fact 5 | [example.org](https://example.org/5) | Measured | Sep 12, 2026 |
+| [6] | Fact 6 | [example.org](https://example.org/6) | Measured | Sep 12, 2026 |
+| [7] | Fact 7 | [example.org](https://example.org/7) | Measured | Sep 12, 2026 |
+| [8] | Fact 8 with no source |  | Measured | Sep 12, 2026 |
 | | |
 |---|---|
 | **Coverage** | 4 of 12 source types |

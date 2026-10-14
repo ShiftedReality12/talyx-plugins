@@ -31,7 +31,7 @@ CITE = re.compile(r"\[(\d+)\]")
 TAGS, GRADES, CONFS = "Direct|Search|LinkedIn|Yours", "Measured|Derived|Inference|Not determined", "Primary|Reputable|Single source|Inferred"
 # Printed ledger (Ben, Oct 13): | # | What it says | Source | Grade | Date |. Tag and confidence stay in claims.jsonl.
 SRC_ROW = re.compile(r"^\|\s*\[(\d+)\]\s*\|\s*([^|]+?)\s*\|\s*([^|\s][^|]*?)\s*\|\s*(" + GRADES + r")\s*\|\s*"
-                     r"([A-Z][a-z]{2} \d{1,2}, \d{4})\s*\|", re.M)
+                     r"((?:seen )?[A-Z][a-z]{2} \d{1,2}, \d{4})\s*\|", re.M)
 
 
 def _tag(source):
@@ -146,6 +146,11 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
         fails += cite_relevance(brief_md)
     if want("quality"):
         fails += source_quality(ledger(brief_md))
+        run = re.search(r"\*\*Run\*\*\s*\|\s*([A-Z][a-z]{2} \d{1,2}, \d{4})", brief_md)
+        same = [m.group(1) for m in SRC_ROW.finditer(brief_md) if run and m.group(5) == run.group(1)]
+        if len(same) >= 3:   # v6 Moynihan dated all 20 rows the run day: read dates, not the sources' own
+            fails.append(f"C18 quality: rows {same} carry the run's date {run.group(1)} unmarked; give each source's own date, "
+                         "or 'seen <date>' when it has none")
     if want("swap"):
         nouns = [n.lower() for n in target_nouns if n]
         for k in [k for k in secs if re.match(r"B1$|B[3-8]$", k)]:   # the blocks that state facts about the person
@@ -216,7 +221,7 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
             fails.append(f"C12 gaps: {len(gaps)} gaps in B1-B9 but no question in Still open")
         if len(asked) > cap:
             fails.append(f"C12 gaps: Still open asks {len(asked)} questions; at most {cap}, highest value first")
-        labels = {g[1].lower() for g in gaps} | {"linkedin"}
+        labels = {g[1].lower() for g in gaps}
         for item in asked:
             if item.split(": ", 1)[0].strip("*_ ").lower() not in labels:
                 fails.append(f"C12 gaps: Still open item '{item[:40]}' is not on a gap above (a Not determined or No read label)")
@@ -242,8 +247,8 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
             if tagged:
                 fails.append(f"C16 linkedin: LinkedIn {li['not_read']}, yet ledger rows {tagged} are tagged LinkedIn")
             still = next((ln for ln in grid.splitlines() if "Still open" in ln), "")
-            if not re.search(r"LinkedIn:[^·|]*\?", still):
-                fails.append("C16 linkedin: LinkedIn not read and no 'LinkedIn: question?' in Still open")
+            if re.search(r"LinkedIn:[^·|]*\?", still):   # Oct 14: an unread LinkedIn is stated in Coverage, not asked
+                fails.append("C16 linkedin: LinkedIn not read belongs in Coverage only, not as a Still open question")
     if experience and which == "all":
         why = {k: re.findall(r"\*\*Why:\*\*\s*(.+)", secs[k]) for k in secs if re.match(r"P\d+$", k)}
         if experience == "new":
@@ -258,6 +263,13 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
                 re.findall(r"^\s*[-*]\s+\*\*.+?:\*\*\s*(.+)$", secs.get("P3", ""), re.M)
             fails += [f"C15 experience: top -- '{t[:40]}...' is {_words(t)} words > 15" for t in lines if _words(t) > 15]
     if want("layout"):
+        b9 = secs.get("B9", "")
+        for ln in re.findall(r"^\s*[-*]\s+(.+)$", b9, re.M):
+            labels = re.findall(r"\*\*([^*]+?):\*\*", ln)
+            if len([x for x in labels if x not in ("Fallback",)]) > 1:
+                fails.append(f"C14 layout: B9 bullet carries {len(labels)} labels {labels}; one label per bullet (The ask with its Fallback excepted)")
+        if "(not confirmed)" in md:
+            fails.append("C14 layout: '(not confirmed)' printed; leave an unconfirmed item out")
         brief = re.split(r"^# ", md, maxsplit=2, flags=re.M)   # ['', name + brief, script ...]: the brief ends at the next `# `
         bsecs = list(_sections("# " + brief[1] if len(brief) > 1 else md))
         blocks = [s["id"] for s in R["brief"]["sections"]][:-1]
@@ -358,6 +370,7 @@ def pdf_check(pdf, brief_md=""):
                 fails.append(f"C10 pages: block titles after the ledger on page {bp}: {later}")
         if n["deliverable"] not in re.sub(r"\s+", " ", pages[0]):
             fails.append(f"C10 pages: page 1 does not name the {n['deliverable']}")
+        fails += script_numbers(pages[-1], len(pages))
         foot = f"page {len(pages)} of {len(pages)}"
         if pages[-1].count(foot) != 1:
             fails.append(f"C10 pages: last page shows '{foot}' {pages[-1].count(foot)} times, need once")
@@ -373,6 +386,14 @@ def pdf_check(pdf, brief_md=""):
         if len(links) < len(rows):
             fails.append(f"C10 links: {len(links)} links in the PDF < {len(rows)} ledger rows not tagged Yours")
     return fails + c19 + block_breaks(pages, brief_md)
+
+
+def script_numbers(page, n):
+    """C10: page 3's section heads are numbered 1, 2, 3 ... with no gap when P5 or P6 drops (Oct 14). A head prints
+    in capitals, so a numbered body line (it has lower case) never counts."""
+    nums = sorted(int(x) for x in re.findall(r"^(\d) ?\.\s+[A-Z][^a-z\n]*$", page, re.M))
+    return [f"C10 pages: page {n}'s sections are numbered {nums}; number them 1-{len(nums)} with no gap"] \
+        if nums and nums != list(range(1, len(nums) + 1)) else []
 
 
 def block_breaks(pages, brief_md=""):
@@ -443,6 +464,10 @@ def self_test(require_pdf=False):
     else:
         print("FAIL chat_broken.md must trip S4-10"); ok = False
     print(f"inventory: {len(conditional)} conditional parts, each enforced by a check:", ", ".join(f"{p} {c}" for p, _, c in conditional))
+    if script_numbers("1. OPEN\n2. QUESTION ORDER\n3 . O B J E C T I O N S\n4. CLOSE\n6. IF IT STALLS\n1. What did they say?\n", 3):
+        print("tripped: C10 by a page 3 numbered 1, 2, 3, 4, 6 (a gap where P5 dropped)")
+    else:
+        print("FAIL C10 must trip on page-3 numbers 1, 2, 3, 4, 6"); ok = False
     split = block_breaks((fx / "split_table_pages.txt").read_text().split("\f"), (fx / "control_12.md").read_text())
     if len(split) == 2 and "page 2 opens inside a block" in split[0] and "split across pages [1, 2]" in split[1]:
         print("tripped: C19 by split_table_pages.txt (a v6 render: page 2 opens on the rest of B6's table)")
@@ -565,6 +590,8 @@ MUST_TRIP = [
     ("recent_wins_unsourced.md", {}, ["C13"]),
     ("cites_broken.md", {}, ["C17", "C18"]),
     ("control_12.md", {"authority": "medium"}, ["C13"]),
+    ("b9_merged.md", {}, ["C14"]),
+    ("dates_read_day.md", {}, ["C18"]),
 ]
 
 

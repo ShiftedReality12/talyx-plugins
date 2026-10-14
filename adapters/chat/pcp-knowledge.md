@@ -1,8 +1,8 @@
-<!-- GENERATED from pcp.yaml (sha256:a1399daa2e17) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:f5216e7ed72d) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
-Stages, dependency-ordered: **setup once -> intake -> intelligence collection -> meeting approach -> Intelligence Brief -> debrief.**
+Stages, dependency-ordered: **setup once -> intake -> intelligence collection -> behavioral profile -> Intelligence Brief -> debrief.**
 Every stage declares its inputs before its behaviour, reads only its listed context, and follows rows
 that each carry a falsification test. Every fact traces to a source. Nothing is invented.
 The deliverable is one document: the Intelligence Brief, then the Meeting script. Nothing else is emitted.
@@ -17,7 +17,7 @@ given in the message stand in for the saved setup file.
 
 - Work the intelligence cycle: direction (setup and the meeting objective) -> collection -> processing (each fact gets a source, tag, grade and date; excluded topics are dropped) -> analysis -> the Intelligence Brief -> feedback (the debrief).
 - Collection is open sources, the person's public social footprint, a LinkedIn profile the user saves as a PDF (or copies) and gives, with permission, and the user's own files and answers.
-- Meeting approach is human-source analysis from public evidence: each row is a cited observation and the caller's move. It never labels the person's character.
+- Behavioral profile is human-source analysis from public evidence: each row is a cited observation and the caller's move. It never labels the person's character.
 - Keep what was read apart from what was inferred (the grade). Check the one assumption the Take rests on (Strongest case against). On deep runs, weigh competing explanations of what they want.
 
 **Sources never cited:** goodfest.westfield.com, peoplefinders.com, spokeo.com, whitepages.com, beenverified.com, radaris.com, truthfinder.com, mylife.com. **Weak (never C1/C2, never the only support on page 1):** mexc.com, medium.com, substack.com, quora.com, reddit.com, wikipedia.org, crunchbase.com, zoominfo.com, rocketreach.co, signalhire.com, contactout.com, theorg.com, famousbirthdays.com, celebsages.com, wealthygorilla.com, idcrawl.com.
@@ -100,7 +100,7 @@ This host runs no scripts. The saved setup is the **Saved setup** block at the e
 
 - **S2-1** Public sources, plus what the user gives PCP: their files and answers (tag Yours) and a LinkedIn profile they save and give (S2-7). No paid data the user has not supplied, no scraping.  
   _Fails when:_ A run with no browser, no files and no answers holds only Direct and Search facts.
-- **S2-2** Every claim carries url (or the file name, for Yours), retrieved_at, tag Direct|Search|LinkedIn|Yours, grade Measured|Derived|Inference|Not determined, and confidence C1 (primary, dated) | C2 (reputable secondary) | C3 (single weak source) | C4 (inferred).  
+- **S2-2** Every claim carries url (or the file name, for Yours), retrieved_at, published (the source's own publication or event date; none when the source is undated), tag Direct|Search|LinkedIn|Yours, grade Measured|Derived|Inference|Not determined, and confidence C1 (primary, dated) | C2 (reputable secondary) | C3 (single weak source) | C4 (inferred).  
   _Fails when:_ A claim missing any field is dropped and counted in coverage.dropped.
 - **S2-3** A claim that hits an exclusion is dropped BEFORE the writer sees it and counted in coverage.excluded; the ledger's Left out on purpose row names the topic, never the fact.  
   _Fails when:_ Seed a claim tagged exclusion health -- it must not appear in any output file.
@@ -115,7 +115,7 @@ This host runs no scripts. The saved setup is the **Saved setup** block at the e
 - **S2-8** Source quality: prefer the primary source (the organisation, filings, the person's own words). Never cite a source_quality.exclude domain (people-search and unreachable sites); a source_quality.weak domain is at most C3 and never the only support for a fact on page 1. Cite a fact only where the ledger row says it: hypotheticals (Reverses if, Stop if) carry no citation. Before render, check every link: dead links are replaced or the fact is dropped; blocked links (the site refuses bots) are kept.  
   _Fails when:_ A brief citing mexc.com as C2 fails C18; a Reverses if line citing the intake row fails C17; the link check reports blocked separately from dead.
 
-## Stage 3: Meeting approach
+## Stage 3: Behavioral profile
 
 **Input contract** (declared before behaviour):
 
@@ -207,7 +207,7 @@ By jurisdiction: eu: any claim older than 5 years that is not a current role, re
 **LinkedIn status (S2-7), in B4's last line and the Coverage row:** `LinkedIn: read from your file`, or
 `LinkedIn: not read: <reason>` with one of these reasons, word for word: you declined; file not given; scope none; no browser here.
 
-## Meeting approach (six dimensions)
+## Behavioral profile (six dimensions)
 
 Tiers: high = 3 observations, 2 sources, a direct quote or action;
 medium = 2 observations, 1 source; low = role-inferred only (renders as "No read").
@@ -236,11 +236,11 @@ Then one `## Bn Title` per block, in order. Word budgets are length limits: cut 
 | B3 | Who they are | 110 | always | Bullets, label first: **Role:** title and since when [n] (required). **Path:** the prior roles that matter [n]. **The organization:** in its own words, plus one scale figure [n]. **What changed:** one to three dated items, newest first [n]. **Recent wins:** none to two dated, cited results [n]. Path, The organization and What changed read Not determined if not found; Recent wins is left out. From F1 F2 F3 F4 F9. |
 | B4 | In their words | 90 | always | 2-3 bullets, label first: **Topic, where, when:** "their exact words" [n]. None found: one line of themes from their public presence [n]; nothing at all: Not determined. Then always one last line, not a bullet: **LinkedIn:** read from your file, or **LinkedIn:** not read: and the reason (S2-7). From F5 F6 F8 and LinkedIn. |
 | B5 | Signals and what to do with them | 100 | always | A table: | Observable | What to do with it |, three rows in this order: their priority and the gap, in their words [n] -> why this meeting matters to them; where your offer connects (Q8) [n] -> the bridge: the outcome you offer, not the method; the trigger, why now [n] -> the urgency, never invented. From F3 F10 F11 and Q8. |
-| B6 | Meeting approach | 170 | always | A table: | What the record shows | Your move |, six rows, one per rubric dimension, each starting with its label (Pace and control, How they take recognition, Appetite for detail, Appetite for risk, How they take disagreement, How they keep score) and a colon: the cited observation in at most 8 words [n] -> the rubric's move word for word. A dimension with no evidence is the bare label and No read (| Pace and control | No read |), never "none found". Then one line: **Evidence tier:** high, medium or low: it sets how far page 3 goes. A cited observation and a move, never a verdict on their character. |
+| B6 | Behavioral profile | 170 | always | A table: | What the record shows | Your move |, six rows, one per rubric dimension, each starting with its label (Pace and control, How they take recognition, Appetite for detail, Appetite for risk, How they take disagreement, How they keep score) and a colon: the cited observation in at most 8 words [n] -> the rubric's move word for word. A dimension with no evidence is the bare label and No read (| Pace and control | No read |), never "none found". Then one line: **Evidence tier:** high, medium or low: it sets how far page 3 goes. A cited observation and a move, never a verdict on their character. |
 | B7 | Who decides | 50 | always | Bullets: **Decision maker:** who signs off [n]. **The gate:** what must be true, or who must agree, before a yes [n]. **Relationship holder:** who the relationship runs through [n]. Unknown: Not determined (a gap Still open may ask). From F1 F3 F9 F11. |
 | B8 | Strongest case against | 120 | always | Up to 3 bullets: **Against:** the best evidence against your read [n]. **Reverses if:** what would flip it. None found: No counter-evidence found. Deep runs only, then `### What they may want from this meeting` and a table | Hypothesis and why it fits | Test: who answers, and what would disprove it |, up to 3 rows, each with the claim that would disprove it [n]. From F12; litigation stays off the page. |
-| B9 | Meeting angle | 120 | always | `### This meeting` then bullets: **Frame:** what this meeting is, in their terms; not a pitch. **Lands:** [n]. **Repels:** [n]. **What to bring:** one thing of value [n]. **The ask:** specific and bounded, who and how long [n] · **Fallback:** the smaller ask. **Stop if:** the answer that means drop the ask. `### Meeting two` then **Meeting two:** the next conversation if this one lands, on a fact from this brief. **Meeting three:** where it goes after that. `### After the meeting` then **Capture:** what to record from the room that the public record couldn't give. From Q8 and B3-B8. |
-| B10 | Evidence ledger | 550 | always | One line: Unmarked facts are measured. {n} facts cited; status {FULL or LIMITED} at {n} of 12 source types. Then the table | # | What it says | Source | Grade | Date |, exactly one row per cited fact in order of first use (never grouped): [n] · the fact in about 8 words · [domain](url) (a file name for your own files) · Measured, Derived, Inference or Not determined · Mon D, YYYY. The tag (Direct, Search, LinkedIn, Yours) and confidence (C1-C4) stay in claims.jsonl, not on the page (Ben, Oct 13). Then a label grid (empty header row) with four rows: **Coverage** -- n of 12 source types, what was not found and why, and LinkedIn: read from your file, or LinkedIn: not read: and B4's reason. **Still open** -- at most 4 gaps, highest value first, each with the question that closes it in the room ('Label: question?', joined by ' · '). **Left out on purpose** -- the excluded topics, never the facts. **Run** -- date · depth · meeting type · prepared for · jurisdiction · status · decision-useful facts per page. |
+| B9 | Meeting angle | 120 | always | One label per bullet (only The ask and its Fallback share one). `### This meeting` then bullets: **Frame:** what this meeting is, in their terms; not a pitch. **Lands:** [n]. **Repels:** [n]. **What to bring:** one thing of value [n]. **The ask:** specific and bounded, who and how long [n] · **Fallback:** the smaller ask. **Stop if:** the answer that means drop the ask. `### Meeting two` then **Meeting two:** the next conversation if this one lands, on a fact from this brief. **Meeting three:** where it goes after that. `### After the meeting` then **Capture:** what to record from the room that the public record couldn't give. From Q8 and B3-B8. |
+| B10 | Evidence ledger | 550 | always | One line: Unmarked facts are measured. {n} facts cited; status {FULL or LIMITED} at {n} of 12 source types. Dates are the sources' own; 'seen' marks the day an undated source was read. Then the table | # | What it says | Source | Grade | Date |, exactly one row per cited fact in order of first use (never grouped): [n] · the fact in about 8 words · [domain](url) (a file name for your own files) · Measured, Derived, Inference or Not determined · the source's own date, Mon D, YYYY (claims.jsonl published); only for an undated source, the day it was read, marked 'seen Mon D, YYYY'. The tag (Direct, Search, LinkedIn, Yours) and confidence (C1-C4) stay in claims.jsonl, not on the page (Ben, Oct 13). Then a label grid (empty header row) with four rows: **Coverage** -- n of 12 source types, what was not found and why, and LinkedIn: read from your file, or LinkedIn: not read: and B4's reason. **Still open** -- at most 4 gaps, highest value first, each with the question that closes it in the room ('Label: question?', joined by ' · '). **Left out on purpose** -- the excluded topics, never the facts. **Run** -- date · depth · meeting type · prepared for · jurisdiction · status · decision-useful facts per page. |
 
 Domain vocabulary: wealth: book, AUM, custodian, fee compression, succession, next-gen; pe: dry powder, DPI, add-on, hold period, exit; saas: ARR, NRR, champion, security review, procurement, renewal.
 
@@ -274,7 +274,7 @@ Never say: "Does that make sense?"; "Is this helpful?"; "No pressure"; "You'd kn
 | Id | Check | Passes when |
 |---|---|---|
 | C1 | swap | no sentence in B1 or B3-B8 lacks both a [n] and a target-specific noun (headings, the tier line and Not determined lines aside) |
-| C2 | bound | unbound == 0, dangling == 0, and every [n] in the body is a B10 row with source, tag, grade, conf. and date |
+| C2 | bound | unbound == 0, dangling == 0, and every [n] in the body is a B10 row | [n] | what it says | source | grade | date | (tag and confidence stay in claims.jsonl, Ben Oct 13) |
 | C3 | quotes | every quoted string in B4 has a [n] |
 | C4 | custom_q | >= 2 questions in B2 carry a [n] |
 | C5 | sections | B1-B10 and P1-P9 present in order (P5 and P6 may be left out per S3-2) |
@@ -283,13 +283,13 @@ Never say: "Does that make sense?"; "Is this helpful?"; "No pressure"; "You'd kn
 | C8 | outcome | B5 contains no method verbs from checks.method_verbs |
 | C9 | exclusions | no excluded topic keyword appears in the body |
 | C11 | plain | no plain_words.banned term or internal code outside quoted words |
-| C12 | gaps | Still open holds at most 4 items, and at least one while B1-B9 show a gap (a Not determined **Label:** line or table cell, or a No read in B6); each item is 'Label: question?', the label a gap above (or LinkedIn), the question starting What, Who, How, When, Which, Where or If |
+| C12 | gaps | Still open holds at most 4 items, and at least one while B1-B9 show a gap (a Not determined **Label:** line or table cell, or a No read in B6); each item is 'Label: question?', the label a gap above, the question starting What, Who, How, When, Which, Where or If |
 | C13 | conditional | B8's hypotheses only when the meta line says Depth deep; P6 only when B6 says Evidence tier: high; P5 not at tier low; B3's Recent wins line only with a dated, cited result (never Not determined or blank) |
-| C14 | layout | the brief has exactly the 9 blocks B1-B9 before B10, and B10 is its last block: no other block and nothing after the ledger |
+| C14 | layout | the brief has exactly the 9 blocks B1-B9 before B10, and B10 is its last block: no other block and nothing after the ledger; B9 has one label per bullet (The ask with its Fallback excepted); nothing prints '(not confirmed)' |
 | C15 | experience | new: P1, P3 and P4 each have a **Why:** line of at most 12 words; experienced and top: no Why line; top: the Hook and each objection's answer are at most 15 words |
-| C16 | linkedin | B4 has exactly one **LinkedIn:** line, read from your file or not read: one of linkedin.reasons; Coverage states the same; when not read, no ledger row is tagged LinkedIn and Still open has a LinkedIn question |
+| C16 | linkedin | B4 has exactly one **LinkedIn:** line, read from your file or not read: one of linkedin.reasons; Coverage states the same; when not read, no ledger row is tagged LinkedIn and Still open asks nothing about LinkedIn |
 | C17 | cites | every cited sentence shares content with the ledger claim it cites (2+ content words, 1 when the claim is 3 words or fewer) and every [n] is a ledger row; a hypothetical (Reverses if, Stop if) carries no citation unless the row says it |
-| C18 | quality | no ledger row cites a source_quality.exclude domain; a source_quality.weak domain is never C1 or C2 |
+| C18 | quality | no ledger row cites a source_quality.exclude domain; a source_quality.weak domain is never C1 or C2; fewer than 3 ledger rows carry the run's own date unmarked (those are read dates: give the source's date, or 'seen' when it has none) |
 | C19 | render | every page: no ink within 0.12in of a page edge, no word outside the 0.3in side margins; page 1: the logo is whole in the top-right masthead; no block runs across a page break: page 2 opens on a block title and no table prints its header row on two pages |
 
 ## Deliver
@@ -328,7 +328,7 @@ Ask the user only when a trigger below fires: at most 2 questions per run after 
 
 ## Questions for the room
 
-Every Not determined (a **Label:** line or a table cell) and every No read in the Meeting approach is a gap. The ledger's Still open row asks at most 4 of them in the room, highest value first (who decides and the gate before the Meeting approach), each as 'Label: question?' in at most 10 words, items separated by ' · '. Open, non-leading, one idea each; never filler. Each question starts with What, Who, How, When, Which, Where or If, and ends with a question mark.
+Every Not determined (a **Label:** line or a table cell) and every No read in the Behavioral profile is a gap. The ledger's Still open row asks at most 4 of them in the room, highest value first (who decides and the gate before the Behavioral profile), each as 'Label: question?' in at most 10 words, items separated by ' · '. Open, non-leading, one idea each; never filler. Each question starts with What, Who, How, When, Which, Where or If, and ends with a question mark.
 
 | Kind | Use when | Example |
 |---|---|---|

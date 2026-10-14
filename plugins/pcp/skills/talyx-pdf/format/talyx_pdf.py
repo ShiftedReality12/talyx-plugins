@@ -390,6 +390,8 @@ h1.name {{ font-size:14.2pt; font-weight:700; margin:0 0 2pt; }}
 .sec.pre p strong {{ font-weight:700; }}
 h1.h, .sec-head {{ display:block; font-size:7.8pt; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:{A};
   border-bottom:1pt solid {HAIR}; padding-bottom:3pt; margin:{sg}pt 0 5pt; break-after:avoid; }}
+/* one heading rhythm: a block's last line carries no bottom margin, so every head sits {sg}pt below the text above it */
+.sec-body > :last-child, .sec-body > :last-child > li:last-child {{ margin-bottom:0; }}
 h1.h {{ margin-top:0; }} .part-1 > .sec.pre p {{ font-size:7.5pt; color:{GREY}; margin:-2pt 0 5pt; }}
 p {{ margin:0 0 {pg}pt; }} p.lbl {{ margin:0 0 {pg}pt; }}
 ul, ol {{ margin:0 0 {pg}pt; padding-left:11pt; }} li {{ margin:0 0 3pt; }} li > ul, li > ol {{ margin:1pt 0 0; }}

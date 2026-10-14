@@ -37,7 +37,7 @@ Meeting: First intro: earn a second meeting, Oct 15, 2026 | Prepared for: Founde
 | "ask for the business" [15]; you offer meeting-prep tools [16] | Bankers know each client's priorities. |
 | Expenses to outpace revenue [17] | Make the result measurable. |
 
-## B6 Meeting approach
+## B6 Behavioral profile
 | What the record shows | Your move |
 |---|---|
 | Pace and control: "the bar is raised" [15] | Lead with the outcome in one sentence; they decide fast and dislike preamble. |
@@ -61,7 +61,8 @@ Meeting: First intro: earn a second meeting, Oct 15, 2026 | Prepared for: Founde
 ## B9 Meeting angle
 ### This meeting
 - **Frame:** banker preparation for client meetings, in her terms: results [5].
-- **Lands:** "ask for the business" [15]. **Repels:** preamble [5].
+- **Lands:** "ask for the business" [15].
+- **Repels:** preamble [5].
 - **What to bring:** a sample prep brief for a Citigold referral meeting [7].
 - **The ask:** 30 minutes with the owner of AI tools for bankers [6] · **Fallback:** an introduction to that person.
 - **Stop if:** bankers' tools are closed to outsiders.
@@ -71,11 +72,11 @@ Meeting: First intro: earn a second meeting, Oct 15, 2026 | Prepared for: Founde
 - **Capture:** who owns the tool decision.
 
 ## B10 Evidence ledger
-Unmarked facts are measured. 18 facts cited; status FULL at 9 of 12 source types.
+Unmarked facts are measured. 18 facts cited; status FULL at 9 of 12 source types. Dates are the sources' own; 'seen' marks the day an undated source was read.
 
 | # | What it says | Source | Grade | Date |
 |---|---|---|---|---|
-| [1] | CEO Mar 2021; chair Oct 2025 | [citigroup.com](https://www.citigroup.com/global/about-us/leadership/jane-fraser) | Measured | Oct 14, 2026 |
+| [1] | CEO Mar 2021; chair Oct 2025 | [citigroup.com](https://www.citigroup.com/global/about-us/leadership/jane-fraser) | Measured | seen Oct 14, 2026 |
 | [2] | Q3 revenue $23.8B, decade best | [sec.gov](https://www.sec.gov/Archives/edgar/data/0000831001/000110465926115323/c-ex99d1.htm) | Measured | Oct 13, 2026 |
 | [3] | Citi remains under two consent orders | [bankingdive.com](https://www.bankingdive.com/news/citi-severance-jobs-headcount-q2-earnings-fraser/825295/) | Measured | Jul 15, 2026 |
 | [4] | Expects to exceed return target | [sec.gov](https://www.sec.gov/Archives/edgar/data/0000831001/000110465926115323/c-ex99d1.htm) | Measured | Oct 13, 2026 |
@@ -83,20 +84,20 @@ Unmarked facts are measured. 18 facts cited; status FULL at 9 of 12 source types
 | [6] | 9 in 10 staff use AI tools | [webull.com](https://www.webull.com/news/15267023088133120) | Measured | Jul 14, 2026 |
 | [7] | Citigold referrals +23% | [webull.com](https://www.webull.com/news/15267023088133120) | Measured | Jul 14, 2026 |
 | [8] | Orders work left: data governance | [bankingdive.com](https://www.bankingdive.com/news/citi-severance-jobs-headcount-q2-earnings-fraser/825295/) | Measured | Jul 15, 2026 |
-| [9] | Joined 2004; McKinsey before | [citigroup.com](https://www.citigroup.com/global/about-us/leadership/jane-fraser) | Measured | Oct 14, 2026 |
-| [10] | Clients in 180+ countries | [citigroup.com](https://www.citigroup.com/global/about-us) | Measured | Oct 14, 2026 |
+| [9] | Joined 2004; McKinsey before | [citigroup.com](https://www.citigroup.com/global/about-us/leadership/jane-fraser) | Measured | seen Oct 14, 2026 |
+| [10] | Clients in 180+ countries | [citigroup.com](https://www.citigroup.com/global/about-us) | Measured | seen Oct 14, 2026 |
 | [11] | Services revenue $6.6B, up 15% | [sec.gov](https://www.sec.gov/Archives/edgar/data/0000831001/000110465926115323/c-ex99d1.htm) | Measured | Oct 13, 2026 |
 | [12] | Return target 14-15% for 2029-31 | [americanbanker.com](https://www.americanbanker.com/news/2026-the-most-powerful-women-in-banking-1-jane-fraser-citi) | Measured | May 7, 2026 |
 | [13] | "100% on the offense"; "long game" | [bankingdive.com](https://www.bankingdive.com/news/citi-severance-jobs-headcount-q2-earnings-fraser/825295/) | Measured | Jul 15, 2026 |
 | [14] | Order removal: regulators decide | [bankingdive.com](https://www.bankingdive.com/news/citi-severance-jobs-headcount-q2-earnings-fraser/825295/) | Measured | Jul 15, 2026 |
 | [15] | Memo: "ask for the business" | [fortune.com](https://fortune.com/2026/01/14/citigroup-ceo-jane-fraser-job-cuts-ai-bad-old-ways-restructuring/) | Measured | Jan 14, 2026 |
-| [16] | You offer meeting-prep tools | your saved setup | Measured | Oct 14, 2026 |
+| [16] | You offer meeting-prep tools | your saved setup | Measured | seen Oct 14, 2026 |
 | [17] | Expenses to outpace revenue | [webull.com](https://www.webull.com/news/15267023088133120) | Measured | Jul 14, 2026 |
 | [18] | Would "lean in" on investment | [bankingdive.com](https://www.bankingdive.com/news/citi-severance-jobs-headcount-q2-earnings-fraser/825295/) | Measured | Jul 15, 2026 |
 
 | | |
 |---|---|
 | **Coverage** | 9 of 12 source types; no upcoming appearances or social posts found. LinkedIn: not read: no browser here |
-| **Still open** | Decision maker: Who owns the call on AI tools? · Relationship holder: Who knows our work? · How they take recognition: How is good work best noticed? · LinkedIn: What has she posted lately? |
+| **Still open** | Decision maker: Who owns the call on AI tools? · Relationship holder: Who knows our work? · How they take recognition: How is good work best noticed? |
 | **Left out on purpose** | Health, family, political giving, litigation, home address, finances |
 | **Run** | Oct 14, 2026 · standard · first intro · Founder / principal · US · FULL · 6.0 facts per page |
