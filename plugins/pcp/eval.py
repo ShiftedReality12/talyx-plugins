@@ -138,6 +138,8 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
             for s in _sentences(secs[k]):
                 if CITE.search(s):
                     continue
+                if re.match(r"[-*\s]*\*\*LinkedIn:\*\*", s):   # the mandated status line (S2-7, C16) states no fact
+                    continue
                 if nouns and any(n in s.lower() for n in nouns):
                     continue
                 fails.append(f"C1 swap: {k}: uncited, non-specific sentence: '{s[:70]}...'")
