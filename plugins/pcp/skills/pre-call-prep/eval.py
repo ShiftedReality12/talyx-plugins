@@ -750,6 +750,8 @@ def chat_check(text, target_nouns=(), experience=None, authority=None):
     if pos[2] != -1 and text.find("# " + n["script"]) < pos[2]:
         fails.append(f"S4-10 chat: '# {n['script']}' must come after '--- Page 3 ---'")
     brief, script = body[:m.start()], body[m.start():]
+    # S4-10's own closing lines (the self-review note and the after-call offer) are not part of P9
+    script = re.split(r"^\**(?:Checks: self-reviewed|After the call)", script, maxsplit=1, flags=re.M)[0]
     fails += checks(brief, script, "all", target_nouns, experience, authority)
     rep = duf(brief, script)
     if not rep["ok"]:

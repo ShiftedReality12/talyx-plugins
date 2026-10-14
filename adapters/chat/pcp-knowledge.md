@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:8ba7bf3a25b0) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:3a73774a6b7d) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
@@ -6,6 +6,12 @@ Stages, dependency-ordered: **setup once -> intake -> intelligence collection ->
 Every stage declares its inputs before its behaviour, reads only its listed context, and follows rows
 that each carry a falsification test. Every fact traces to a source. Nothing is invented.
 The deliverable is one document: the Intelligence Brief, then the Meeting script. Nothing else is emitted.
+
+**No shell or code tool (plain chat)?** Run the same stages anyway; never stop or refuse for lack of tools.
+Research with the host's own web search and fetch tools. Keep claims, coverage and the meeting approach in
+the conversation instead of files. Apply the checks yourself. Then deliver the full Intelligence Brief in chat
+exactly as S4-10 says (label, page markers, every block, the ledger, the Meeting script). Profile answers
+given in the message stand in for the saved setup file.
 
 ## How PCP thinks (never in the output)
 

@@ -102,6 +102,12 @@ Every stage declares its inputs before its behaviour, reads only its listed cont
 that each carry a falsification test. Every fact traces to a source. Nothing is invented.
 The deliverable is one 3-page PDF, the {n['deliverable']}. Nothing else is emitted.
 
+**No shell or code tool (plain chat)?** Run the same stages anyway; never stop or refuse for lack of tools.
+Research with the host's own web search and fetch tools. Keep claims, coverage and the meeting approach in
+the conversation instead of files. Apply the checks yourself. Then deliver the full {n['deliverable']} in chat
+exactly as S4-10 says (label, page markers, every block, the ledger, the {n['script']}). Profile answers
+given in the message stand in for the saved setup file.
+
 ## How PCP thinks (never in the output)
 
 {chr(10).join('- ' + fill(R, c) for c in R['concepts'])}
@@ -262,7 +268,7 @@ argument-hint: "[intake.csv | \\"Full Name, Organisation\\"] [--recalibrate] [--
 
 Input from the user: `$ARGUMENTS`
 
-Follow the `pre-call-prep` skill in this plug-in exactly, in stage order:
+First load the `pre-call-prep` skill in this plug-in (Skill tool, or read `skills/pre-call-prep/SKILL.md`) -- the block schema, titles and budgets live there, not here. Never write a brief without it. Then follow it exactly, in stage order:
 
 0. **Setup** -- ask only the questions `{R['calibration']['profile_path']}` has no answer for (all with `--recalibrate`); read files given with `--context`.
 1. **Intake** -- resolve `$ARGUMENTS` (CSV path, `"Name, Org"`, or ask). Never start without a full name and an organisation. Ask the user only as `references/socratic-questions.md` says.
@@ -272,6 +278,12 @@ Follow the `pre-call-prep` skill in this plug-in exactly, in stage order:
 5. **After the call** -- offer the four-field template in `evals/debrief_template.yaml`; never ask for more.
 
 Say what was NOT found before what was.
+
+**No shell or code tool (plain chat)?** Do not stop. Skip only the script steps (file writes, `eval.py`, the PDF
+render): research with the host's web search, keep claims in the conversation, apply the checks yourself, and
+deliver the full Intelligence Brief in chat in the S4-10 format -- first line the in-chat label, then
+`--- Page 1 ---`, `--- Page 2 ---`, `--- Page 3 ---` with `# Meeting script`. Thin evidence still gets the full
+3 parts with what was not found stated in each.
 """
 
 

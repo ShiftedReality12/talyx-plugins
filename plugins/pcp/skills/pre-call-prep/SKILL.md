@@ -8,7 +8,7 @@ description: >
   before a meeting, talking points, or shares an intake list. Do not use for general research unrelated
   to a meeting, or for notes on a meeting that has already happened.
 ---
-<!-- GENERATED from pcp.yaml (sha256:8ba7bf3a25b0) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:3a73774a6b7d) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
@@ -16,6 +16,12 @@ Stages, dependency-ordered: **setup once -> intake -> intelligence collection ->
 Every stage declares its inputs before its behaviour, reads only its listed context, and follows rows
 that each carry a falsification test. Every fact traces to a source. Nothing is invented.
 The deliverable is one 3-page PDF, the Intelligence Brief. Nothing else is emitted.
+
+**No shell or code tool (plain chat)?** Run the same stages anyway; never stop or refuse for lack of tools.
+Research with the host's own web search and fetch tools. Keep claims, coverage and the meeting approach in
+the conversation instead of files. Apply the checks yourself. Then deliver the full Intelligence Brief in chat
+exactly as S4-10 says (label, page markers, every block, the ledger, the Meeting script). Profile answers
+given in the message stand in for the saved setup file.
 
 ## How PCP thinks (never in the output)
 
@@ -162,7 +168,7 @@ and `linkedin` when set) and continue.
   _Fails when:_ A brief with a sentence containing no claim id and no target-specific noun fails checks.swap.
 - **S4-3** Where the host can run scripts and a browser engine (Claude Code, Claude Cowork, Codex, ChatGPT agent or work mode), render ONLY through format/talyx_pdf.py --style brief --brief-pages 2 --max-pages 3, never Markdown or HTML as the deliverable. The PDF is exactly 3 pages: the brief fills pages 1-2 (a short brief puts the evidence ledger on page 2 -- never filler) and the script is page 3. Check it with eval.py pdf. Where render is impossible, follow S4-10.  
   _Fails when:_ On a script-capable host the output directory contains exactly one .pdf and no .md/.html after a run; eval.py pdf on it exits 0 (3 pages, the script on page 3 only, the ledger on page 2).
-- **S4-10** In-chat fallback. Render is impossible when the host has no shell or code tool, python3 is missing, or talyx_pdf.py exits for want of a browser engine (after one try of --setup where installs are allowed). Then deliver the full brief in the chat, never a summary: first line exactly 'Intelligence Brief (in chat: this app cannot make the PDF, so the same 3 pages follow as text)'; then the masthead lines; then the line '--- Page 1 ---' and B1-B6; '--- Page 2 ---' and B7-B10 with the same 5-column ledger and its Coverage / Still open / Left out on purpose / Run rows; '--- Page 3 ---' and '# Meeting script' with P1-P9. Same blocks, order, titles, word budgets, citations [n], grades and plain-words rules as the PDF. If a code tool exists, run eval.py checks on it; otherwise apply the checks yourself and end with 'Checks: self-reviewed, not run as code'.  
+- **S4-10** In-chat fallback. Render is impossible when the host has no shell or code tool, python3 is missing, or talyx_pdf.py exits for want of a browser engine (after one try of --setup where installs are allowed). Then deliver the full brief in the chat, never a summary: first line exactly 'Intelligence Brief (in chat: this app cannot make the PDF, so the same 3 pages follow as text)'; then the masthead lines; then the line '--- Page 1 ---' and B1-B6; '--- Page 2 ---' and B7-B10 with the same 5-column ledger (each row starts '| [n] |', the source a link or 'your request' / 'your saved setup') and its Coverage / Still open / Left out on purpose / Run rows; '--- Page 3 ---' and '# Meeting script' with P1-P9. Same blocks, order, titles, word budgets, citations [n], grades and plain-words rules as the PDF. Thin or no evidence never changes the shape: keep every block title and fill it with Not determined or No read, each with its 'Label: question?' in Still open (S4-7). If a code tool exists, run eval.py checks on it; otherwise, before sending, check yourself: label first, block titles in order, each Not determined / No read has its Still open question, word budgets, every [n] in the ledger, Still open questions start What/Who/How/When/Which/Where/If, P9 is one line, no banned word and end with 'Checks: self-reviewed, not run as code'.  
   _Fails when:_ Run with no Bash tool: the reply holds the label, the three page markers, every B1-B10 and P1-P9 title in order, a ledger row per cited [n], and no plain_words.banned word; eval.py chat on the saved reply exits 0.
 - **S4-4** If the tightest density rung still overflows 3 pages, the run FAILS with the section word counts; it never truncates or spills.  
   _Fails when:_ Feed a 900-word section -- the engine must exit non-zero naming the section.
