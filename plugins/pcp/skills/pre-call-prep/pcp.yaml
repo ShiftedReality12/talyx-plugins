@@ -38,7 +38,13 @@ names:
 # ------------------------------------------------------------------------------------------------
 plain_words:
   rule: "Nothing the user reads -- the PDF, replies, setup questions, the listing -- uses military, intelligence-trade or technical jargon. Their own quoted words are exempt."
-  banned: [OSINT, SOCMINT, HUMINT, SIGINT, tradecraft, collection plan, competing hypotheses, ACH, target package, kill chain, dossier, duf_pp, claims.jsonl, read.json, source families, scrape, scraped, scraping, crawl, LLM]
+  banned: [OSINT, SOCINT, SOCMINT, HUMINT, human intelligence, SIGINT, intelligence cycle, tradecraft, collection plan, competing hypotheses, ACH, target package, asset, source handling, exploitation, debrief, kill chain, dossier, duf_pp, claims.jsonl, read.json, source families, scrape, scraped, scraping, crawl, LLM]
+  # a banned word inside one of these phrases is the finance term, not the trade word ("asset" = a recruited source)
+  allowed: [asset manager, asset managers, asset management, asset class, asset classes, asset allocation, asset owner, asset owners, asset-light, asset-backed, digital asset, fixed asset]
+  # Oct 9 / AID-58: Ben's executive words. Not enforced until Daniel decides (spec Q3, Q5); move a word to banned to adopt it.
+  pending: [intelligence collection, behavioral profile, behavioral profile analysis, counter-evidence]
+  # the deliverable has one name (names.deliverable); build/adapters.py --check fails on these anywhere in the repo
+  names_banned: [pre-call brief, call brief, meeting brief, dossier, one-pager]
   codes: '\b(?:C[1-4]|F(?:1[0-2]|[1-9])|S[0-5]-\d+)\b'   # internal ids never print
 concepts:   # internal: how PCP thinks; none of these words reach the user
   - "Work the intelligence cycle: direction (setup and the meeting objective) -> collection -> processing (each fact gets a source, tag, grade and date; excluded topics are dropped) -> analysis -> the {deliverable} -> feedback (the debrief)."
@@ -156,7 +162,7 @@ calibration:
       consumed_by: [script.why_lines, script.say_aloud_words]
     - id: Q8
       header: Your offer
-      question: "In one line -- what do you offer, and what does a win in this meeting look like? If you have files about your business (a deck, a one-pager, case studies), add their paths and PCP will use them. (free text)"
+      question: "In one line -- what do you offer, and what does a win in this meeting look like? If you have files about your business (a deck, a one-page summary, case studies), add their paths and PCP will use them. (free text)"
       options: []
       free_text: true
       sets: {caller.offer_one_line: text, meeting.win_definition: text, context.files: paths}

@@ -106,8 +106,9 @@ The deliverable is one 3-page PDF, the {n['deliverable']}. Nothing else is emitt
 
 {chr(10).join('- ' + fill(R, c) for c in R['concepts'])}
 
-**Plain words.** {R['plain_words']['rule']} Never write: {', '.join(R['plain_words']['banned'])}, or an internal id
-(C1-C4, F1-F12, row ids). Use "source types", not families; "the person you're meeting", not target.
+**Plain words.** {R['plain_words']['rule']} Never write a word banned: {', '.join(R['plain_words']['banned'])}, or an internal id
+(C1-C4, F1-F12, row ids). Allowed only inside these phrases: {', '.join(R['plain_words']['allowed'])}.
+Use "source types", not families; "the person you're meeting", not target. Call the deliverable the {n['deliverable']}, nothing else.
 
 ## Stage 0: Setup (once)
 
@@ -261,16 +262,19 @@ Follow the `pre-call-prep` skill in this plug-in exactly, in stage order:
 2. **{n['collection']}** -- run the enabled source types, LinkedIn only with a yes each run; write `claims.jsonl` and the coverage ledger. Drop excluded claims before writing.
 3. **{n['profile']}** -- score six dimensions from claim ids only; set the evidence tier.
 4. **{n['deliverable']}** -- write `brief.md` (B1-B10) and `script.md` (P1-P9); run `python3 eval.py checks brief.md script.md --target-nouns \"<name>,<org>\"` and `python3 eval.py duf brief.md script.md`; rewrite until clean; render with `format/talyx_pdf.py --style brief --max-pages 3`. Deliver the PDF path. Delete `brief.md`/`script.md` after a clean render.
-5. **Debrief** -- offer the four-field debrief template; never ask for more.
+5. **After the call** -- offer the four-field template in `evals/debrief_template.yaml`; never ask for more.
 
 Say what was NOT found before what was.
 """
 
 
 def plain_violations(R, texts):
-    """Banned words in user-facing text: the names, the setup questions and the skill's listing text."""
+    """Banned words in user-facing text: the names, the setup questions and the skill's listing text.
+    A banned word inside a plain_words.allowed phrase (asset manager) is not the banned word."""
     pw = R["plain_words"]
     words = re.compile(r"\b(?:" + "|".join(re.escape(w) for w in pw["banned"]) + r")\b", re.I)
+    allowed = re.compile(r"\b(?:" + "|".join(re.escape(w) for w in pw.get("allowed") or ["\x00"]) + r")\b", re.I)
+    texts = [allowed.sub(" ", t) for t in texts]
     return sorted({m.group(0) for t in texts for pat in (words, re.compile(pw["codes"])) for m in pat.finditer(t)})
 
 

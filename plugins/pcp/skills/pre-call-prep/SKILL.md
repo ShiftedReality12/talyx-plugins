@@ -8,7 +8,7 @@ description: >
   before a meeting, talking points, or shares an intake list. Do not use for general research unrelated
   to a meeting, or for notes on a meeting that has already happened.
 ---
-<!-- GENERATED from pcp.yaml (sha256:71a082d21cc6) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:a836c88e385b) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.0.0)
 
@@ -24,8 +24,9 @@ The deliverable is one 3-page PDF, the Intelligence Brief. Nothing else is emitt
 - Meeting approach is human-source analysis from public evidence: each row is a cited observation and the caller's move. It never labels the person's character.
 - Keep what was read apart from what was inferred (the grade). Check the one assumption the Take rests on (Strongest case against). On deep runs, weigh competing explanations of what they want.
 
-**Plain words.** Nothing the user reads -- the PDF, replies, setup questions, the listing -- uses military, intelligence-trade or technical jargon. Their own quoted words are exempt. Never write: OSINT, SOCMINT, HUMINT, SIGINT, tradecraft, collection plan, competing hypotheses, ACH, target package, kill chain, dossier, duf_pp, claims.jsonl, read.json, source families, scrape, scraped, scraping, crawl, LLM, or an internal id
-(C1-C4, F1-F12, row ids). Use "source types", not families; "the person you're meeting", not target.
+**Plain words.** Nothing the user reads -- the PDF, replies, setup questions, the listing -- uses military, intelligence-trade or technical jargon. Their own quoted words are exempt. Never write a word banned: OSINT, SOCINT, SOCMINT, HUMINT, human intelligence, SIGINT, intelligence cycle, tradecraft, collection plan, competing hypotheses, ACH, target package, asset, source handling, exploitation, debrief, kill chain, dossier, duf_pp, claims.jsonl, read.json, source families, scrape, scraped, scraping, crawl, LLM, or an internal id
+(C1-C4, F1-F12, row ids). Allowed only inside these phrases: asset manager, asset managers, asset management, asset class, asset classes, asset allocation, asset owner, asset owners, asset-light, asset-backed, digital asset, fixed asset.
+Use "source types", not families; "the person you're meeting", not target. Call the deliverable the Intelligence Brief, nothing else.
 
 ## Stage 0: Setup (once)
 
@@ -45,7 +46,7 @@ and `linkedin` when set) and continue.
 | Q6 | Social | Public social footprint -- how far? | Professional only (Recommended) / Plus public X / Bluesky / Substack / None | socmint.scope |
 | Q7 | Compliance | Jurisdiction and compliance posture? | US (Recommended) / UK / EU (GDPR strict) / Regulated sales (FINRA / FCA style) / APAC | jurisdiction |
 | Q9 | Experience | How long have you been running meetings like this? | Experienced (Recommended) / Newer -- under two years / Top producer | caller.experience |
-| Q8 | Your offer | In one line -- what do you offer, and what does a win in this meeting look like? If you have files about your business (a deck, a one-pager, case studies), add their paths and PCP will use them. (free text) | free text | caller.offer_one_line, meeting.win_definition, context.files |
+| Q8 | Your offer | In one line -- what do you offer, and what does a win in this meeting look like? If you have files about your business (a deck, a one-page summary, case studies), add their paths and PCP will use them. (free text) | free text | caller.offer_one_line, meeting.win_definition, context.files |
 
 - **CAL-1** Ask only the questions with no saved answer in ~/.pcp/profile.yaml -- all of them the first time, all again with --recalibrate. Otherwise read it silently.  
   _Fails when:_ A profile with Q1-Q8 answered and no Q9 -- the run asks Q9 only. A complete profile -- it asks nothing.

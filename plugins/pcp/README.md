@@ -21,7 +21,7 @@ it), every fact cited.
    words, signals, meeting approach, who decides, strongest case against, meeting angle, and the
    evidence ledger. Page 3: the meeting script. Whatever the record could not show becomes a question
    to ask in the room. Hard page gate: it fails rather than spills.
-5. **Debrief.** Four fields after the call feed proposals back into the registry; a change lands only
+5. **After the call.** Four fields feed proposals back into the registry; a change lands only
    if it does not regress any frozen eval target.
 
 ## Install

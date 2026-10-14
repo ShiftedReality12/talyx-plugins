@@ -137,7 +137,7 @@ accuracy per dimension (hit or miss), outcome -- and nothing else.
 
 CHAT_INSTRUCTIONS = """You are Talyx Pre-call Prep. Before a meeting you research the named person, company or deal from public sources and the user's own files, and write one cited Intelligence Brief plus a one-page meeting script.
 
-Follow pcp-knowledge.md exactly, in stage order: calibrate, intake, collect, read, brief and script, debrief. It holds the questions, source families, exclusions, rubric, page budgets and checks. Where it and this text differ, it wins.
+Follow pcp-knowledge.md exactly, in stage order: calibrate, intake, collect, read, brief and script, after the call. It holds the questions, source types, exclusions, rubric, page budgets and checks. Where it and this text differ, it wins.
 
 Calibration is asked once. The Saved setup block at the end of pcp-knowledge.md holds the saved answers. Ask only the questions it has no answer for, then give the user the updated block to paste into their copy of pcp-knowledge.md. Never say it was saved: only the user can update that file.
 
@@ -201,14 +201,58 @@ def chat_knowledge():
             "```yaml\n" + yaml.safe_dump(blank, sort_keys=False) + "```\n")
 
 
-def check_listing():
-    """The listing text every host shows is user-facing: plain words (pcp.yaml plain_words)."""
+# user-facing documents, held to plain words like the listing; a README's contributor section is not user-facing
+USER_DOCS = {"README.md": None, "plugins/pcp/README.md": "## How it is built (for contributors)",
+             "adapters/chat/README.md": None}
+
+
+def check_listing(files):
+    """The listing text every host shows, the READMEs and the chat instructions are user-facing: plain words
+    (pcp.yaml plain_words)."""
     spec = importlib.util.spec_from_file_location("render_skill", PLUGIN / "render_skill.py")
     rs = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(rs)
-    texts = [SRC["description"], *[v for v in SRC["interface"].values() if isinstance(v, str)], *SRC["interface"]["defaultPrompt"]]
-    bad = rs.plain_violations(yaml.safe_load((PLUGIN / "pcp.yaml").read_text()), texts)
-    return [f"build/plugin.source.json listing text uses {', '.join(bad)} -- plain words"] if bad else []
+    R = yaml.safe_load((PLUGIN / "pcp.yaml").read_text())
+    texts = {"build/plugin.source.json listing text": [SRC["description"], *[v for v in SRC["interface"].values() if isinstance(v, str)],
+                                                      *SRC["interface"]["defaultPrompt"]],
+             "adapters/chat/instructions.txt": [files["adapters/chat/instructions.txt"]]}
+    for rel, stop in USER_DOCS.items():
+        t = (ROOT / rel).read_text()
+        texts[rel] = [t.split(stop)[0] if stop else t]
+    out = []
+    for where, ts in texts.items():
+        bad = rs.plain_violations(R, ts)
+        if bad:
+            out.append(f"{where} uses {', '.join(bad)} -- plain words")
+    return out
+
+
+def check_names(files):
+    """The deliverable has one name: no other name (pcp.yaml plain_words.names_banned) anywhere in the repo or in
+    what this writes. A line that lists banned words is the list itself, not a use."""
+    R = yaml.safe_load((PLUGIN / "pcp.yaml").read_text())
+    pat = re.compile(r"\b(?:" + "|".join(re.escape(w) for w in R["plain_words"]["names_banned"]) + r")\b", re.I)
+    texts = {p.relative_to(ROOT).as_posix(): p.read_bytes() for p in ROOT.rglob("*")
+             if p.is_file() and ".git" not in p.relative_to(ROOT).parts and "__pycache__" not in p.parts}
+    texts |= {rel: (d if isinstance(d, bytes) else d.encode()) for rel, d in files.items()}
+    out = []
+    for rel, data in sorted(texts.items()):
+        try:
+            text = data.decode()
+        except UnicodeDecodeError:
+            continue   # the zip, fonts, images: the zip's text members are checked as the files they copy
+        for i, ln in enumerate(text.splitlines(), 1):
+            if "banned" in ln:
+                continue
+            for m in pat.finditer(ln):
+                out.append(f"{rel}:{i} uses '{m.group(0)}' -- the deliverable is the {R['names']['deliverable']}")
+    return out
+
+
+def check_version():
+    """One version everywhere: pcp.yaml registry_version is the plug-in's version (plugin.source.json)."""
+    reg = str(yaml.safe_load((PLUGIN / "pcp.yaml").read_text())["registry_version"])
+    return [] if reg == SRC["version"] else [f"pcp.yaml registry_version {reg} != build/plugin.source.json version {SRC['version']}"]
 
 
 def check_chat(text):
@@ -249,7 +293,7 @@ def main():
     ap.add_argument("--check", action="store_true")
     a = ap.parse_args()
     files = render()
-    problems = check_chat(files["adapters/chat/pcp-knowledge.md"]) + check_listing()
+    problems = check_chat(files["adapters/chat/pcp-knowledge.md"]) + check_listing(files) + check_names(files) + check_version()
     drift = [rel for rel, data in files.items()
              if not (ROOT / rel).exists() or (ROOT / rel).read_bytes() != (data if isinstance(data, bytes) else data.encode())]
     for line in problems:

@@ -78,6 +78,17 @@ def duf(brief_md, script_md="", pages=None):
 
 
 # ---------------------------------------------------------------- checks -------------------------------------
+def plain_hits(text):
+    """plain_words.banned terms and internal codes outside quoted words; a banned word inside a
+    plain_words.allowed phrase (asset manager) is the finance term, not the banned word."""
+    pw = R["plain_words"]
+    own = QUOTED.sub(" ", text)
+    if pw.get("allowed"):
+        own = re.sub(r"\b(?:" + "|".join(re.escape(w) for w in pw["allowed"]) + r")\b", " ", own, flags=re.I)
+    hits = re.findall(r"\b(?:" + "|".join(re.escape(w) for w in pw["banned"]) + r")\b", own, re.I) + re.findall(pw["codes"], own)
+    return sorted(set(hits))
+
+
 def _sentences(txt):
     txt = re.sub(r"\|.*\|", " ", txt)  # tables are rows, not sentences
     txt = "\n".join(ln for ln in txt.splitlines() if not re.match(r"\s*#|.*(?:Not determined|Evidence tier:)", ln))  # structure, not claims
@@ -147,10 +158,7 @@ def checks(brief_md, script_md="", which="all", target_nouns=()):
                 if w.lower() in body.lower():
                     fails.append(f"C9 exclusions: '{w}' ({topic}) in body")
     if want("plain"):
-        pw = R["plain_words"]
-        own = QUOTED.sub(" ", md)
-        hits = re.findall(r"\b(?:" + "|".join(re.escape(w) for w in pw["banned"]) + r")\b", own, re.I) + re.findall(pw["codes"], own)
-        for h in sorted(set(hits)):
+        for h in plain_hits(md):
             fails.append(f"C11 plain: '{h}' outside quoted words")
     if want("gaps"):
         still = next((ln for ln in secs.get(LEDGER, "").splitlines() if "Still open" in ln), "")
