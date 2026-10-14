@@ -222,13 +222,15 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
             if v.lower() in secs.get("B5", "").lower():
                 fails.append(f"C8 outcome: method verb '{v}' in B5")
     if want("exclusions"):
-        kws = {"health": ["diagnos", "illness", "hospital"], "family": ["divorce", "his wife", "her husband", "children"],
-               "political": ["donated to", "FEC", "campaign contribution"], "litigation": ["lawsuit", "sued", "plaintiff"]}
+        kws = {"health": [r"diagnos\w*", "illness", r"hospital(?:i[sz]ed|s)?"],   # whole words: "effect" holds no FEC,
+               "family": [r"divorced?", "his wife", "her husband", "children"],          # "issued" no sued (two chat runs)
+               "political": ["donated to", "FEC", r"campaign contributions?"], "litigation": [r"lawsuits?", "sued", r"plaintiffs?"]}
         body = "\n".join(v for k, v in secs.items() if k not in (LEDGER, "P8"))
         for topic, words in kws.items():
             for w in words:
-                if w.lower() in body.lower():
-                    fails.append(f"C9 exclusions: '{w}' ({topic}) in body")
+                m = re.search(r"\b(?:" + w + r")\b", body, re.I)
+                if m:
+                    fails.append(f"C9 exclusions: '{m.group(0)}' ({topic}) in body")
     if want("plain"):
         for h in plain_hits(md):
             fails.append(f"C11 plain: '{h}' outside quoted words")
@@ -528,6 +530,22 @@ def self_test(require_pdf=False):
             print(f"tripped: {case}")
         else:
             print(f"FAIL {case} must trip {cid}"); ok = False
+    q = c12.replace("- **Against:** the close date has moved once before this year [11].",
+                    '- **Against:** she said "you can\'t let it just rip" [11].')
+    q = re.sub(r"^\| \[11\] \|[^|]*\|", '| [11] | "can\'t let it just rip" |', q, flags=re.M)
+    if [x for x in checks(q) if x.startswith("C17 ")]:
+        print("FAIL C17 must pass a sentence that quotes its ledger claim word for word (a claim of short words)"); ok = False
+    elif not [x for x in checks(q.replace("you can\'t let it just rip", "it can go sideways")) if x.startswith("C17 ")]:
+        print("FAIL C17 must still trip when the sentence does not hold the short claim"); ok = False
+    else:
+        print("passes: C17 on a sentence quoting a short-word claim; trips when it quotes something else")
+    words = c12.replace("the introduction to the custodian [12]", "the introduction to the custodian [12]; it may affect her effect on issued notes")
+    if [x for x in checks(words) if x.startswith("C9 ")]:
+        print("FAIL C9 must pass 'affect', 'effect' and 'issued' (no FEC, no sued inside them)"); ok = False
+    elif not [x for x in checks(words.replace("issued notes", "notes filed with the FEC")) if x.startswith("C9 ")]:
+        print("FAIL C9 must still trip on 'filed with the FEC'"); ok = False
+    else:
+        print("passes: C9 on 'affect', 'effect', 'issued'; trips on 'filed with the FEC'")
     dd = (fx / "dates_read_day.md").read_text()
     dated = re.sub(r"\(https://example\.org/(\d+)\)", r"(https://example.org/2026/09/20/\1)", dd)
     if [x for x in checks(dated) if x.startswith("C18 ")]:
@@ -753,8 +771,9 @@ def cite_relevance(md, fetch=False):
                     if not r:
                         missing.append(n); continue
                     cs = _stems(r["claim"])
-                    if len(ss & cs) >= (1 if len(cs) <= 3 else 2):
-                        ok = True
+                    flat = lambda t: re.sub(r"[^a-z0-9$%]+", " ", t.lower().replace("\u2019", "'").replace("'", "")).strip()
+                    if len(ss & cs) >= (1 if len(cs) <= 3 else 2) or (flat(r["claim"]) and f" {flat(r['claim'])} " in f" {flat(part)} "):
+                        ok = True   # or the sentence quotes the claim word for word ("can't let it just rip": no stems)
                     elif fetch and r["url"]:
                         if r["url"] not in pages:
                             pages[r["url"]] = _fetch_text(r["url"])
