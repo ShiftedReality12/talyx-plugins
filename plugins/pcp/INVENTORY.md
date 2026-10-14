@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:f81cacc2489f) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:ebb7781fdc6b) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Inventory: what the Intelligence Brief prints (v3.1.0)
 
@@ -40,13 +40,13 @@ has a decided status. Totals: 30 always, 5 conditional, 0 removed.
 | meta | Meta line | meeting, prepared for, depth, sources, status, date | profile, S2 | always | -- | -- |
 | footer | Footer | the deliverable's name, the person, page N of 3 | renderer | always | -- | C10 |
 | B3.recent_wins | Recent wins line (B3) | none to two dated, cited results | F3 org news, F5 voice | conditional | a dated, cited result was found; otherwise the line is left out | C13 |
-| B3.not_found | Path, The organization, What changed (B3) | the fact, or Not determined and a question in Still open | F1 identity, F2 career timeline, F3 org news, F4 org self-description | always | -- | C12 |
+| B3.not_found | Path, The organization, What changed (B3) | the fact, or Not determined (a gap Still open may ask) | F1 identity, F2 career timeline, F3 org news, F4 org self-description | always | -- | C12 |
 | B4.linkedin | LinkedIn line (B4) | read in your session, or not read and the reason | S2-7 | always | -- | C16 |
-| B6.no_read | No read rows (B6) | No read where a dimension lacks evidence, and a question in Still open | S3-1 | always | -- | C12 |
-| B7.relationship_holder | Relationship holder (B7) | who the relationship runs through, or Not determined and a question in Still open | F11 shared context, F1 identity | always | -- | C12 |
+| B6.no_read | No read rows (B6) | No read where a dimension lacks evidence (a gap Still open may ask) | S3-1 | always | -- | C12 |
+| B7.relationship_holder | Relationship holder (B7) | who the relationship runs through, or Not determined (a gap Still open may ask) | F11 shared context, F1 identity | always | -- | C12 |
 | B8.hypotheses | What they may want (B8) | up to three hypotheses, each with the claim that would disprove it | F12 counter-evidence, S3-4 | conditional | Depth deep | C13 |
 | B10.coverage | Coverage row (B10) | n of 12 source types, what was not found, LinkedIn status | S2-4, S2-7 | always | -- | C16 |
-| B10.still_open | Still open row (B10) | one question for the room per gap | socratic.room | always | -- | C12 |
+| B10.still_open | Still open row (B10) | at most 4 questions for the room, highest value first | socratic.room | always | -- | C12 |
 | B10.left_out | Left out on purpose row (B10) | the excluded topics, never the facts | exclusions | always | -- | -- |
 | B10.run | Run row (B10) | date, depth, meeting type, prepared for, jurisdiction, status | profile | always | -- | -- |
 | P.why | Why lines (P1, P3, P4) | one line on why each move works | Q9 | conditional | Q9 experience new | C15 |

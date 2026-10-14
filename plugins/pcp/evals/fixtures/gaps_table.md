@@ -66,7 +66,7 @@ Unmarked facts are measured. 12 facts cited; status FULL at 10 of 12 source type
 | | |
 |---|---|
 | **Coverage** | 10 of 12 source types · LinkedIn: read in your session |
-| **Still open** | The gate: what must be true before the committee says yes? |
+| **Still open** | Decision process at the committee: Who sits on it? · The gate: What must be true first? · Budget: What is the budget? · Timing: When do they decide? · Pace: How fast do they move? |
 | **Left out on purpose** | health, family, politics, litigation, personal finances |
 | **Run** | Sep 20, 2026 · standard · first intro · founder / principal · US · FULL |
 

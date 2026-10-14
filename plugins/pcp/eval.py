@@ -207,14 +207,20 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
     if want("gaps"):
         still = next((ln for ln in secs.get(LEDGER, "").splitlines() if "Still open" in ln), "")
         gaps = _gaps(secs)
-        for k, label, what in gaps:
-            if label.lower() not in still.lower() or "?" not in still:
-                fails.append(f"C12 gaps: {k} '{label}' is {what} with no question in Still open")
-        if still.count("?") < len(gaps):
-            fails.append(f"C12 gaps: {len(gaps)} gaps in B1-B9 but {still.count('?')} questions in Still open")
-        starts = R["socratic"]["room"]["question_starts"]
+        room = R["socratic"]["room"]
+        starts, cap = room["question_starts"], room["max_open"]
         cell = re.sub(r"\*\*Still open\*\*|\*\*", "", still).strip(" |")
-        for item in [i.strip() for i in re.split(r"\s+·\s+", cell) if i.strip()]:
+        items = [i.strip() for i in re.split(r"\s+·\s+", cell) if i.strip()]
+        asked = [i for i in items if "?" in i]
+        if gaps and not asked:   # Daniel, Oct 14: at most 4 questions, highest value first -- not one per gap
+            fails.append(f"C12 gaps: {len(gaps)} gaps in B1-B9 but no question in Still open")
+        if len(asked) > cap:
+            fails.append(f"C12 gaps: Still open asks {len(asked)} questions; at most {cap}, highest value first")
+        labels = {g[1].lower() for g in gaps} | {"linkedin"}
+        for item in asked:
+            if item.split(": ", 1)[0].strip("*_ ").lower() not in labels:
+                fails.append(f"C12 gaps: Still open item '{item[:40]}' is not on a gap above (a Not determined or No read label)")
+        for item in items:
             q = item.split(": ", 1)[1] if ": " in item else item
             first = re.match(r"[*_\s]*([A-Za-z]+)", q)   # What's, Who'd: the question word without its contraction
             if not (q.rstrip().endswith("?") and first and first.group(1).capitalize() in starts) and (gaps or "?" in item):

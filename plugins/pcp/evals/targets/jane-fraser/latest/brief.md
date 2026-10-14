@@ -97,6 +97,6 @@ Unmarked facts are measured. 18 facts cited; status FULL at 9 of 12 source types
 | | |
 |---|---|
 | **Coverage** | 9 of 12 source types; no upcoming appearances or social posts found. LinkedIn: not read: no browser here |
-| **Still open** | Decision maker: Who owns the call on AI tools? · Relationship holder: Who knows our work? · How they take recognition: How is good work best noticed? · How they take disagreement: How is dissent best raised? · LinkedIn: What has she posted lately? |
+| **Still open** | Decision maker: Who owns the call on AI tools? · Relationship holder: Who knows our work? · How they take recognition: How is good work best noticed? · LinkedIn: What has she posted lately? |
 | **Left out on purpose** | Health, family, political giving, litigation, home address, finances |
 | **Run** | Oct 14, 2026 · standard · first intro · Founder / principal · US · FULL · 6.0 facts per page |

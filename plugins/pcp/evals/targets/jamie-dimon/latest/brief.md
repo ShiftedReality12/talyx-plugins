@@ -98,6 +98,6 @@ Unmarked facts are measured. 18 facts cited; status FULL at 9 of 12 source types
 | | |
 |---|---|
 | **Coverage** | 9 of 12 source types. Not found: public social posts, an Oct 15 event, Q3 call remarks. LinkedIn: not read: you declined |
-| **Still open** | Decision maker: Who picks his team's tools? · The gate: What must be true before a yes? · Relationship holder: Who holds the relationship? · Pace and control: How does he run meetings? · How they take recognition: What should be acknowledged? · How they take disagreement: How does he take a challenge? · LinkedIn: What has he posted lately? |
+| **Still open** | Decision maker: Who picks his team's tools? · The gate: What must be true before a yes? · Relationship holder: Who holds the relationship? · LinkedIn: What has he posted lately? |
 | **Left out on purpose** | health, family, political giving, litigation, personal finances |
 | **Run** | Oct 14, 2026 · standard · first intro · founder / principal · US · FULL · 6.0 facts per page |

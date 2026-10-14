@@ -96,6 +96,6 @@ Unmarked facts are measured. 20 facts cited; status LIMITED at 8 of 12 source ty
 | | |
 |---|---|
 | **Coverage** | 8 of 12 source types; not found: Q3 results, posts, papers. LinkedIn: not read: you declined |
-| **Still open** | Decision maker: Who signs off? · The gate: Which approval comes first? · Pace and control: How should meetings run? · How they take recognition: What are you proudest of? · How they take disagreement: Where has your team pushed back? · LinkedIn: What has he shared lately? |
+| **Still open** | Decision maker: Who signs off? · The gate: Which approval comes first? · Pace and control: How should meetings run? · LinkedIn: What has he shared lately? |
 | **Left out on purpose** | health, family, politics, litigation, personal finances |
 | **Run** | Oct 14, 2026 · standard · first intro · founder / principal · US · LIMITED · 6.7 facts per page |

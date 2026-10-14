@@ -90,6 +90,6 @@ Unmarked facts are measured. 12 facts cited; status LIMITED at 6 of 12 source ty
 | | |
 |---|---|
 | **Coverage** | 6 of 12 source types. Not found: books, registers, events. LinkedIn: not read: no browser here |
-| **Still open** | Decision maker: Who signs off on executive tools? · The gate: Who must agree before a yes? · Relationship holder: Who holds this relationship? · How they take recognition: Which result should I credit? · Appetite for risk: How much risk will he take? · How they take disagreement: How should I challenge him? · How they keep score: Which peers does he watch? · LinkedIn: What has he posted lately? |
+| **Still open** | Decision maker: Who signs off on executive tools? · The gate: Who must agree before a yes? · Relationship holder: Who holds this relationship? · LinkedIn: What has he posted lately? |
 | **Left out on purpose** | health, family, politics, litigation, personal finances |
 | **Run** | Oct 14, 2026 · standard · first introduction · Founder / principal · US · LIMITED · decision-useful facts per page: 4.0 |

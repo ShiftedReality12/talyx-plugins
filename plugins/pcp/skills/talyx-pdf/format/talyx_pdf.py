@@ -260,6 +260,9 @@ def columns(secs, htmls, spec):
 # so its two columns end together (no blank quadrant) and the row needs the least height on its page; at each split,
 # each two-column table in the row first takes the first-column width (30-70%) at which it is shortest. It runs in the
 # page once the fonts have loaded, so it measures with the printed font at the printed width.
+# The script (page 3) keeps its blocks in order, down the left column then the right, and puts the column break where
+# the two columns end closest (the order holds when P5 and P6 drop); then it loosens its leading while it still fits
+# its one page with 0.35in to spare, so the page does not end in a blank band.
 BALANCE = """<script>
 function shortest(lo, hi, step, set, height) {   // the lowest height; of settings within 1px of it, the nearest to 50
   const tries = [];
@@ -274,6 +277,23 @@ function balance() {
     shortest(40, 60, 1, p => { row.style.gridTemplateColumns = p + 'fr ' + (100 - p) + 'fr'; fit(); },
              () => Math.max(...cols.map(c => c.offsetHeight)));
   }
+  for (const part of document.querySelectorAll('.part-1')) {
+    const limit = (11 - 0.42 - 0.62 - 0.35) * 96;   // the page's content height in CSS px, less the margin to spare
+    for (const lh of [1.5, 1.45, 1.4, 1.35, '']) {
+      part.style.lineHeight = lh; part.querySelectorAll('.two').forEach(restack);
+      if (part.offsetHeight <= limit) break;
+    }
+  }
+}
+function restack(row) {
+  const [a, b] = row.children, secs = [...a.children, ...b.children], authored = a.children.length, tries = [];
+  for (let k = 1; k < secs.length; k++) {
+    secs.forEach((s, i) => (i < k ? a : b).appendChild(s));
+    tries.push({k, h: Math.max(a.offsetHeight, b.offsetHeight)});
+  }
+  const low = Math.min(...tries.map(t => t.h));
+  const k = tries.filter(t => t.h <= low + 1).sort((x, y) => Math.abs(x.k - authored) - Math.abs(y.k - authored))[0].k;
+  secs.forEach((s, i) => (i < k ? a : b).appendChild(s));
 }
 document.fonts.ready.then(balance);
 </script>"""
