@@ -366,7 +366,25 @@ def pdf_check(pdf, brief_md=""):
         links = pdf_links(pdf)
         if len(links) < len(rows):
             fails.append(f"C10 links: {len(links)} links in the PDF < {len(rows)} ledger rows not tagged Yours")
-    return fails + c19
+    return fails + c19 + block_breaks(pages, brief_md)
+
+
+def block_breaks(pages, brief_md=""):
+    """C19: no block of the brief runs across a page break (v6 printed half of B6 at the top of page 2). Each brief page
+    after the first opens on a block title, and no table's header row prints on two pages (a split table repeats it)."""
+    n, bp = R["names"], R["page_budget"]["brief_pages"]
+    titles = [_flat(re.sub(r"\{(\w+)\}", lambda m: n[m.group(1)], s["title"])) for s in R["brief"]["sections"][1:]]
+    fails = []
+    for i, p in enumerate(pages[1:bp], 2):
+        first = re.sub(r"\s+", "", next((ln for ln in p.splitlines() if ln.strip()), ""))   # titles print in capitals
+        if len(first) < 6 or not any(t.startswith(first) or first.startswith(t) for t in titles):
+            fails.append(f"C19 render: page {i} opens inside a block ('{first[:30]}'), not on a block title")
+    for head in re.findall(r"^\|(.+)\|[ \t]*\n\|[ \t:|-]+\|[ \t]*$", brief_md, re.M):
+        cells = [re.sub(r"\s+", "", c).upper() for c in head.split("|") if c.strip() not in ("", "#")]
+        on = [i + 1 for i, p in enumerate(pages[:bp]) if cells and all(c in re.sub(r"\s+", "", p) for c in cells)]
+        if len(on) > 1:   # headers print in capitals, so body text never matches
+            fails.append(f"C19 render: the table '| {head.strip()} |' is split across pages {on}")
+    return fails
 
 
 # ---------------------------------------------------------------- concordance --------------------------------
@@ -419,6 +437,11 @@ def self_test(require_pdf=False):
     else:
         print("FAIL chat_broken.md must trip S4-10"); ok = False
     print(f"inventory: {len(conditional)} conditional parts, each enforced by a check:", ", ".join(f"{p} {c}" for p, _, c in conditional))
+    split = block_breaks((fx / "split_table_pages.txt").read_text().split("\f"), (fx / "control_12.md").read_text())
+    if len(split) == 2 and "page 2 opens inside a block" in split[0] and "split across pages [1, 2]" in split[1]:
+        print("tripped: C19 by split_table_pages.txt (a v6 render: page 2 opens on the rest of B6's table)")
+    else:
+        print("FAIL split_table_pages.txt must trip C19 twice (page 2 opens inside a block; B6 split):", split); ok = False
     for name, kw in MUST_PASS:
         f = checks((fx / name).read_text(), **kw)
         if f:

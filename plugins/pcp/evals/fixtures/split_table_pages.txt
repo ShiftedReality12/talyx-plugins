@@ -1,0 +1,227 @@
+I N T E R N A L | P R E PA R E D F O R Y O U | N O T F O R T H E P E R S O N D E S C R I B E D
+
+Brian Moynihan
+
+Bank of America | Chair of the Board and Chief Executive Officer, since 2010 | Charlotte, NC (not confirmed)
+
+Meeting: First introduction: earn a second meeting, Oct 15, 2026 | Prepared for: Founder / principal | Depth: standard | Sources: 8 of 12 source types, 20 cited |
+Status LIMITED | Prepared Oct 14, 2026
+
+Take. Moynihan has led Bank of America since 2010 [1] and gives all staff AI access [2] and expects headcount to
+fall [3]. Evidence: Athanasia and DeMare named co-presidents [4]. Action: open on his AI “reinvest” line [5]. Avoid:
+pitching AI as job cuts, which Moynihan avoids saying [6].
+Q U E S T I O N S T H AT C L O S E G A P S
+
+1. What did Erica teach you about how Bank of America staff adopt AI [7]?
+Decides: adoption or capability. Ask: Moynihan.
+
+2. How does Bank of America pick which of roughly 20 AI projects scale [8]?
+Decides: pilot to enterprise. Ask: CTIO Gopalkrishnan [9].
+
+3. Who else weighs in before AI reaches Bank of America’s 20,000 managers [10]?
+Decides: the gate. Ask: Moynihan.
+
+4. What did coding agents for 18,000 developers change in how Bank of America buys [11]?
+Decides: proof standard. Ask: the CTIO.
+
+5. If a demo prepared one of your own meetings, who else should see it [12]?
+Decides: meeting two guests. Ask: Moynihan.
+
+WHO THEY ARE
+
+IN THEIR WORDS
+
+Role: Chair and CEO of Bank of America, CEO since
+January 2010 [1].
+Path: Moynihan joined FleetBoston in April 1993 [13].
+The organization: Bank of America spends $13 billion
+a year on technology [14].
+What changed: Athanasia and DeMare became copresidents [4].
+
+AI access, Nov 2025: “All 213,000 people are getting
+access to AI” [2]
+Efficiency, Nov 2025: “you can reinvest that to
+grow faster” [5]
+Guardrails, Feb 2026: “it can go sideways” [15]
+LinkedIn: not read: you declined
+
+S I G N A L S A N D W H AT T O D O W I T H T H E M
+
+MEETING APPROACH
+
+OBSERVABLE
+
+WHAT THE RECORD
+SHOWS
+
+$4 billion of it goes to
+new capabilities [14]
+Talyx: AI meeting prep
+for executives [16]
+Moynihan expects 2026
+headcount to drop [3]
+
+WHAT TO DO WITH IT
+
+The AI budget exists; its next
+home is open.
+The outcome: executives
+arrive briefed.
+Urgency: manager
+hours matter.
+
+Intelligence Brief · Brian Moynihan, Bank of America · Prepared for you (internal)
+
+YOUR MOVE
+
+Pace and control:
+No read
+none found
+How they take
+No read
+recognition:
+none found
+Appetite for detail:
+Headline, two proof points, a
+20,000 managers [10]; source on request.
+10% to 15% gains [5]
+Appetite for risk: AI
+Pair the upside with the
+“can go sideways” [15]; safeguard in the
+18,000 coders
+same sentence.
+use agents [11]
+How they take
+No read
+disagreement:
+none found
+page 1 of 3
+
+WHAT THE RECORD
+SHOWS
+
+YOUR MOVE
+
+How they keep score: One peer reference is useful;
+EPS up 34% [17]; 16% more is noise.
+to 18% target [18]
+Evidence tier: medium: it sets how far page 3 goes
+WHO DECIDES
+
+Decision maker: Not determined
+The gate: Not determined
+Relationship holder: CTIO Gopalkrishnan [9].
+
+STRONGEST CASE AGAINST
+
+Against: Moynihan says AI will reach senior people
+too [12]. Reverses if: he sees it as capacity.
+
+MEETING ANGLE
+
+This meeting
+
+Frame: executive prep. Lands: AI as capacity to “reinvest” [5]. Repels: AI as headcount cuts [6].
+What to bring: a one-page prep on his Barclays remarks [19].
+The ask: 30 minutes with him or his named executive [20] · Fallback: an introduction to the tooling owner. Stop if:
+managers’ tools are settled.
+
+Meeting two
+
+Meeting two: the coding-agent playbook from 18,000 developers [11]. Meeting three: a pilot for some of the
+20,000 managers [10].
+
+After the meeting
+
+Capture: who he names as tooling owner.
+
+EVIDENCE LEDGER
+
+Unmarked facts are measured. 20 facts cited; status LIMITED at 8 of 12 source types.
+#
+
+WHAT IT SAYS
+
+CEO since Jan 2010; Chairman Oct 2014
+[2] “All 213,000 people” getting AI access
+[3] Expects 2026 headcount to drop
+[4] Athanasia, DeMare named co-presidents
+[5] AI gains: “reinvest” or bottom line
+[6] Won’t say AI takes headcount down
+[7] Erica: 24.6 million active users, up 23%
+[8] Hundreds of millions, about 20 AI projects
+[9] Gopalkrishnan CTIO since July 2025
+[10] “20,000 managers today” at the bank
+[11] 18,000 developers use coding agents, 20% gain
+[12] AI will reach senior people too
+[13] Joined FleetBoston in April 1993
+[14] $13 billion tech budget, $4 billion new
+[15] AI “can go sideways” if not guided
+[16] Talyx: AI meeting prep for executive teams
+[17] “one of our strongest quarters to date”
+[18] Target 16% to 18% return on tangible equity
+[19] Sept 14: Q3 trading revenue “relatively flat”
+[20] Win: a second 30-minute meeting
+[1]
+
+SOURCE
+
+GRADE
+
+DATE
+
+MEASURED Oct 14, 2026
+www.sec.gov
+MEASURED Oct 14, 2026
+fortune.com
+MEASURED Oct 14, 2026
+www.bankingdive.com
+MEASURED Oct 14, 2026
+www.bankingdive.com
+MEASURED Oct 14, 2026
+fortune.com
+MEASURED Oct 14, 2026
+fortune.com
+MEASURED Oct 14, 2026
+www.sec.gov
+MEASURED Oct 14, 2026
+www.bankingdive.com
+MEASURED Oct 14, 2026
+fortune.com
+MEASURED Oct 14, 2026
+fortune.com
+MEASURED Oct 14, 2026
+www.bankingdive.com
+MEASURED Oct 14, 2026
+fortune.com
+investor.bankofamerica.com MEASURED Oct 14, 2026
+MEASURED Oct 14, 2026
+www.bankingdive.com
+MEASURED Oct 14, 2026
+fortune.com
+MEASURED Oct 14, 2026
+your saved setup
+MEASURED Oct 14, 2026
+www.sec.gov
+MEASURED Oct 14, 2026
+www.bankingdive.com
+MEASURED Oct 14, 2026
+finance.yahoo.com
+MEASURED Oct 14, 2026
+your saved setup
+
+8 of 12 source types; not found: Q3 results, posts, papers. LinkedIn: not read: you declined
+Decision maker: Who signs off? · The gate: Which approval comes first? · Pace and control: How
+should meetings run? · How they take recognition: What are you proudest of? · How they take
+disagreement: Where has your team pushed back? · LinkedIn: What has he shared lately?
+Left out on purpose health, family, politics, litigation, personal finances
+Run
+Oct 14, 2026 · standard · first intro · founder / principal · US · LIMITED · 6.7 facts per page
+Coverage
+Still open
+
+Intelligence Brief · Brian Moynihan, Bank of America · Prepared for you (internal)
+
+page 2 of 3
+
+

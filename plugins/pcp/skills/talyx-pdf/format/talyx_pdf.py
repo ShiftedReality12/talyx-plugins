@@ -94,7 +94,7 @@ def _table(lines):
     if not rows:
         return ""
     def cell(c):
-        h = inl(keep(c))
+        h = inl(c)   # no keep(): in a narrow cell two glued words strand the word before; CSS text-wrap:pretty instead
         m = re.match(r"(\d+)\.\s", h)
         return f'<span class="hang"><span class="num">{m.group(1)}.</span>{h[m.end():]}</span>' if m else h
     body = "".join("<tr>" + "".join(f"<td>{cell(c)}</td>" for c in r) + "</tr>" for r in rows[1:])
@@ -193,6 +193,9 @@ def sec_html(num, title, body, style="house"):
     if style == "brief":   # brief blocks print no number; script sections print "1."
         sid = re.match(r"([BP])(\d+)\s", title)
         num_html = f'<span class="sec-num">{num}.</span> ' if sid and sid.group(1) == "P" else ""
+        if sid and sid.group(0).strip() == "B6":   # each row leads with its dimension: set the label apart from the evidence
+            body = re.sub(r"<tr><td>([^<:]{3,40}):\s*", r'<tr><td><strong class="dim">\1:</strong> ', body)
+            body = re.sub(r"<tr>(?=<td>(?:(?!</tr>).)*</td><td>\s*No read\.?\s*</td></tr>)", '<tr class="noread">', body, flags=re.I)
         return (f'<div class="sec{" sec-" + sid.group(0).strip().lower() if sid else ""}"><h2 class="sec-head">'
                 f'{num_html}<span class="sec-title">{t}</span></h2><div class="sec-body">{body}</div></div>')
     return (f'<div class="sec{ref}"><h2 class="sec-head">'
@@ -215,6 +218,29 @@ def columns(secs, htmls, spec):
         used |= {j for c in cols for j in c}
         out.append('<div class="two">' + "".join("<div>" + "".join(htmls[j] for j in c) + "</div>" for c in cols) + "</div>")
     return out
+
+
+# --style brief: each side-by-side row of the brief takes the column split (40-60% .. 60-40%) at which it is shortest,
+# so its two columns end together (no blank quadrant) and the row needs the least height on its page; at each split,
+# each two-column table in the row first takes the first-column width (30-70%) at which it is shortest. It runs in the
+# page once the fonts have loaded, so it measures with the printed font at the printed width.
+BALANCE = """<script>
+function shortest(lo, hi, step, set, height) {   // the lowest height; of settings within 1px of it, the nearest to 50
+  const tries = [];
+  for (let p = lo; p <= hi; p += step) { set(p); tries.push({p, h: height()}); }
+  const low = Math.min(...tries.map(t => t.h));
+  set(tries.filter(t => t.h <= low + 1).sort((x, y) => Math.abs(x.p - 50) - Math.abs(y.p - 50))[0].p);
+}
+function balance() {
+  for (const row of document.querySelectorAll('.part-0 .two')) {
+    const cols = [...row.children], tables = [...row.querySelectorAll('table:not(.src)')];
+    const fit = () => tables.forEach(t => shortest(30, 70, 2, p => t.style.setProperty('--c1', p + '%'), () => t.offsetHeight));
+    shortest(40, 60, 1, p => { row.style.gridTemplateColumns = p + 'fr ' + (100 - p) + 'fr'; fit(); },
+             () => Math.max(...cols.map(c => c.offsetHeight)));
+  }
+}
+document.fonts.ready.then(balance);
+</script>"""
 
 
 # ---------------------------------------------------------------- document --------------------------------
@@ -265,7 +291,7 @@ table.src {{ break-inside:auto; }}
 td:last-child, th:last-child {{ padding-right:0; }}
 tr {{ break-inside:avoid; }} thead {{ display:table-header-group; }}
 th {{ font-size:{b-1.5}pt; font-weight:500; text-transform:uppercase; letter-spacing:0.04em; color:{ACCENT}; text-align:left; padding:{cp}px 14px {cp}px 0; border-bottom:1.25px solid {ACCENT}; }}
-td {{ font-size:{b-0.5}pt; line-height:{lh}; padding:{cp}px 14px {cp}px 0; border-bottom:0.5px solid {HAIR}; vertical-align:top; overflow-wrap:anywhere; }}
+td {{ font-size:{b-0.5}pt; line-height:{lh}; padding:{cp}px 14px {cp}px 0; border-bottom:0.5px solid {HAIR}; vertical-align:top; overflow-wrap:anywhere; text-wrap:pretty; }}
 tbody tr:last-child td {{ border-bottom:1.25px solid {INK}; }}
 table.src td {{ white-space:nowrap; overflow-wrap:normal; }}
 /* everything in a Sources section is reference material: one small size and fixed compact rows at every density */
@@ -309,18 +335,22 @@ strong {{ font-weight:700; }} em {{ font-style:italic; }}
 a {{ color:{A}; text-decoration:underline; text-decoration-thickness:0.5px; text-underline-offset:1.5px; }}
 .cite {{ color:{A}; font-size:0.8em; font-weight:500; }}
 .sub {{ font-size:8.8pt; font-weight:700; margin:2pt 0 3pt; }}
-.two {{ display:grid; grid-template-columns:1fr 1fr; column-gap:0.28in; }}
+.two {{ display:grid; grid-template-columns:1fr 1fr; column-gap:0.28in; align-items:start; break-inside:avoid; }}
+@media screen {{ body {{ width:8.5in; }} }}   /* BALANCE measures at the printed width */
 .sec-b1 .sec-head {{ display:none; }}
 .sec-b1 .sec-body {{ background:{A}; color:#F8F6F3; font-size:{b}pt; line-height:1.4; padding:8pt 11pt; border-radius:6pt; margin-top:2pt; }}
 .sec-b1 p {{ margin:0; }} .sec-b1 strong, .sec-b1 a {{ color:#fff; }} .sec-b1 .cite {{ color:#DDE5F0; }}
 .sec-b2 ol {{ padding-left:15pt; }} .sec-b2 ol > li {{ font-size:{b + 0.9}pt; font-weight:600; }}
 .sec-b2 li > ul {{ list-style:none; padding-left:0; }} .sec-b2 li li {{ font-size:7.8pt; font-weight:400; color:{GREY}; margin:0; }}
 .sec-b2 li li strong {{ color:{GREY}; }}
-table {{ border-collapse:collapse; width:100%; margin:0 0 {pg}pt; }} tr {{ break-inside:avoid; }}
+table {{ border-collapse:collapse; width:100%; margin:0 0 {pg}pt; break-inside:avoid; }} tr {{ break-inside:avoid; }}
+table.src {{ break-inside:auto; }}
 th {{ text-align:left; font-size:7.4pt; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:{A};
   padding:0 6pt 3pt 0; border-bottom:1pt solid {HAIR}; }}
-td {{ vertical-align:top; padding:{cp}pt 6pt {cp}pt 0; border-bottom:0.6pt solid {HAIR}; }}
-.sec-b5 td:first-child {{ width:48%; }} .sec-b6 td:first-child {{ width:42%; }} .sec-b8 td:first-child {{ width:50%; }}
+td {{ vertical-align:top; padding:{cp}pt 6pt {cp}pt 0; border-bottom:0.6pt solid {HAIR}; text-wrap:pretty; }}
+.sec-b5 td:first-child {{ width:var(--c1, 48%); }} .sec-b6 td:first-child {{ width:var(--c1, 55%); }} .sec-b8 td:first-child {{ width:var(--c1, 50%); }}
+.sec-b6 td {{ padding-top:{max(cp - 0.6, 0.8)}pt; padding-bottom:{max(cp - 0.6, 0.8)}pt; }}
+.sec-b6 tr.noread td {{ white-space:nowrap; }}   /* a dimension with no read is one line */
 table.src td {{ font-size:7.6pt; padding:2pt 6pt 2pt 0; white-space:nowrap; }} table.src td:nth-child(2) {{ white-space:normal; width:100%; }}
 table.src td:nth-child(4) {{ font-size:6.8pt; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#1A7F64; }}
 table.grid {{ margin-top:6pt; }} table.grid td:first-child {{ width:1.35in; white-space:nowrap; font-weight:700; }}
@@ -348,7 +378,8 @@ def build_doc(parts, rung, footer, style="house", classification=""):
     body = "".join(('<div class="pagebreak">' if i else "") + wrap(i, mh(t, s, i) + "".join(h)) + ("</div>" if i else "")
                    for i, (t, s, h) in enumerate(parts))
     return (f'<!doctype html><html lang="en"><head><meta charset="utf-8"><title>{html.escape(typo(parts[0][0] or ""))}</title>'
-            f"<style>{sheet}</style></head><body><div class=\"page-content\">{body}</div></body></html>")
+            f"<style>{sheet}</style></head><body><div class=\"page-content\">{body}</div>"
+            f"{BALANCE if style == 'brief' else ''}</body></html>")
 
 
 # ---------------------------------------------------------------- render --------------------------------
@@ -397,7 +428,7 @@ def render_html(doc, out_path):
                 try:
                     pg = br.new_page()
                     pg.goto(pathlib.Path(tmp).as_uri())
-                    pg.evaluate("document.fonts.ready")
+                    pg.evaluate("document.fonts.ready")   # the page's own fonts.ready callback (BALANCE) runs first
                     pg.pdf(path=str(out_path), print_background=True, prefer_css_page_size=True, outline=True, tagged=True)
                 finally:
                     br.close()
@@ -409,6 +440,7 @@ def render_html(doc, out_path):
             with tempfile.TemporaryDirectory() as prof:
                 subprocess.run([chrome, "--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
                                 f"--user-data-dir={prof}", "--no-pdf-header-footer", "--generate-pdf-document-outline",
+                                "--virtual-time-budget=10000",   # print after the page's fonts.ready script, on every Chromium
                                 f"--print-to-pdf={out_path}", pathlib.Path(tmp).as_uri()],
                                check=True, capture_output=True, timeout=120)
     finally:
