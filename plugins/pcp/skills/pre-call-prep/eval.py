@@ -664,6 +664,15 @@ def pdf_self_test(fx):
                     print("tripped: C19 by control_12.pdf rendered with B3|B4, B5|B6 and B7|B8 stacked (three pairs)")
                 else:
                     print("FAIL C19 must trip on all three stacked pairs (got", side_by_side(stacked) if stacked.exists() else "no render", ")"); ok = False
+                clipped = pathlib.Path(tmp, "clipped.pdf")   # C19 must fail a logo whose top a page margin cuts off
+                logo = "data:image/png;base64," + (HERE / "format/assets/talyx-logo-navy-base64.txt").read_text().strip()
+                tp.render_html("<!doctype html><style>@page { size: Letter; margin: 0.42in 0 0.62in 0; } body { margin: 0; }"
+                               ".stamp { display: flex; justify-content: flex-end; padding: 0 0.5in; margin-top: -0.12in; }</style>"
+                               f'<div class="stamp"><img src="{logo}" style="width:90px"/></div>' + "<p>Text.</p>" * 60, clipped)
+                if any("logo cut off" in x for x in render_check(clipped)):
+                    print("tripped: C19 by a logo whose top the page margin cuts off")
+                else:
+                    print("FAIL C19 must trip on a clipped logo (got", render_check(clipped), ")"); ok = False
                 short = pathlib.Path(tmp, "short.pdf")   # C19 must be able to fail on a page that ends in a blank band
                 tp.render_html("<!doctype html><style>@page { size: Letter; margin: 0.42in 0.55in 0.62in; }</style>"
                                "<p>One line, then nothing to the foot of the page.</p>", short)
@@ -862,6 +871,9 @@ def _pgm(path):
     return w, h, data[i + 1:]
 
 
+LOGO_ASPECT = 0.806   # the ink of format/assets/talyx-logo-navy-base64.txt: 697 x 562 px, height / width
+
+
 def side_by_side(pdf):
     """C19: each side-by-side pair of the schema (page_budget.columns: B3|B4, B5|B6, B7|B8) prints its two titles
     on one line, one per column (the R9 run, Oct 14, stacked them to fit two pages instead of cutting words)."""
@@ -921,6 +933,9 @@ def render_check(pdf, dpi=72):
                     bx1, by1 = max(p[0] for p in pts), max(p[1] for p in pts)
                     if by0 <= edge or bx1 >= w - edge or (bx1 - bx0) < 0.6 * dpi or (by1 - by0) < 0.4 * dpi:
                         fails.append(f"C19 render: page 1: logo cut off or too small (box {bx0},{by0}-{bx1},{by1} px at {dpi} dpi)")
+                    elif (by1 - by0) / (bx1 - bx0) < 0.92 * LOGO_ASPECT:   # a page margin cut its top flat (Oct 14)
+                        fails.append(f"C19 render: page 1: logo cut off: printed {(by1 - by0) / (bx1 - bx0):.2f} high per unit wide, "
+                                     f"the logo is {LOGO_ASPECT}")
     fails += side_by_side(pdf)
     r = subprocess.run(["pdftotext", "-bbox", str(pdf), "-"], capture_output=True, text=True)
     page, pw, ph = 0, 612.0, 792.0

@@ -299,8 +299,8 @@ function spread(els, height, limit = LIMIT) {   // the most --fill (space betwee
 function fillBrief(part) {   // pages 1 and 2 keep the rung's type; what is left on each page goes between its blocks
   const kids = [...part.children], k = kids.findIndex(e => e.matches('.two:has(.sec-b7), .sec-b7'));
   if (k < 1) return;
-  const lift = -Math.min(0, parseFloat(getComputedStyle(kids[0]).marginTop));   // the logo sits that far above page 1's area
-  const pages = [[part, kids.slice(0, k), LIMIT + lift], [kids[k], kids.slice(k), LIMIT]];
+  const first = (0.42 - 0.30) * 96;   // page 1's top margin is 0.30in (@page :first), the others 0.42in
+  const pages = [[part, kids.slice(0, k), LIMIT + first], [kids[k], kids.slice(k), LIMIT]];
   for (const [top, els, limit] of pages) {
     const height = () => Math.max(...els.map(e => e.getBoundingClientRect().bottom)) - top.getBoundingClientRect().top;
     if (height() <= limit) spread(els, height, limit);
@@ -397,10 +397,11 @@ def brief_css(rung, footer):
 @page {{ size: Letter; margin: 0.42in 0 0.62in 0;
   @bottom-left {{ content: "{html.escape(footer)}"; font-family:'Archivo'; font-size:7.2pt; color:{GREY}; padding-left:0.55in; }}
   @bottom-right {{ content: "page " counter(page) " of " counter(pages); font-family:'Archivo'; font-size:7.2pt; color:{GREY}; padding-right:0.55in; }} }}
+@page :first {{ margin-top:0.30in; }}   /* the logo stamp starts page 1 inside the printable area: a negative margin clipped its top */
 html {{ -webkit-print-color-adjust:exact; }}
 body {{ font-family:'Archivo', sans-serif; color:{MIDNIGHT}; margin:0; font-size:{b}pt; line-height:{lh}; }}
 .page-content {{ padding:0 0.55in; }}
-.stamp {{ display:flex; justify-content:flex-end; margin:-0.12in -0.05in 3pt 0; }} .stamp img {{ width:90px; height:auto; }}
+.stamp {{ display:flex; justify-content:flex-end; margin:0 -0.05in 3pt 0; }} .stamp img {{ width:90px; height:auto; }}
 .band {{ display:flex; align-items:center; height:18pt; border-bottom:1pt solid {HAIR}; margin-bottom:9pt; }}
 .cls {{ font-size:7.8pt; font-weight:600; letter-spacing:0.16em; color:{A}; }}
 h1.name {{ font-size:14.2pt; font-weight:700; margin:0 0 2pt; }}
