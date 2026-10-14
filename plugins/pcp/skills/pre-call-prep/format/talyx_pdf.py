@@ -51,11 +51,12 @@ LADDER = [
     dict(name="tight",   body_pt=10.0, lh=1.30, para=4, sec=8,  mh=(0.15, 0.22), cell=3, page=(0.55, 0.6)),
     dict(name="compact", body_pt=10.0, lh=1.24, para=3, sec=6,  mh=(0.05, 0.14), cell=1.5, page=(0.45, 0.55)),
 ]
-# --style brief: Ben's format (the approved Oct 8 schema), about 9 pt
+# --style brief: Ben's format (schema approved Oct 13), 10 pt body on every rung (Ben: "Keep 10 pt, not 9 pt");
+# rungs tighten only leading and spacing, never the type size
 BRIEF_LADDER = [
-    dict(name="normal",  body_pt=9.0, lh=1.33, para=3, sec=11, cell=2.6),
-    dict(name="tight",   body_pt=8.7, lh=1.29, para=2, sec=9,  cell=2.0),
-    dict(name="compact", body_pt=8.4, lh=1.25, para=2, sec=7,  cell=1.5),
+    dict(name="normal",  body_pt=10.0, lh=1.30, para=3, sec=10, cell=2.4),
+    dict(name="tight",   body_pt=10.0, lh=1.24, para=2, sec=8,  cell=1.8),
+    dict(name="compact", body_pt=10.0, lh=1.18, para=2, sec=6,  cell=1.2),
 ]
 GREY, BRIEF_ACCENT = "#8B95A1", "#1C3A66"
 
@@ -310,7 +311,7 @@ a {{ color:{A}; text-decoration:underline; text-decoration-thickness:0.5px; text
 .sub {{ font-size:8.8pt; font-weight:700; margin:2pt 0 3pt; }}
 .two {{ display:grid; grid-template-columns:1fr 1fr; column-gap:0.28in; }}
 .sec-b1 .sec-head {{ display:none; }}
-.sec-b1 .sec-body {{ background:{A}; color:#F8F6F3; font-size:9.3pt; line-height:1.45; padding:8pt 11pt; border-radius:6pt; margin-top:2pt; }}
+.sec-b1 .sec-body {{ background:{A}; color:#F8F6F3; font-size:{b}pt; line-height:1.4; padding:8pt 11pt; border-radius:6pt; margin-top:2pt; }}
 .sec-b1 p {{ margin:0; }} .sec-b1 strong, .sec-b1 a {{ color:#fff; }} .sec-b1 .cite {{ color:#DDE5F0; }}
 .sec-b2 ol {{ padding-left:15pt; }} .sec-b2 ol > li {{ font-size:{b + 0.9}pt; font-weight:600; }}
 .sec-b2 li > ul {{ list-style:none; padding-left:0; }} .sec-b2 li li {{ font-size:7.8pt; font-weight:400; color:{GREY}; margin:0; }}
@@ -321,9 +322,9 @@ th {{ text-align:left; font-size:7.4pt; font-weight:700; letter-spacing:0.08em; 
 td {{ vertical-align:top; padding:{cp}pt 6pt {cp}pt 0; border-bottom:0.6pt solid {HAIR}; }}
 .sec-b5 td:first-child {{ width:48%; }} .sec-b6 td:first-child {{ width:42%; }} .sec-b8 td:first-child {{ width:50%; }}
 table.src td {{ font-size:7.6pt; padding:2pt 6pt 2pt 0; white-space:nowrap; }} table.src td:nth-child(2) {{ white-space:normal; width:100%; }}
-table.src td:nth-child(5) {{ font-size:6.8pt; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#1A7F64; }}
+table.src td:nth-child(4) {{ font-size:6.8pt; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#1A7F64; }}
 table.grid {{ margin-top:6pt; }} table.grid td:first-child {{ width:1.35in; white-space:nowrap; font-weight:700; }}
-.sec-p9 .sec-head {{ display:none; }} .sec-p9 {{ margin-top:12pt; font-size:9.6pt; }}
+.sec-p9 .sec-head {{ display:none; }} .sec-p9 {{ margin-top:12pt; font-size:{b}pt; }}
 .pagebreak {{ break-before:page; }}
 """
 

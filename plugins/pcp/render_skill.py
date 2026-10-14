@@ -186,7 +186,7 @@ Never say: {'; '.join(f'"{p}"' for p in R['guardrails']['never_say'])}.
 
 ## Checks (all pass before render)
 
-Run `python3 eval.py checks brief.md script.md --target-nouns "<Full Name>,<surname>,<Organization>,<their key programmes>" --experience <{qs['Q9']['id']}: {', '.join(o['value'] for o in qs['Q9']['options'])}>`
+Run `python3 eval.py checks brief.md script.md --target-nouns "<Full Name>,<surname>,<Organization>,<their key programmes>" --experience <{qs['Q9']['id']}: {', '.join(o['value'] for o in qs['Q9']['options'])}> --authority <caller.authority_level: high, medium>`
 and `python3 eval.py duf brief.md script.md`; rewrite until both are clean.
 
 | Id | Check | Command | Passes when |
@@ -267,8 +267,8 @@ Follow the `pre-call-prep` skill in this plug-in exactly, in stage order:
 0. **Setup** -- ask only the questions `{R['calibration']['profile_path']}` has no answer for (all with `--recalibrate`); read files given with `--context`.
 1. **Intake** -- resolve `$ARGUMENTS` (CSV path, `"Name, Org"`, or ask). Never start without a full name and an organisation. Ask the user only as `references/socratic-questions.md` says.
 2. **{n['collection']}** -- run the enabled source types, LinkedIn only with a yes each run; write `claims.jsonl` and the coverage ledger. Drop excluded claims before writing.
-3. **{n['profile']}** -- score six dimensions from claim ids only; set the evidence tier.
-4. **{n['deliverable']}** -- write `brief.md` (B1-B10) and `script.md` (P1-P9); run `python3 eval.py checks brief.md script.md --target-nouns \"<name>,<org>\" --experience <Q9>` and `python3 eval.py duf brief.md script.md`; rewrite until clean; render with `format/talyx_pdf.py --style brief --brief-pages {pb['brief_pages']} --max-pages {pb['total_pages']}` and check it with `python3 eval.py pdf <the PDF> brief.md`. Deliver the PDF path. Delete `brief.md`/`script.md` after a clean render.
+3. **{n['profile']}** -- read six dimensions from claim ids only; set the evidence tier.
+4. **{n['deliverable']}** -- write `brief.md` (B1-B10) and `script.md` (P1-P9); run `python3 eval.py checks brief.md script.md --target-nouns \"<name>,<org>\" --experience <Q9> --authority <caller.authority_level>` and `python3 eval.py duf brief.md script.md`; rewrite until clean; render with `format/talyx_pdf.py --style brief --brief-pages {pb['brief_pages']} --max-pages {pb['total_pages']}` and check it with `python3 eval.py pdf <the PDF> brief.md`. Deliver the PDF path. Delete `brief.md`/`script.md` after a clean render.
 5. **After the call** -- offer the four-field template in `evals/debrief_template.yaml`; never ask for more.
 
 Say what was NOT found before what was.

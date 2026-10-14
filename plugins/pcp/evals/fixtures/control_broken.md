@@ -27,17 +27,16 @@ Gap: references [1]. Bridge: our pipeline ingests filings. Does that make sense?
 | A second vehicle [3] | Ask about the close |
 
 ## B10 Evidence ledger
-| # | What it says | Source | Tag | Grade | Conf. | Date |
-|---|---|---|---|---|---|---|
-| [1] | Fact 1 | [example.org](https://example.org/1) | Direct | Measured | Primary | Sep 20, 2026 |
-| [2] | Fact 2 | [example.org](https://example.org/2) | Direct | Measured | Primary | Sep 20, 2026 |
-| [3] | Fact 3 | [example.org](https://example.org/3) | Direct | Measured | Primary | Sep 20, 2026 |
-| [4] | Fact 4 | [example.org](https://example.org/4) | Direct | Measured | Primary | Sep 20, 2026 |
-| [5] | Fact 5 | [example.org](https://example.org/5) | Direct | Measured | Primary | Sep 20, 2026 |
-| [6] | Fact 6 | [example.org](https://example.org/6) | Direct | Measured | Primary | Sep 20, 2026 |
-| [7] | Fact 7 | [example.org](https://example.org/7) | Direct | Measured | Primary | Sep 20, 2026 |
-| [8] | Fact 8 with no source | | Direct | Measured | Primary | Sep 20, 2026 |
-
+| # | What it says | Source | Grade | Date |
+|---|---|---|---|---|
+| [1] | Fact 1 | [example.org](https://example.org/1) | Measured | Sep 20, 2026 |
+| [2] | Fact 2 | [example.org](https://example.org/2) | Measured | Sep 20, 2026 |
+| [3] | Fact 3 | [example.org](https://example.org/3) | Measured | Sep 20, 2026 |
+| [4] | Fact 4 | [example.org](https://example.org/4) | Measured | Sep 20, 2026 |
+| [5] | Fact 5 | [example.org](https://example.org/5) | Measured | Sep 20, 2026 |
+| [6] | Fact 6 | [example.org](https://example.org/6) | Measured | Sep 20, 2026 |
+| [7] | Fact 7 | [example.org](https://example.org/7) | Measured | Sep 20, 2026 |
+| [8] | Fact 8 with no source |  | Measured | Sep 20, 2026 |
 | | |
 |---|---|
 | **Coverage** | 4 of 12 source types |

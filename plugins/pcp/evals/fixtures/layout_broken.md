@@ -39,12 +39,11 @@ No counter-evidence found.
 ## B10 Evidence ledger
 Unmarked facts are measured. 3 facts cited; status FULL at 10 of 12 source types.
 
-| # | What it says | Source | Tag | Grade | Conf. | Date |
-|---|---|---|---|---|---|---|
-| [1] | Jane Doe leads Alder Grey Capital | [example.org](https://example.org/1) | Direct | Measured | Primary | Sep 20, 2026 |
-| [2] | The firm manages family capital | [example.org](https://example.org/2) | Direct | Measured | Primary | Sep 20, 2026 |
-| [3] | Letter: "We buy patience" | [example.org](https://example.org/3) | Direct | Measured | Primary | Sep 20, 2026 |
-
+| # | What it says | Source | Grade | Date |
+|---|---|---|---|---|
+| [1] | Jane Doe leads Alder Grey Capital | [example.org](https://example.org/1) | Measured | Sep 20, 2026 |
+| [2] | The firm manages family capital | [example.org](https://example.org/2) | Measured | Sep 20, 2026 |
+| [3] | Letter: "We buy patience" | [example.org](https://example.org/3) | Measured | Sep 20, 2026 |
 ## Sources
 - example.org, three pages.
 

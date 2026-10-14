@@ -29,8 +29,17 @@ LEDGER = R["brief"]["sections"][-1]["id"]          # B10, the evidence ledger
 
 CITE = re.compile(r"\[(\d+)\]")
 TAGS, GRADES, CONFS = "Direct|Search|LinkedIn|Yours", "Measured|Derived|Inference|Not determined", "Primary|Reputable|Single source|Inferred"
-SRC_ROW = re.compile(r"^\|\s*\[(\d+)\]\s*\|\s*([^|]+?)\s*\|\s*([^|\s][^|]*?)\s*\|\s*(" + TAGS + r")\s*\|\s*(" + GRADES + r")\s*\|\s*("
-                     + CONFS + r")\s*\|\s*([A-Z][a-z]{2} \d{1,2}, \d{4})\s*\|", re.M)
+# Printed ledger (Ben, Oct 13): | # | What it says | Source | Grade | Date |. Tag and confidence stay in claims.jsonl.
+SRC_ROW = re.compile(r"^\|\s*\[(\d+)\]\s*\|\s*([^|]+?)\s*\|\s*([^|\s][^|]*?)\s*\|\s*(" + GRADES + r")\s*\|\s*"
+                     r"([A-Z][a-z]{2} \d{1,2}, \d{4})\s*\|", re.M)
+
+
+def _tag(source):
+    """The printed ledger has no Tag column: a source with no link is Yours, a linkedin.com link is LinkedIn."""
+    if not re.search(r"https?://", source):
+        return "Yours"
+    return "LinkedIn" if "linkedin.com" in source.lower() else "Direct"
+
 H2 = re.compile(r"^##\s+(.+)$", re.M)
 QUOTED = re.compile(r"[\u201c\"][^\u201d\"\n]{0,300}[\u201d\"]")   # their own words are exempt from plain words; one line, <= 300
                                                                     # characters, so a stray quote mark cannot exempt the rest of the page
@@ -64,9 +73,9 @@ def duf(brief_md, script_md="", pages=None):
             continue
         m = SRC_ROW.match(ln)
         if m:
-            sources[int(m.group(1))] = dict(claim=m.group(2), source=m.group(3), tag=m.group(4), grade=m.group(5), conf=m.group(6), date=m.group(7))
+            sources[int(m.group(1))] = dict(claim=m.group(2), source=m.group(3), tag=_tag(m.group(3)), grade=m.group(4), date=m.group(5))
         else:
-            dropped += 1  # a [n] ledger row missing its source, tag, grade, conf. or date
+            dropped += 1  # a [n] ledger row missing its source, grade or date
     cited = set()
     for k in _body_ids(secs):
         cited |= {int(n) for n in CITE.findall(secs[k])}
@@ -123,7 +132,7 @@ def _words(t):
     return len(WORD.findall(CITE.sub(" ", t.replace("*", ""))))
 
 
-def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None):
+def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None, authority=None):
     """experience: the profile's Q9 answer (new|experienced|top); C15 runs only when it is given."""
     md = brief_md + "\n" + script_md
     secs = _sections(md)
@@ -223,7 +232,7 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
         elif f"LinkedIn: {b4.group(1)}" not in cov:
             fails.append(f"C16 linkedin: Coverage does not say 'LinkedIn: {b4.group(1)}' as B4 does")
         elif b4.group(2):   # not read
-            tagged = [m.group(1) for m in SRC_ROW.finditer(grid) if m.group(4) == "LinkedIn"]
+            tagged = [m.group(1) for m in SRC_ROW.finditer(grid) if _tag(m.group(3)) == "LinkedIn"]
             if tagged:
                 fails.append(f"C16 linkedin: LinkedIn {li['not_read']}, yet ledger rows {tagged} are tagged LinkedIn")
             still = next((ln for ln in grid.splitlines() if "Still open" in ln), "")
@@ -262,6 +271,8 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
         tier = tier.group(1).lower() if tier else "low"
         if "P6" in secs and tier != "high":
             fails.append(f"C13 conditional: P6 Influence printed at evidence tier {tier}")
+        if "P6" in secs and authority and authority != "high":   # Ben, Oct 13: caller-authority gate as well as tier
+            fails.append(f"C13 conditional: P6 Influence printed with caller authority {authority} (needs high)")
         if "P5" in secs and tier == "low":
             fails.append("C13 conditional: P5 Read the room printed at evidence tier low")
         for w in re.findall(r"\*\*Recent wins:\*\*(.*)", secs.get("B3", "")):
@@ -351,7 +362,7 @@ def pdf_check(pdf, brief_md=""):
         if said < 2:
             fails.append(f"C16 linkedin: the PDF says 'LinkedIn: {R['linkedin']['not_read']}' {said} times, need B4 and Coverage")
     if brief_md:
-        rows = [m for m in SRC_ROW.finditer(brief_md) if m.group(4) != "Yours"]
+        rows = [m for m in SRC_ROW.finditer(brief_md) if _tag(m.group(3)) != "Yours"]
         links = pdf_links(pdf)
         if len(links) < len(rows):
             fails.append(f"C10 links: {len(links)} links in the PDF < {len(rows)} ledger rows not tagged Yours")
@@ -515,6 +526,7 @@ MUST_TRIP = [
     ("linkedin_declined_with_row.md", {}, ["C16"]),
     ("recent_wins_unsourced.md", {}, ["C13"]),
     ("cites_broken.md", {}, ["C17", "C18"]),
+    ("control_12.md", {"authority": "medium"}, ["C13"]),
 ]
 
 
@@ -524,7 +536,7 @@ STOP = set("""the and for with that this from their they them have has had was w
 than then when what which who whom whose where while will would could should may might must can not but also its
 his her she him our your you per via just only more most very each every some such other first second third last
 said says asked does did done make made take took""".split())
-LEDGER_ROW = re.compile(r"^\|\s*\[(\d+)\]\s*\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|", re.M)
+LEDGER_ROW = re.compile(r"^\|\s*\[(\d+)\]\s*\|([^|]*)\|([^|]*)\|([^|]*)\|", re.M)
 
 
 def _stems(t):
@@ -538,7 +550,7 @@ def ledger(md):
     for m in LEDGER_ROW.finditer(md):
         url = re.search(r"\((https?://[^)\s]+)\)", m.group(3))
         rows[int(m.group(1))] = {"claim": m.group(2).strip(), "source": m.group(3).strip(), "url": url.group(1) if url else "",
-                                 "tag": m.group(4).strip(), "grade": m.group(5).strip(), "conf": m.group(6).strip()}
+                                 "tag": _tag(m.group(3)), "grade": m.group(4).strip(), "conf": ""}
     return rows
 
 
@@ -547,9 +559,14 @@ def _domain(url):
     return d[4:] if d.startswith("www.") else d
 
 
-def source_quality(rows):
-    """C18: excluded domains never cited; weak domains never graded C1/C2 (Primary/Reputable)."""
+def source_quality(rows, claims=None):
+    """C18: excluded domains never cited; weak domains never C1/C2. Confidence is in the run file (claims.jsonl),
+    not the printed ledger, so the weak-domain test runs only when claims.jsonl is given."""
     q, fails = R.get("source_quality", {}), []
+    for c in claims or []:
+        for r in rows.values():
+            if r["url"] and r["url"] == c.get("url"):
+                r["conf"] = str(c.get("confidence", ""))
     for n, r in rows.items():
         if not r["url"]:
             continue
@@ -758,10 +775,11 @@ def main():
     c = sub.add_parser("checks"); c.add_argument("brief"); c.add_argument("script", nargs="?"); c.add_argument("--target-nouns", default="")
     for w in CHECKS + ["all"]:
         c.add_argument(f"--{w}", action="store_true")
+    c.add_argument("--authority", choices=["high", "medium"], help="profile caller.authority_level; C13 gates P6 on it")
     c.add_argument("--experience", choices=[o["value"] for q in R["calibration"]["questions"] if q["id"] == "Q9" for o in q["options"]],
                    help="the profile's Q9 answer: runs C15 with --all")
     p = sub.add_parser("pdf"); p.add_argument("pdf"); p.add_argument("brief", nargs="?")
-    ct = sub.add_parser("cites"); ct.add_argument("brief"); ct.add_argument("--fetch", action="store_true")
+    ct = sub.add_parser("cites"); ct.add_argument("brief"); ct.add_argument("--fetch", action="store_true"); ct.add_argument("--claims")
     lk = sub.add_parser("links"); lk.add_argument("pdf")
     rc = sub.add_parser("render"); rc.add_argument("pdf")
     sub.add_parser("concordance")
@@ -790,7 +808,7 @@ def main():
             f = [f"C11 plain: '{h}' printed in the PDF outside quoted words" for h in plain_hits(re.sub(r"\s+", " ", "\n".join(pages)))]
         else:
             f = checks(pathlib.Path(a.brief).read_text(), pathlib.Path(a.script).read_text() if a.script else "", which,
-                       [n.strip() for n in a.target_nouns.split(",")], a.experience)
+                       [n.strip() for n in a.target_nouns.split(",")], a.experience, a.authority)
         print(f"checks ({which}): {len(f)} failures"); [print(" -", x) for x in f]; sys.exit(1 if f else 0)
     if a.cmd == "pdf":
         f = pdf_check(a.pdf, pathlib.Path(a.brief).read_text() if a.brief else "")
@@ -803,7 +821,8 @@ def main():
         sys.exit(0 if self_test(a.require_pdf) else 1)
     if a.cmd == "cites":
         md = pathlib.Path(a.brief).read_text()
-        f = cite_relevance(md, fetch=a.fetch) + source_quality(ledger(md))
+        cl = [json.loads(x) for x in pathlib.Path(a.claims).read_text().splitlines() if x.strip()] if a.claims else None
+        f = cite_relevance(md, fetch=a.fetch) + source_quality(ledger(md), cl)
         print("\n".join(f) or "cites: every cited sentence matches its ledger row; 0 failures")
         sys.exit(1 if f else 0)
     if a.cmd == "links":
