@@ -2,7 +2,7 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "pcp",
   "version": "3.1.0",
-  "description": "Pre-call prep: a few one-time setup questions, research from public sources (plus a LinkedIn profile PDF you save and your own files, when you allow it), and ONE 3-page PDF: a 2-page Intelligence Brief and a 1-page meeting script. Every fact cited.",
+  "description": "Pre-call prep: a few one-time setup questions, research from public sources (plus LinkedIn, read in your own browser or from a PDF you save, and your own files, when you allow it), and ONE 3-page PDF: a 2-page Intelligence Brief and a 1-page meeting script. Every fact cited.",
   "author": {
     "name": "Talyx AI",
     "url": "https://talyx.ai"

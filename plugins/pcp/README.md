@@ -2,8 +2,8 @@
 
 A free Claude Code plug-in from [Talyx AI](https://talyx.ai). Type `/pcp` before a meeting and get
 **one 3-page PDF**: a 2-page Intelligence Brief and a 1-page meeting script on the person, company or
-deal you are about to meet, built from public sources (plus a LinkedIn profile PDF you save and your own files, when you allow
-it), every fact cited.
+deal you are about to meet, built from public sources (plus LinkedIn, read in your own browser or from a PDF you save, and your
+own files, when you allow it), every fact cited.
 
 ## What it does
 
@@ -13,7 +13,8 @@ it), every fact cited.
 1. **Intake.** A name and an organisation, or a CSV of up to 8 rows.
 2. **Intelligence collection.** Up to 12 public source types (identity, career, org news, voice,
    public social, affiliations, publications, registers, events, shared context, counter-evidence),
-   a LinkedIn profile you save as a PDF and give it, and your own files and notes. Excluded
+   LinkedIn (read in your own browser only when you say yes, which LinkedIn's terms bar for automated
+   tools and could put your account at risk; or a profile PDF you save), and your own files and notes. Excluded
    topics are dropped before anything is written.
 3. **Behavioral profile.** Reads six dimensions, each only from cited observations; the evidence tier
    decides how far the script goes.

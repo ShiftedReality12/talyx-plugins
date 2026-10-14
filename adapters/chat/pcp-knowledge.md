@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:40a6d646e890) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:e8c0f733aa0d) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
@@ -16,7 +16,7 @@ given in the message stand in for the saved setup file.
 ## How PCP thinks (never in the output)
 
 - Work the intelligence cycle: direction (setup and the meeting objective) -> collection -> processing (each fact gets a source, tag, grade and date; excluded topics are dropped) -> analysis -> the Intelligence Brief -> feedback (the debrief).
-- Collection is open sources, the person's public social footprint, a LinkedIn profile the user saves as a PDF (or copies) and gives, with permission, and the user's own files and answers.
+- Collection is open sources, the person's public social footprint, LinkedIn read in the user's own browser only after their yes each run (or a profile PDF they save and give), and the user's own files and answers.
 - Behavioral profile is human-source analysis from public evidence: each row is a cited observation and the caller's move. It never labels the person's character.
 - Keep what was read apart from what was inferred (the grade). Check the one assumption the Take rests on (Strongest case against). On deep runs, weigh competing explanations of what they want.
 
@@ -98,7 +98,7 @@ This host runs no scripts. The saved setup is the **Saved setup** block at the e
 
 **Rows:**
 
-- **S2-1** Public sources, plus what the user gives PCP: their files and answers (tag Yours) and a LinkedIn profile they save and give (S2-7). No paid data the user has not supplied, no scraping.  
+- **S2-1** Public sources, plus what the user gives or allows: their files and answers (tag Yours), and LinkedIn read in their own browser after their yes, or from a profile they save and give (S2-7). No paid data the user has not supplied; nothing collected in bulk.  
   _Fails when:_ A run with no browser, no files and no answers holds only Direct and Search facts.
 - **S2-2** Every claim carries url (or the file name, for Yours), retrieved_at, published (the source's own publication or event date; none when the source is undated), tag Direct|Search|LinkedIn|Yours, grade Measured|Derived|Inference|Not determined, and confidence C1 (primary, dated) | C2 (reputable secondary) | C3 (single weak source) | C4 (inferred).  
   _Fails when:_ A claim missing any field is dropped and counted in coverage.dropped.
@@ -204,8 +204,8 @@ Registers by domain: wealth: FINRA BrokerCheck, SEC IAPD, SEC EDGAR; pe: SEC EDG
 **Exclusions (dropped before the writer, counted in coverage):** health, family matters outside the public professional record, political giving, litigation as a talking point, home address, personal finances.
 By jurisdiction: eu: any claim older than 5 years that is not a current role, retention of claims.jsonl after render; regulated: performance claims, promissory language, comparative claims about named competitors.
 
-**LinkedIn status (S2-7), in B4's last line and the Coverage row:** `LinkedIn: read from your file`, or
-`LinkedIn: not read: <reason>` with one of these reasons, word for word: you declined; file not given; scope none; no browser here.
+**LinkedIn status (S2-7), in B4's last line and the Coverage row:** `LinkedIn: read in your browser` or `LinkedIn: read from your file`, or
+`LinkedIn: not read: <reason>` with one of these reasons, word for word: you declined; file not given; scope none; page blocked; no browser here.
 
 ## Behavioral profile (six dimensions)
 
@@ -240,7 +240,7 @@ Then one `## Bn Title` per block, in order. Word budgets are length limits: cut 
 | B7 | Who decides | 50 | always | Bullets: **Decision maker:** who signs off [n]. **The gate:** what must be true, or who must agree, before a yes [n]. **Relationship holder:** who the relationship runs through [n]. Unknown: Not determined (a gap Still open may ask). From F1 F3 F9 F11. |
 | B8 | Strongest case against | 120 | always | Up to 3 bullets: **Against:** the best evidence against your read [n]. **Reverses if:** what would flip it. None found: No counter-evidence found. Deep runs only, then `### What they may want from this meeting` and a table | Hypothesis and why it fits | Test: who answers, and what would disprove it |, up to 3 rows, each with the claim that would disprove it [n]. From F12; litigation stays off the page. |
 | B9 | Meeting angle | 120 | always | One label per bullet (only The ask and its Fallback share one). `### This meeting` then bullets: **Frame:** what this meeting is, in their terms; not a pitch. **Lands:** [n]. **Repels:** [n]. **What to bring:** one thing of value [n]. **The ask:** specific and bounded, who and how long [n] · **Fallback:** the smaller ask. **Stop if:** the answer that means drop the ask. `### Meeting two` then **Meeting two:** the next conversation if this one lands, on a fact from this brief. **Meeting three:** where it goes after that. `### After the meeting` then **Capture:** what to record from the room that the public record couldn't give. From Q8 and B3-B8. |
-| B10 | Evidence ledger | 550 | always | One line: Unmarked facts are measured. {n} facts cited; status {FULL or LIMITED} at {n} of 12 source types. Dates are the sources' own; 'seen' marks the day an undated source was read. Then the table | # | What it says | Source | Grade | Date |, exactly one row per cited fact in order of first use (never grouped): [n] · the fact in about 8 words · [domain](url) (a file name for your own files) · Measured, Derived, Inference or Not determined · the source's own date, Mon D, YYYY, or Mon YYYY when the source gives only a month (claims.jsonl published); only for an undated source, the day it was read, marked 'seen Mon D, YYYY'. The tag (Direct, Search, LinkedIn, Yours) and confidence (C1-C4) stay in claims.jsonl, not on the page (Ben, Oct 13). Then a label grid (empty header row) with four rows: **Coverage** -- n of 12 source types, what was not found and why, and LinkedIn: read from your file, or LinkedIn: not read: and B4's reason. **Still open** -- at most 4 gaps, highest value first, each with the question that closes it in the room ('Label: question?', joined by ' · '). **Left out on purpose** -- the excluded topics, never the facts. **Run** -- date · depth · meeting type · prepared for · jurisdiction · status · decision-useful facts per page. |
+| B10 | Evidence ledger | 550 | always | One line: Unmarked facts are measured. {n} facts cited; status {FULL or LIMITED} at {n} of 12 source types. Dates are the sources' own; 'seen' marks the day an undated source was read. Then the table | # | What it says | Source | Grade | Date |, exactly one row per cited fact in order of first use (never grouped): [n] · the fact in about 8 words · [domain](url) (a file name for your own files) · Measured, Derived, Inference or Not determined · the source's own date, Mon D, YYYY, or Mon YYYY when the source gives only a month (claims.jsonl published); only for an undated source, the day it was read, marked 'seen Mon D, YYYY'. The tag (Direct, Search, LinkedIn, Yours) and confidence (C1-C4) stay in claims.jsonl, not on the page (Ben, Oct 13). Then a label grid (empty header row) with four rows: **Coverage** -- n of 12 source types, what was not found and why, and LinkedIn: read in your browser, LinkedIn: read from your file, or LinkedIn: not read: and B4's reason. **Still open** -- at most 4 gaps, highest value first, each with the question that closes it in the room ('Label: question?', joined by ' · '). **Left out on purpose** -- the excluded topics, never the facts. **Run** -- date · depth · meeting type · prepared for · jurisdiction · status · decision-useful facts per page. |
 
 Domain vocabulary: wealth: book, AUM, custodian, fee compression, succession, next-gen; pe: dry powder, DPI, add-on, hold period, exit; saas: ARR, NRR, champion, security review, procurement, renewal.
 
@@ -287,7 +287,7 @@ Never say: "Does that make sense?"; "Is this helpful?"; "No pressure"; "You'd kn
 | C13 | conditional | B8's hypotheses only when the meta line says Depth deep; P6 only when B6 says Evidence tier: high; P5 not at tier low; B3's Recent wins line only with a dated, cited result (never Not determined or blank) |
 | C14 | layout | the brief has exactly the 9 blocks B1-B9 before B10, and B10 is its last block: no other block and nothing after the ledger; B9 has one label per line (The ask with its Fallback excepted); nothing prints '(not confirmed)', and the identity line prints nothing unknown |
 | C15 | experience | new: P1, P3 and P4 each have a **Why:** line of at most 12 words; experienced and top: no Why line; top: the Hook and each objection's answer are at most 15 words |
-| C16 | linkedin | B4 has exactly one **LinkedIn:** line, read from your file or not read: one of linkedin.reasons; Coverage states the same; when not read, no ledger row is tagged LinkedIn and Still open asks nothing about LinkedIn |
+| C16 | linkedin | B4 has exactly one **LinkedIn:** line, read in your browser, read from your file, or not read: one of linkedin.reasons; Coverage states the same; read from your file: no ledger row cites a linkedin.com/in profile (the file is cited); not read: no ledger row is tagged LinkedIn and Still open asks nothing about LinkedIn |
 | C17 | cites | every cited sentence shares content with the ledger claim it cites (2+ content words, 1 when the claim is 3 words or fewer) and every [n] is a ledger row; a hypothetical (Reverses if, Stop if) carries no citation unless the row says it |
 | C18 | quality | no ledger row cites a source_quality.exclude domain; a source_quality.weak domain is never C1 or C2; fewer than 3 ledger rows carry the run's own date unmarked (those are read dates: give the source's date, or 'seen' when it has none) |
 | C19 | render | every page: no ink within 0.12in of a page edge, no word outside the 0.3in side margins; no page ends more than 0.5in above its footer margin (Oct 14: a thin run's page 3 ended 2in short); page 1: the logo is whole in the top-right masthead; no block runs across a page break: page 2 opens on Who decides (B7, as in the schema) and no table prints its header row on two pages |

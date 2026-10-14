@@ -257,16 +257,21 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
                 fails.append(f"C12 gaps: Still open item is not a question starting {'/'.join(starts)}: '{item[:60]}'")
     if want("linkedin"):
         li = R["linkedin"]
-        status = rf"({re.escape(li['read'])}|{re.escape(li['not_read'])}: ({'|'.join(re.escape(r) for r in li['reasons'])}))"
+        status = (rf"({'|'.join(re.escape(r) for r in li['read'].values())}|"
+                  rf"{re.escape(li['not_read'])}: ({'|'.join(re.escape(r) for r in li['reasons'])}))")
         lines = re.findall(r"^\*\*LinkedIn:\*\*.*$", secs.get("B4", ""), re.M)
         b4 = re.match(r"^\*\*LinkedIn:\*\* " + status + r"\.?\s*$", lines[0]) if len(lines) == 1 else None
         grid = secs.get(LEDGER, "")
         cov = next((ln for ln in grid.splitlines() if "**Coverage**" in ln), "")
         if not b4:
-            fails.append(f"C16 linkedin: B4 needs exactly one line '**LinkedIn:** {li['read']}' or "
+            fails.append(f"C16 linkedin: B4 needs exactly one line '**LinkedIn:** <{' | '.join(li['read'].values())}>' or "
                          f"'**LinkedIn:** {li['not_read']}: <{' | '.join(li['reasons'])}>' (found {lines or 'none'})")
         elif f"LinkedIn: {b4.group(1)}" not in cov:
             fails.append(f"C16 linkedin: Coverage does not say 'LinkedIn: {b4.group(1)}' as B4 does")
+        elif b4.group(1) == li["read"]["file"]:   # the saved profile is the user's file: cited by its name, tagged Yours
+            profile = [m.group(1) for m in SRC_ROW.finditer(grid) if "linkedin.com/in/" in m.group(3).lower()]
+            if profile:
+                fails.append(f"C16 linkedin: {li['read']['file']}, yet ledger rows {profile} cite a LinkedIn profile page; cite the file")
         elif b4.group(2):   # not read
             tagged = [m.group(1) for m in SRC_ROW.finditer(grid) if _tag(m.group(3)) == "LinkedIn"]
             if tagged:
@@ -522,6 +527,8 @@ def self_test(require_pdf=False):
         ("C14 on a Fallback without The ask", "C14",
          c12.replace("- **What to bring:** the introduction", "- **What to bring:** the deck. **Fallback:** the introduction")),
         ("C14 on '(Unconfirmed)'", "C14", c12.replace("the introduction to the custodian [12]", "the custodian (Unconfirmed) [12]")),
+        ("C16 on 'read from your file' while a ledger row cites a LinkedIn profile page", "C16",
+         (fx / "linkedin_browser.md").read_text().replace("read in your browser", "read from your file")),
         ("C16 on an unread LinkedIn asked inside another Still open item", "C16",
          (fx / "linkedin_declined.md").read_text().replace("says yes? |", "says yes? · The gate: could you share the LinkedIn profile? |")),
     ]
@@ -677,6 +684,7 @@ MUST_PASS = [
     ("control_12.md", {"experience": "top"}),
     ("exp_new.md", {"experience": "new"}),
     ("linkedin_declined.md", {}),
+    ("linkedin_browser.md", {}),
 ]
 
 

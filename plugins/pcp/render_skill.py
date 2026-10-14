@@ -52,8 +52,8 @@ def description(R):
     """The skill's listing text: user-facing, so it is held to plain words."""
     n = R["names"]
     return (f"Prepare for an upcoming meeting with a named person, company or deal. A few one-time setup\n"
-            f"  questions, research from public sources (plus a LinkedIn profile PDF you save and your own files, when\n"
-            f"  you allow it), and ONE 3-page PDF: a 2-page {n['deliverable']} and a 1-page meeting script, every fact\n"
+            f"  questions, research from public sources (plus LinkedIn, read in your browser or from a PDF you save, and\n"
+            f"  your own files, when you allow it), and ONE 3-page PDF: a 2-page {n['deliverable']} and a 1-page meeting script, every fact\n"
             f"  cited. Use when the user mentions pre-call prep, meeting prep, call preparation, researching someone\n"
             f"  before a meeting, talking points, or shares an intake list. Do not use for general research unrelated\n"
             f"  to a meeting, or for notes on a meeting that has already happened.")
@@ -152,7 +152,7 @@ Registers by domain: {'; '.join(f"{k}: " + ', '.join(r['name'] for r in v) for k
 **Exclusions (dropped before the writer, counted in coverage):** {', '.join(excl['base'])}.
 By jurisdiction: {'; '.join(f"{k}: {', '.join(v)}" for k, v in excl['by_jurisdiction'].items() if v)}.
 
-**LinkedIn status (S2-7), in B4's last line and the Coverage row:** `LinkedIn: {R['linkedin']['read']}`, or
+**LinkedIn status (S2-7), in B4's last line and the Coverage row:** {' or '.join(f"`LinkedIn: {r}`" for r in R['linkedin']['read'].values())}, or
 `LinkedIn: {R['linkedin']['not_read']}: <reason>` with one of these reasons, word for word: {'; '.join(R['linkedin']['reasons'])}.
 
 ## {n['profile']} (six dimensions)
