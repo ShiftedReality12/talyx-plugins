@@ -193,7 +193,7 @@ def sec_html(num, title, body, style="house"):
     if style == "brief":   # brief blocks print no number; script sections print "1."
         sid = re.match(r"([BP])(\d+)\s", title)
         num_html = f'<span class="sec-num">{num}.</span> ' if sid and sid.group(1) == "P" else ""
-        body = {"B6": b6_html, "B10": b10_html}.get(sid and sid.group(0).strip(), lambda b: b)(body)
+        body = {"B6": b6_html, "B9": b9_html, "B10": b10_html}.get(sid and sid.group(0).strip(), lambda b: b)(body)
         return (f'<div class="sec{" sec-" + sid.group(0).strip().lower() if sid else ""}"><h2 class="sec-head">'
                 f'{num_html}<span class="sec-title">{t}</span></h2><div class="sec-body">{body}</div></div>')
     return (f'<div class="sec{ref}"><h2 class="sec-head">'
@@ -225,6 +225,12 @@ def b6_html(body):
         body = re.sub(r"<table>(?:(?!</table>).)*<tbody></tbody></table>", "", body)   # every row was No read
         body = body.replace("</table>", "</table>" + line, 1) if "</table>" in body else line + body
     return body
+
+
+def b9_html(body):
+    """B9: its subheads are lettered as in the schema (A. This meeting, B. Meeting two, C. After the meeting)."""
+    letters = iter("ABCDEFGH")
+    return re.sub(r'<div class="sub">(?![A-H]\. )', lambda m: f'<div class="sub">{next(letters)}. ', body)
 
 
 def b10_html(body):
@@ -390,7 +396,7 @@ ul, ol {{ margin:0 0 {pg}pt; padding-left:11pt; }} li {{ margin:0 0 3pt; }} li >
 strong {{ font-weight:700; }} em {{ font-style:italic; }}
 a {{ color:{A}; text-decoration:underline; text-decoration-thickness:0.5px; text-underline-offset:1.5px; }}
 .cite {{ color:{A}; font-size:0.8em; font-weight:500; }}
-.sub {{ font-size:8.8pt; font-weight:700; margin:2pt 0 3pt; }}
+.sub {{ font-size:8.8pt; font-weight:700; margin:2pt 0 3pt; }} .sec-b9 .sub {{ margin-top:7pt; }} .sec-b9 .sub:first-child {{ margin-top:0; }}
 .two {{ display:grid; grid-template-columns:1fr 1fr; column-gap:0.28in; align-items:start; break-inside:avoid; }}
 @media screen {{ body {{ width:8.5in; }} }}   /* BALANCE measures at the printed width */
 .sec-b1 .sec-head {{ display:none; }}
