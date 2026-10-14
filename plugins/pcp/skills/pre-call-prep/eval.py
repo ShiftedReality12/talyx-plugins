@@ -98,6 +98,22 @@ def _sentences(txt):
     return [s.strip() for s in re.split(r"(?<=[.!?])\s+", txt) if len(s.strip()) > 25]
 
 
+def _gaps(secs):
+    """[(block, label, 'Not determined'|'No read')]: each **Label:** Not determined line, each table row with a
+    Not determined or No read cell (its label: the row's first other cell, up to a colon), in B1-B9."""
+    out = []
+    for k in [k for k in secs if re.match(r"B[1-9]$", k)]:
+        out += [(k, label, "Not determined") for label in re.findall(r"\*\*([^*]+?):\*\*\s*Not determined", secs[k])]
+        for ln in secs[k].splitlines():
+            cells = [c.strip() for c in ln.strip().strip("|").split("|")] if ln.lstrip().startswith("|") else []
+            gap = next((c.rstrip(".") for c in cells if c.rstrip(".") in ("Not determined", "No read")), None)
+            if gap:
+                other = next((c for c in cells if c.rstrip(".") != gap), "")
+                label = CITE.sub("", re.sub(r"\*\*|\*", "", other)).split(":")[0].strip()
+                out.append((k, label or gap, gap))
+    return out
+
+
 def checks(brief_md, script_md="", which="all", target_nouns=()):
     md = brief_md + "\n" + script_md
     secs = _sections(md)
@@ -165,10 +181,18 @@ def checks(brief_md, script_md="", which="all", target_nouns=()):
             fails.append(f"C11 plain: '{h}' outside quoted words")
     if want("gaps"):
         still = next((ln for ln in secs.get(LEDGER, "").splitlines() if "Still open" in ln), "")
-        for k in [k for k in secs if re.match(r"B[1-9]$", k)]:
-            for label in re.findall(r"\*\*([^*]+?):\*\*\s*Not determined", secs[k]):
-                if label.lower() not in still.lower() or "?" not in still:
-                    fails.append(f"C12 gaps: {k} '{label}' is Not determined with no question in Still open")
+        gaps = _gaps(secs)
+        for k, label, what in gaps:
+            if label.lower() not in still.lower() or "?" not in still:
+                fails.append(f"C12 gaps: {k} '{label}' is {what} with no question in Still open")
+        if still.count("?") < len(gaps):
+            fails.append(f"C12 gaps: {len(gaps)} gaps in B1-B9 but {still.count('?')} questions in Still open")
+        starts = R["socratic"]["room"]["question_starts"]
+        cell = re.sub(r"\*\*Still open\*\*|\*\*", "", still).strip(" |")
+        for item in [i.strip() for i in re.split(r"\s+·\s+", cell) if i.strip()]:
+            q = item.split(": ", 1)[1] if ": " in item else item
+            if not (q.rstrip().endswith("?") and q.split()[0].strip("*_").capitalize() in starts) and (gaps or "?" in item):
+                fails.append(f"C12 gaps: Still open item is not a question starting {'/'.join(starts)}: '{item[:60]}'")
     if want("layout"):
         brief = re.split(r"^# ", md, maxsplit=2, flags=re.M)   # ['', name + brief, script ...]: the brief ends at the next `# `
         bsecs = list(_sections("# " + brief[1] if len(brief) > 1 else md))
@@ -315,6 +339,8 @@ def self_test():
 MUST_TRIP = [
     ("control_broken.md", {}, ["C7", "C9", "C11", "C12", "C13"]),
     ("layout_broken.md", {}, ["C14"]),
+    ("gaps_table.md", {}, ["C12"]),
+    ("gaps_statement.md", {}, ["C12"]),
 ]
 
 

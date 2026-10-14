@@ -8,7 +8,7 @@ description: >
   before a meeting, talking points, or shares an intake list. Do not use for general research unrelated
   to a meeting, or for notes on a meeting that has already happened.
 ---
-<!-- GENERATED from pcp.yaml (sha256:2fffd65349d0) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:709e439c661a) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.0.0)
 
@@ -166,8 +166,8 @@ and `linkedin` when set) and continue.
   _Fails when:_ Extract page 1 text -- the meta line has all six fields; no page footer holds a metric.
 - **S4-6** A block or line prints only as its Prints when says: a line PCP cannot fill from evidence is left out, or reads Not determined where its row says so. Never filler.  
   _Fails when:_ No recent wins found -- the Recent wins line is absent, not blank or padded.
-- **S4-7** Every Not determined gets a question to ask in the room, in the ledger's Still open row, as references/socratic-questions.md says.  
-  _Fails when:_ Write **Decision maker:** Not determined with no question in Still open -- eval.py checks fails C12.
+- **S4-7** Every Not determined -- a **Label:** line or a table cell -- and every No read in B6 gets a question to ask in the room, in the ledger's Still open row as 'Label: question?', as references/socratic-questions.md says.  
+  _Fails when:_ Write **Decision maker:** Not determined, or a | Not determined | table cell, with no question in Still open -- eval.py checks fails C12 (fixtures control_broken.md, gaps_table.md).
 - **S4-8** Plain words: nothing printed uses a plain_words.banned term or an internal code; the person's own quoted words are exempt.  
   _Fails when:_ Put SOCMINT in B3 -- eval.py checks fails C11.
 - **S4-9** Experience (Q9) shapes page 3 only: new -> P1, P3 and P4 each end with a **Why:** line of at most 12 words; top -> the Hook and each objection's answer are at most 15 words; experienced -> neither.  
@@ -303,7 +303,7 @@ and `python3 eval.py duf brief.md script.md`; rewrite until both are clean.
 | C9 | exclusions | `eval.py checks --exclusions` | no excluded topic keyword appears in the body |
 | C10 | pages | `format/talyx_pdf.py --style brief --brief-pages 2 --max-pages 3; eval.py pdf` | exactly 3 pages: the brief on pages 1-2 with the evidence ledger last on page 2, the script on page 3, page 3 of 3 in the footer, a link for every ledger row not tagged Yours |
 | C11 | plain | `eval.py checks --plain` | no plain_words.banned term or internal code outside quoted words |
-| C12 | gaps | `eval.py checks --gaps` | every **Label:** Not determined has its label and a question in B10's Still open row |
+| C12 | gaps | `eval.py checks --gaps` | every Not determined in B1-B9 (a **Label:** line or a table cell) and every No read in B6 has its label in B10's Still open row; Still open has at least one ? per gap; each Still open item is 'Label: question?', the question starting What, Who, How, When, Which, Where or If |
 | C13 | conditional | `eval.py checks --conditional` | B8's hypotheses only when the meta line says Depth deep; P6 only when B6 says Evidence tier: high |
 | C14 | layout | `eval.py checks --layout` | the brief has exactly the 9 blocks B1-B9 before B10, and B10 is its last block: no other block and nothing after the ledger |
 

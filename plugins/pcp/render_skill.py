@@ -238,7 +238,7 @@ Two uses: questions PCP asks **you** when it needs something only you know, and 
 
 ## Questions for the room
 
-{s['room']['rule']}
+{fill(R, s['room']['rule'])} Each question starts with {', '.join(s['room']['question_starts'][:-1])} or {s['room']['question_starts'][-1]}, and ends with a question mark.
 
 | Kind | Use when | Example |
 |---|---|---|

@@ -65,7 +65,8 @@ socratic:
       - {when: "You mention notes, a CRM record, a Slack or Google Chat thread, a saved LinkedIn PDF or a profile on them", ask: "Can you paste it or give me the file? I'll mark it as yours, not public."}
       - {when: "Who decides, the gate or the timing is still Not determined after collection", ask: "Who else has a say in this, as far as you know?"}
   room:
-    rule: "Every Not determined becomes one question to ask in the room, written in the ledger's Still open row next to what it closes. Open, non-leading, one idea each."
+    rule: "Every Not determined (a **Label:** line or a table cell) and every No read in the {profile} becomes one question to ask in the room, written in the ledger's Still open row as 'Label: question?', items separated by ' · '. Open, non-leading, one idea each; never filler."
+    question_starts: [What, Who, How, When, Which, Where, If]
     kinds:
       - {kind: Clarify, use: "a word or priority they use but don't define", example: "When you say {their word}, what does that look like at {organization}?"}
       - {kind: Assumption, use: "the read rests on something unconfirmed", example: "What would have to be true for {plan} to make sense this year?"}
@@ -268,7 +269,7 @@ stages:
       - {id: S4-4, text: "If the tightest density rung still overflows 3 pages, the run FAILS with the section word counts; it never truncates or spills.", test: "Feed a 900-word section -- the engine must exit non-zero naming the section.", basis: never truncate silently}
       - {id: S4-5, text: "The masthead's meta line carries meeting, prepared for, depth, sources, status and date; the ledger's Run row carries the run details; the footer carries only the {deliverable}, the person and the page numbers.", test: "Extract page 1 text -- the meta line has all six fields; no page footer holds a metric.", basis: "Oct 7: run details under the sources"}
       - {id: S4-6, text: "A block or line prints only as its Prints when says: a line PCP cannot fill from evidence is left out, or reads Not determined where its row says so. Never filler.", test: "No recent wins found -- the Recent wins line is absent, not blank or padded.", basis: "Oct 9: if we can't produce it, parameterize it so it's conditional"}
-      - {id: S4-7, text: "Every Not determined gets a question to ask in the room, in the ledger's Still open row, as references/socratic-questions.md says.", test: "Write **Decision maker:** Not determined with no question in Still open -- eval.py checks fails C12.", basis: "Oct 9: Socratic questioning reference for things it can't find"}
+      - {id: S4-7, text: "Every Not determined -- a **Label:** line or a table cell -- and every No read in B6 gets a question to ask in the room, in the ledger's Still open row as 'Label: question?', as references/socratic-questions.md says.", test: "Write **Decision maker:** Not determined, or a | Not determined | table cell, with no question in Still open -- eval.py checks fails C12 (fixtures control_broken.md, gaps_table.md).", basis: "Oct 9: Socratic questioning reference for things it can't find"}
       - {id: S4-8, text: "Plain words: nothing printed uses a plain_words.banned term or an internal code; the person's own quoted words are exempt.", test: "Put SOCMINT in B3 -- eval.py checks fails C11.", basis: "Oct 9: don't use mil/intel/tech words in actual outputs"}
       - {id: S4-9, text: "Experience (Q9) shapes page 3 only: new -> P1, P3 and P4 each end with a **Why:** line of at most 12 words; top -> the Hook and each objection's answer are at most 15 words; experienced -> neither.", test: "Set Q9 new -- P1, P3 and P4 each carry a Why line; set experienced -- none does.", basis: "Oct 9: different levels of experience"}
 
@@ -434,7 +435,7 @@ checks:
   - {id: C9, name: exclusions,   cmd: "eval.py checks --exclusions",passes_when: "no excluded topic keyword appears in the body"}
   - {id: C10, name: pages,       cmd: "format/talyx_pdf.py --style brief --brief-pages 2 --max-pages 3; eval.py pdf", passes_when: "exactly 3 pages: the brief on pages 1-2 with the evidence ledger last on page 2, the script on page 3, page 3 of 3 in the footer, a link for every ledger row not tagged Yours"}
   - {id: C11, name: plain,       cmd: "eval.py checks --plain",     passes_when: "no plain_words.banned term or internal code outside quoted words"}
-  - {id: C12, name: gaps,        cmd: "eval.py checks --gaps",      passes_when: "every **Label:** Not determined has its label and a question in B10's Still open row"}
+  - {id: C12, name: gaps,        cmd: "eval.py checks --gaps",      passes_when: "every Not determined in B1-B9 (a **Label:** line or a table cell) and every No read in B6 has its label in B10's Still open row; Still open has at least one ? per gap; each Still open item is 'Label: question?', the question starting What, Who, How, When, Which, Where or If"}
   - {id: C13, name: conditional, cmd: "eval.py checks --conditional", passes_when: "B8's hypotheses only when the meta line says Depth deep; P6 only when B6 says Evidence tier: high"}
   - {id: C14, name: layout,      cmd: "eval.py checks --layout",    passes_when: "the brief has exactly the 9 blocks B1-B9 before B10, and B10 is its last block: no other block and nothing after the ledger"}
   - {method_verbs: ["we scrape", "we ingest", "our pipeline", "our model", "we crawl", "our algorithm"]}

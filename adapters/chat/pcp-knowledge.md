@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:2fffd65349d0) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:709e439c661a) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.0.0)
 
@@ -153,7 +153,7 @@ This host runs no scripts. The saved setup is the **Saved setup** block at the e
   _Fails when:_ The heading has all six fields.
 - **S4-6** A block or line prints only as its Prints when says: a line PCP cannot fill from evidence is left out, or reads Not determined where its row says so. Never filler.  
   _Fails when:_ No recent wins found -- the Recent wins line is absent, not blank or padded.
-- **S4-7** Every Not determined gets a question to ask in the room, in the ledger's Still open row, as the Socratic questions section below says.  
+- **S4-7** Every Not determined -- a **Label:** line or a table cell -- and every No read in B6 gets a question to ask in the room, in the ledger's Still open row as 'Label: question?', as the Socratic questions section below says.  
   _Fails when:_ Write **Decision maker:** Not determined with no question in Still open -- check C12 fails.
 - **S4-8** Plain words: nothing printed uses a plain_words.banned term or an internal code; the person's own quoted words are exempt.  
   _Fails when:_ Put SOCMINT in B3 -- check C11 fails.
@@ -266,7 +266,7 @@ Never say: "Does that make sense?"; "Is this helpful?"; "No pressure"; "You'd kn
 | C8 | outcome | B5 contains no method verbs from checks.method_verbs |
 | C9 | exclusions | no excluded topic keyword appears in the body |
 | C11 | plain | no plain_words.banned term or internal code outside quoted words |
-| C12 | gaps | every **Label:** Not determined has its label and a question in B10's Still open row |
+| C12 | gaps | every Not determined in B1-B9 (a **Label:** line or a table cell) and every No read in B6 has its label in B10's Still open row; Still open has at least one ? per gap; each Still open item is 'Label: question?', the question starting What, Who, How, When, Which, Where or If |
 | C13 | conditional | B8's hypotheses only when the meta line says Depth deep; P6 only when B6 says Evidence tier: high |
 | C14 | layout | the brief has exactly the 9 blocks B1-B9 before B10, and B10 is its last block: no other block and nothing after the ledger |
 
@@ -306,7 +306,7 @@ Ask the user only when a trigger below fires: at most 2 questions per run after 
 
 ## Questions for the room
 
-Every Not determined becomes one question to ask in the room, written in the ledger's Still open row next to what it closes. Open, non-leading, one idea each.
+Every Not determined (a **Label:** line or a table cell) and every No read in the Meeting approach becomes one question to ask in the room, written in the ledger's Still open row as 'Label: question?', items separated by ' · '. Open, non-leading, one idea each; never filler. Each question starts with What, Who, How, When, Which, Where or If, and ends with a question mark.
 
 | Kind | Use when | Example |
 |---|---|---|

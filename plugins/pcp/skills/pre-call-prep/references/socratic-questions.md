@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:2fffd65349d0) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:709e439c661a) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Socratic questions
 
@@ -19,7 +19,7 @@ Ask the user only when a trigger below fires: at most 2 questions per run after 
 
 ## Questions for the room
 
-Every Not determined becomes one question to ask in the room, written in the ledger's Still open row next to what it closes. Open, non-leading, one idea each.
+Every Not determined (a **Label:** line or a table cell) and every No read in the Meeting approach becomes one question to ask in the room, written in the ledger's Still open row as 'Label: question?', items separated by ' · '. Open, non-leading, one idea each; never filler. Each question starts with What, Who, How, When, Which, Where or If, and ends with a question mark.
 
 | Kind | Use when | Example |
 |---|---|---|

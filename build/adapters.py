@@ -256,10 +256,21 @@ def check_version():
 
 
 def check_chat(text):
-    """A chat host has no scripts or files: the knowledge file must never send the model to one."""
+    """A chat host has no scripts or files: the knowledge file must never send the model to one, and must carry
+    the Socratic questions itself."""
     body = text.split("\n", 1)[1]   # line 1 is the generated-file header
     hits = sorted(set(re.findall(r"scripts/[\w.-]*|\b[\w-]+\.py\b|~/\.\w+|\$ARGUMENTS|AskUserQuestion", body)))
-    return [f"adapters/chat/pcp-knowledge.md names {', '.join(hits)} -- reword it in CHAT_ROWS / CHAT_INPUTS"] if hits else []
+    out = [f"adapters/chat/pcp-knowledge.md names {', '.join(hits)} -- reword it in CHAT_ROWS / CHAT_INPUTS"] if hits else []
+    if body.count("\n## Socratic questions\n") != 1:
+        out.append("adapters/chat/pcp-knowledge.md must hold one '## Socratic questions' section")
+    return out
+
+
+def check_zip(data):
+    """The Perplexity skill must carry the Socratic reference exactly once (SKILL.md sends the model to it)."""
+    names = zipfile.ZipFile(io.BytesIO(data)).namelist()
+    n = names.count("references/socratic-questions.md")
+    return [] if n == 1 else [f"adapters/perplexity/pre-call-prep.zip holds references/socratic-questions.md {n} times, need 1"]
 
 
 # ── driver ──────────────────────────────────────────────────────────────────────────────────────────
@@ -293,7 +304,8 @@ def main():
     ap.add_argument("--check", action="store_true")
     a = ap.parse_args()
     files = render()
-    problems = check_chat(files["adapters/chat/pcp-knowledge.md"]) + check_listing(files) + check_names(files) + check_version()
+    problems = (check_chat(files["adapters/chat/pcp-knowledge.md"]) + check_zip(files["adapters/perplexity/pre-call-prep.zip"])
+                + check_listing(files) + check_names(files) + check_version())
     drift = [rel for rel, data in files.items()
              if not (ROOT / rel).exists() or (ROOT / rel).read_bytes() != (data if isinstance(data, bytes) else data.encode())]
     for line in problems:
