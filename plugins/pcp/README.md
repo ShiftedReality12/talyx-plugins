@@ -53,12 +53,12 @@ Three files. Everything else is generated or frozen.
 | File | Role |
 |---|---|
 | `pcp.yaml` | The registry: every name, question, parameter, source family, rubric band, page budget, instruction row (with its falsification test) |
-| `render_skill.py` | Renders `skills/pre-call-prep/SKILL.md`, its `references/socratic-questions.md`, `commands/pcp.md` and `pcp.json` (the registry as JSON, so the scripts need no YAML library) from the registry. The only writer. |
-| `eval.py` | The instrument: `duf` (decision-useful facts per page), `checks`, `concordance`, `self-test`, `ratchet`, `improve` |
+| `render_skill.py` | Renders `skills/pre-call-prep/SKILL.md`, its `references/socratic-questions.md`, `commands/pcp.md`, `INVENTORY.md` (every printed part and its status) and `pcp.json` (the registry as JSON, so the scripts need no YAML library) from the registry. The only writer. |
+| `eval.py` | The instrument: `duf` (decision-useful facts per page), `checks` (C1-C16 on the Markdown; `--plain` also on a PDF), `pdf` (the rendered PDF: 3 pages, script on page 3, links, plain words), `concordance`, `self-test`, `ratchet`, `improve` |
 
 `format/talyx_pdf.py` is the portable house-style renderer (also exposed as the `talyx-pdf` skill).
 
-Contract: edit `pcp.yaml`, run `python3 render_skill.py`, then `python3 eval.py concordance && python3 eval.py self-test && python3 eval.py ratchet`. A hand edit to a generated file fails concordance. A registry change that lowers any frozen target's `duf_pp` below its floor fails the ratchet.
+Contract: edit `pcp.yaml`, run `python3 render_skill.py` and `python3 ../../build/adapters.py`, then `python3 eval.py concordance && python3 eval.py self-test && python3 eval.py ratchet`. Live-host and transcript tests are logged by hand in `evals/host-tests.md`. A hand edit to a generated file fails concordance. A registry change that lowers any frozen target's `duf_pp` below its floor fails the ratchet.
 
 ## Licence
 

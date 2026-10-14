@@ -1,0 +1,38 @@
+# The offline gates for the pcp plug-in (spec section 5). `eval.py ratchet` is not run here: it exits 2 until
+# the 5 frozen targets are rendered from real runs and a baseline is recorded (evals/ratchet.json).
+name: pcp
+on:
+  push:
+  pull_request:
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install PyYAML and poppler (pdftotext, pdfinfo)
+        run: |
+          python3 -m pip install pyyaml
+          sudo apt-get update && sudo apt-get install -y poppler-utils
+      - name: Generated files match pcp.yaml
+        run: |
+          python3 plugins/pcp/render_skill.py --check
+          python3 plugins/pcp/eval.py concordance
+      - name: Every check is proven able to fail; two PDFs rendered and read back
+        run: python3 plugins/pcp/eval.py self-test --require-pdf
+      - name: Every host's files are up to date
+        run: python3 build/adapters.py --check
+      - name: The PDF renders from the installed skill layout (the Sep 25 failure)
+        working-directory: plugins/pcp/skills/pre-call-prep
+        run: |
+          fx=../../evals/fixtures/control_12.md
+          awk '/^# Meeting script/{s=1} !s' "$fx" > "$RUNNER_TEMP/brief.md"
+          awk '/^# Meeting script/{s=1} s' "$fx" > "$RUNNER_TEMP/script.md"
+          python3 format/talyx_pdf.py --style brief --brief "$RUNNER_TEMP/brief.md" --script "$RUNNER_TEMP/script.md" \
+            --columns "B3|B4,B5|B6,B7|B8,P1+P2+P3+P4|P5+P6+P7+P8" --classification "INTERNAL | PREPARED FOR YOU | NOT FOR THE PERSON DESCRIBED" \
+            --footer "Intelligence Brief · Jane Doe, Alder Grey Capital · Prepared for you (internal)" \
+            --brief-pages 2 --max-pages 3 --out "$RUNNER_TEMP/out-intelligence-brief.pdf"
+          python3 eval.py pdf "$RUNNER_TEMP/out-intelligence-brief.pdf" "$RUNNER_TEMP/brief.md"
+          python3 eval.py duf "$RUNNER_TEMP/brief.md" "$RUNNER_TEMP/script.md" --pdf "$RUNNER_TEMP/out-intelligence-brief.pdf"

@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """eval.py -- the pcp instrument. The metric comes before the feature.
 
-  duf <brief.md> [script.md] [--pages N]   decision-useful facts: bound / unbound / dropped / duf_pp (+ coverage)
+  duf <brief.md> [script.md] [--pages N | --pdf OUT.pdf]   decision-useful facts: bound / unbound / dropped / duf_pp (+ coverage);
+                                            --pdf divides by the rendered PDF's real page count
   checks <brief.md> [script.md] [--all|--swap|--quotes|--custom-q|--sections|--budgets|--never-say|--outcome|--exclusions|--plain|--gaps|--conditional|--layout]
   checks <OUT.pdf> --plain                  plain words on the printed text (masthead, band and footer included)
   pdf <OUT.pdf> [brief.md]                  the rendered PDF: page count, script on its page, ledger last before it, footer, links, plain words
   concordance                               SKILL.md + commands/pcp.md match a fresh render of pcp.yaml
-  self-test                                 positive + negative controls: the counter is proven able to fail
+  self-test [--require-pdf]                 positive + negative controls: every check is proven able to fail
+                                            (renders and reads two PDFs when a Chromium and pdftotext/pypdf exist)
   ratchet [--record]                        every frozen target's duf_pp >= its floor; --record raises floors
   improve <debrief.yaml>...                 propose row diffs as evals/proposals/<date>.patch (never lands)
 
@@ -17,6 +19,7 @@ import datetime as dt
 import json
 import pathlib
 import re
+import shutil
 import subprocess
 import sys
 
@@ -354,7 +357,7 @@ def concordance():
 
 
 # ---------------------------------------------------------------- self-test ----------------------------------
-def self_test():
+def self_test(require_pdf=False):
     fx = HERE / "evals/fixtures"
     pos = duf((fx / "control_12.md").read_text())
     neg = duf((fx / "control_broken.md").read_text())
@@ -387,6 +390,65 @@ def self_test():
             print(f"FAIL {name} {kw or ''} must pass every check:", *f, sep="\n - "); ok = False
         else:
             print(f"passes: {name} {kw or ''}")
+    hits = {h.lower() for h in plain_hits((fx / "jargon.md").read_text())}
+    if hits != {w.lower() for w in JARGON}:
+        print(f"FAIL jargon.md: C11 must list exactly {JARGON} (got {sorted(hits)})"); ok = False
+    else:
+        print(f"tripped: C11 by jargon.md, each of {len(JARGON)} words; 'asset manager' and quoted words exempt")
+    pdf = pdf_self_test(fx)
+    if pdf is None:
+        print("SKIP the PDF checks: no Chromium, or no pdftotext / pypdf, on this computer"
+              + (" -- FAIL (--require-pdf)" if require_pdf else ""))
+        ok = ok and not require_pdf
+    else:
+        ok = ok and pdf
+    return ok
+
+
+JARGON = ["SOCINT", "HUMINT", "human intelligence", "intelligence cycle", "collection plan", "target package", "asset",
+          "source handling", "exploitation", "debrief"]   # jargon.md: one always-banned word per block
+
+
+def pdf_self_test(fx):
+    """Render control_12.md and jargon.md the way SKILL.md says, then read them back: the control passes `pdf`,
+    the jargon PDF's printed text trips C11 on every word. None if this computer cannot render or read a PDF."""
+    import importlib.util
+    import tempfile
+    spec = importlib.util.spec_from_file_location("talyx_pdf", HERE / "format/talyx_pdf.py")
+    tp = importlib.util.module_from_spec(spec); spec.loader.exec_module(tp)
+    try:
+        import playwright  # noqa: F401
+    except ImportError:
+        if not tp.system_chrome():
+            return None
+    if shutil.which("pdftotext") is None and importlib.util.find_spec("pypdf") is None:
+        return None
+    ok, pb, n = True, R["page_budget"], R["names"]
+    with tempfile.TemporaryDirectory() as tmp:
+        for name in ("control_12.md", "jargon.md"):
+            md = (fx / name).read_text()
+            cut = [m.start() for m in re.finditer(r"^# ", md, re.M)][1]
+            b, s, out = pathlib.Path(tmp, "brief.md"), pathlib.Path(tmp, "script.md"), pathlib.Path(tmp, name[:-3] + ".pdf")
+            b.write_text(md[:cut]); s.write_text(md[cut:])
+            r = subprocess.run([sys.executable, str(HERE / "format/talyx_pdf.py"), "--style", "brief", "--brief", str(b), "--script", str(s),
+                                "--columns", pb["columns"], "--classification", n["classification"],
+                                "--footer", f"{n['deliverable']} · Jane Doe, Alder Grey Capital · Prepared for you (internal)",
+                                "--brief-pages", str(pb["brief_pages"]), "--max-pages", str(pb["total_pages"]), "--out", str(out)],
+                               capture_output=True, text=True, timeout=300)
+            if r.returncode != 0:
+                print(f"FAIL render {name}: exit {r.returncode} {r.stdout.strip()} {r.stderr.strip()[-300:]}"); ok = False; continue
+            f = pdf_check(out, md[:cut])
+            if f is None:
+                return None
+            if name == "control_12.md":
+                print(f"pdf control_12: {len(f)} failures", *f, sep="\n - ")
+                ok = ok and not f
+            else:
+                got = {re.match(r"C11 plain: '(.+?)'", x).group(1).lower() for x in f if x.startswith("C11 ")}
+                if got != {w.lower() for w in JARGON}:
+                    print(f"FAIL jargon.pdf: C11 on the printed text must list exactly {JARGON} (got {sorted(got)})"); ok = False
+                else:
+                    print(f"tripped: C11 by jargon.pdf (the printed text), each of {len(JARGON)} words")
     return ok
 
 
@@ -471,19 +533,27 @@ def main():
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
     d = sub.add_parser("duf"); d.add_argument("brief"); d.add_argument("script", nargs="?"); d.add_argument("--pages", type=int)
+    d.add_argument("--pdf", help="the rendered PDF: duf_pp divides by its real page count")
     c = sub.add_parser("checks"); c.add_argument("brief"); c.add_argument("script", nargs="?"); c.add_argument("--target-nouns", default="")
     for w in CHECKS + ["all"]:
         c.add_argument(f"--{w}", action="store_true")
     c.add_argument("--experience", choices=[o["value"] for q in R["calibration"]["questions"] if q["id"] == "Q9" for o in q["options"]],
                    help="the profile's Q9 answer: runs C15 with --all")
     p = sub.add_parser("pdf"); p.add_argument("pdf"); p.add_argument("brief", nargs="?")
-    sub.add_parser("concordance"); sub.add_parser("self-test")
+    sub.add_parser("concordance")
+    st = sub.add_parser("self-test"); st.add_argument("--require-pdf", action="store_true", help="fail, not skip, when no PDF can be rendered and read")
     r = sub.add_parser("ratchet"); r.add_argument("--record", action="store_true")
     i = sub.add_parser("improve"); i.add_argument("debriefs", nargs="+")
     a = ap.parse_args()
 
     if a.cmd == "duf":
-        rep = duf(pathlib.Path(a.brief).read_text(), pathlib.Path(a.script).read_text() if a.script else "", a.pages)
+        pages = a.pages
+        if a.pdf:
+            pp = pdf_pages(a.pdf)
+            if pp is None:
+                print("duf --pdf: no pdftotext or pypdf to count the PDF's pages -- use --pages N"); sys.exit(2)
+            pages = len(pp)
+        rep = duf(pathlib.Path(a.brief).read_text(), pathlib.Path(a.script).read_text() if a.script else "", pages)
         print(json.dumps(rep, indent=1)); sys.exit(0 if rep["ok"] else 1)
     if a.cmd == "checks":
         which = next((w for w in CHECKS if getattr(a, w.replace("-", "_"))), "all")
@@ -506,7 +576,7 @@ def main():
     if a.cmd == "concordance":
         sys.exit(0 if concordance() else 1)
     if a.cmd == "self-test":
-        sys.exit(0 if self_test() else 1)
+        sys.exit(0 if self_test(a.require_pdf) else 1)
     if a.cmd == "ratchet":
         sys.exit(ratchet(a.record))
     if a.cmd == "improve":
