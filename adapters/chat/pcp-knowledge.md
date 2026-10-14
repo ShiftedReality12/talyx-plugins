@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:d23f8ebdd90d) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:7ab2f8560c18) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.0.0)
 
@@ -102,8 +102,8 @@ This host runs no scripts. The saved setup is the **Saved setup** block at the e
   _Fails when:_ Remove all C1/C2 claims from one family below threshold -- status flips to LIMITED.
 - **S2-6** Run the counter-evidence family last: search for what would contradict the strategic read.  
   _Fails when:_ With depth standard or deep, coverage must show family F12 attempted.
-- **S2-7** LinkedIn: this host cannot open the user's browser. Offer once: save their profile as a PDF (More > Save to PDF) and attach it; it is read as Yours. Otherwise the Coverage row says 'LinkedIn not read: no browser here', and Still open carries a question that closes the gap.  
-  _Fails when:_ No attachment -- Coverage reads 'LinkedIn not read: no browser here'.
+- **S2-7** LinkedIn: this host cannot open the user's browser. Offer once: save their profile as a PDF (More > Save to PDF) and attach it; it is read as Yours. Either way B4's last line is '**LinkedIn:** not read: no browser here' and the Coverage row says 'LinkedIn: not read: no browser here'; no fact is tagged LinkedIn, and Still open carries a LinkedIn question that closes the gap.  
+  _Fails when:_ No attachment -- B4 and Coverage both read 'LinkedIn: not read: no browser here' (check C16).
 
 ## Stage 3: Meeting approach
 
@@ -190,6 +190,9 @@ Registers by domain: wealth: FINRA BrokerCheck, SEC IAPD, SEC EDGAR; pe: SEC EDG
 **Exclusions (dropped before the writer, counted in coverage):** health, family matters outside the public professional record, political giving, litigation as a talking point, home address, personal finances.
 By jurisdiction: eu: any claim older than 5 years that is not a current role, retention of claims.jsonl after render; regulated: performance claims, promissory language, comparative claims about named competitors.
 
+**LinkedIn status (S2-7), in B4's last line and the Coverage row:** `LinkedIn: read in your session`, or
+`LinkedIn: not read: <reason>` with one of these reasons, word for word: you declined; no browser here; login wall or security check; paused; scope none.
+
 ## Meeting approach (six dimensions)
 
 Tiers: high = 3 observations, 2 sources, a direct quote or action;
@@ -217,13 +220,13 @@ Then one `## Bn Title` per block, in order. Word budgets are length limits: cut 
 | B1 | Take | 70 | always | One paragraph: **Take.** who they are and why this meeting matters to them now, in one sentence, every clause cited. **Evidence:** the one to three facts it rests on [n]. **Action:** the first move in the room. **Avoid:** the one move that loses the meeting. It adds no fact the blocks below don't cite. |
 | B2 | Questions that close gaps | 210 | always | 5 numbered questions, each <= 20 words, on the fact it rests on [n]; under each, one indented bullet: **Decides:** what the answer settles for you. **Ask:** whom -- the person, or who else is in the room. Ordered by what they decide; the mix follows the meeting type (Q4). |
 | B3 | Who they are | 110 | always | Bullets, label first: **Role:** title and since when [n] (required). **Path:** the prior roles that matter [n]. **The organization:** in its own words, plus one scale figure [n]. **What changed:** one to three dated items, newest first [n]. **Recent wins:** none to two dated, cited results [n]. Path, The organization and What changed read Not determined if not found; Recent wins is left out. From F1 F2 F3 F4 F9. |
-| B4 | In their words | 90 | always | 2-3 bullets, label first: **Topic, where, when:** "their exact words" [n]. None found: one line of themes from their public presence [n]; nothing at all: Not determined. From F5 F6 F8 and LinkedIn. |
+| B4 | In their words | 90 | always | 2-3 bullets, label first: **Topic, where, when:** "their exact words" [n]. None found: one line of themes from their public presence [n]; nothing at all: Not determined. Then always one last line, not a bullet: **LinkedIn:** read in your session, or **LinkedIn:** not read: and the reason (S2-7). From F5 F6 F8 and LinkedIn. |
 | B5 | Signals and what to do with them | 100 | always | A table: | Observable | What to do with it |, three rows in this order: their priority and the gap, in their words [n] -> why this meeting matters to them; where your offer connects (Q8) [n] -> the bridge: the outcome you offer, not the method; the trigger, why now [n] -> the urgency, never invented. From F3 F10 F11 and Q8. |
 | B6 | Meeting approach | 170 | always | A table: | What the record shows | Your move |, six rows, one per rubric dimension, each starting with its label (Pace and control, How they take recognition, Appetite for detail, Appetite for risk, How they take disagreement, How they keep score): the cited observation [n] -> the rubric's move word for word, or No read. Then one line: **Evidence tier:** high, medium or low: it sets how far page 3 goes. A cited observation and a move, never a verdict on their character. |
 | B7 | Who decides | 60 | always | Bullets: **Decision maker:** who signs off [n]. **The gate:** what must be true, or who must agree, before a yes [n]. **Relationship holder:** who the relationship runs through [n]. Unknown: Not determined, and a question in Still open. From F1 F3 F9 F11. |
 | B8 | Strongest case against | 150 | always | Up to 3 bullets: **Against:** the best evidence against your read [n]. **Reverses if:** what would flip it. None found: No counter-evidence found. Deep runs only, then `### What they may want from this meeting` and a table | Hypothesis and why it fits | Test: who answers, and what would disprove it |, up to 3 rows, each with the claim that would disprove it [n]. From F12; litigation stays off the page. |
 | B9 | Meeting angle | 150 | always | `### This meeting` then bullets: **Frame:** what this meeting is, in their terms; not a pitch. **Lands:** [n]. **Repels:** [n]. **What to bring:** one thing of value [n]. **The ask:** specific and bounded, who and how long [n] · **Fallback:** the smaller ask. **Stop if:** the answer that means drop the ask. `### Meeting two` then **Meeting two:** the next conversation if this one lands, on a fact from this brief. **Meeting three:** where it goes after that. `### After the meeting` then **Capture:** what to record from the room that the public record couldn't give. From Q8 and B3-B8. |
-| B10 | Evidence ledger | 550 | always | One line: Unmarked facts are measured. {n} facts cited; status {FULL or LIMITED} at {n} of 12 source types. Then the table | # | What it says | Source | Tag | Grade | Conf. | Date |, one row per cited fact in order of first use: [n] · the fact in about 8 words · [domain](url) (a file name for Yours) · Direct, Search, LinkedIn or Yours · Measured, Derived, Inference or Not determined · Primary (C1), Reputable (C2), Single source (C3) or Inferred (C4), printed as the word · Mon D, YYYY. Then a label grid (empty header row) with four rows: **Coverage** -- n of 12 source types, what was not found and why, LinkedIn read or not and why. **Still open** -- each gap with the question that closes it in the room. **Left out on purpose** -- the excluded topics, never the facts. **Run** -- date · depth · meeting type · prepared for · jurisdiction · status · decision-useful facts per page. |
+| B10 | Evidence ledger | 550 | always | One line: Unmarked facts are measured. {n} facts cited; status {FULL or LIMITED} at {n} of 12 source types. Then the table | # | What it says | Source | Tag | Grade | Conf. | Date |, one row per cited fact in order of first use: [n] · the fact in about 8 words · [domain](url) (a file name for Yours) · Direct, Search, LinkedIn or Yours · Measured, Derived, Inference or Not determined · Primary (C1), Reputable (C2), Single source (C3) or Inferred (C4), printed as the word · Mon D, YYYY. Then a label grid (empty header row) with four rows: **Coverage** -- n of 12 source types, what was not found and why, and LinkedIn: read in your session, or LinkedIn: not read: and B4's reason. **Still open** -- each gap with the question that closes it in the room. **Left out on purpose** -- the excluded topics, never the facts. **Run** -- date · depth · meeting type · prepared for · jurisdiction · status · decision-useful facts per page. |
 
 Domain vocabulary: wealth: book, AUM, custodian, fee compression, succession, next-gen; pe: dry powder, DPI, add-on, hold period, exit; saas: ARR, NRR, champion, security review, procurement, renewal.
 
@@ -270,6 +273,7 @@ Never say: "Does that make sense?"; "Is this helpful?"; "No pressure"; "You'd kn
 | C13 | conditional | B8's hypotheses only when the meta line says Depth deep; P6 only when B6 says Evidence tier: high |
 | C14 | layout | the brief has exactly the 9 blocks B1-B9 before B10, and B10 is its last block: no other block and nothing after the ledger |
 | C15 | experience | new: P1, P3 and P4 each have a **Why:** line of at most 12 words; experienced and top: no Why line; top: the Hook and each objection's answer are at most 15 words |
+| C16 | linkedin | B4 has exactly one **LinkedIn:** line, read in your session or not read: one of linkedin.reasons; Coverage states the same; when not read, no ledger row is tagged LinkedIn and Still open has a LinkedIn question |
 
 ## Deliver
 

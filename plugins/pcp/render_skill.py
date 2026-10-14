@@ -144,6 +144,9 @@ Registers by domain: {'; '.join(f"{k}: " + ', '.join(r['name'] for r in v) for k
 **Exclusions (dropped before the writer, counted in coverage):** {', '.join(excl['base'])}.
 By jurisdiction: {'; '.join(f"{k}: {', '.join(v)}" for k, v in excl['by_jurisdiction'].items() if v)}.
 
+**LinkedIn status (S2-7), in B4's last line and the Coverage row:** `LinkedIn: {R['linkedin']['read']}`, or
+`LinkedIn: {R['linkedin']['not_read']}: <reason>` with one of these reasons, word for word: {'; '.join(R['linkedin']['reasons'])}.
+
 ## {n['profile']} (six dimensions)
 
 Tiers: high = {tiers['high']['min_observations']} observations, {tiers['high']['corroborated_across_sources']} sources, a direct quote or action;

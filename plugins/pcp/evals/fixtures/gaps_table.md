@@ -20,6 +20,8 @@ Meeting: First intro: earn a second meeting | Prepared for: Founder / principal 
 - **On patience, 2025 letter:** "We buy patience" [3]
 - **On fees, a 2026 panel:** "Nobody wins a fee war" [4]
 
+**LinkedIn:** read in your session
+
 ## B5 Signals and what to do with them
 | Observable | What to do with it |
 |---|---|
@@ -64,7 +66,7 @@ Unmarked facts are measured. 12 facts cited; status FULL at 10 of 12 source type
 
 | | |
 |---|---|
-| **Coverage** | 10 of 12 source types · LinkedIn read in your session |
+| **Coverage** | 10 of 12 source types · LinkedIn: read in your session |
 | **Still open** | The gate: what must be true before the committee says yes? |
 | **Left out on purpose** | health, family, politics, litigation, personal finances |
 | **Run** | Sep 20, 2026 · standard · first intro · founder / principal · US · FULL |

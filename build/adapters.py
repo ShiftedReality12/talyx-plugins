@@ -97,8 +97,8 @@ CHAT_ROWS = {
     "CAL-4": {"text": "Files the user attaches about their business are read once; a summary of at most 150 words goes in the Saved setup block under context. Facts from them are tagged Yours, never presented as public. Supported: .pdf .docx .md .txt .csv. Any other file gets one line naming the supported types, and the Saved setup block is not changed.",
               "test": "Attach a one-page file -- the updated Saved setup block holds its summary, and a fact from it carries tag Yours. Attach a .pptx -- one line names the supported types and no new block is given."},
     "S2-2": {"test": "A claim missing any field is dropped and counted in coverage.dropped."},
-    "S2-7": {"text": "LinkedIn: this host cannot open the user's browser. Offer once: save their profile as a PDF (More > Save to PDF) and attach it; it is read as Yours. Otherwise the Coverage row says 'LinkedIn not read: no browser here', and Still open carries a question that closes the gap.",
-             "test": "No attachment -- Coverage reads 'LinkedIn not read: no browser here'."},
+    "S2-7": {"text": "LinkedIn: this host cannot open the user's browser. Offer once: save their profile as a PDF (More > Save to PDF) and attach it; it is read as Yours. Either way B4's last line is '**LinkedIn:** not read: no browser here' and the Coverage row says 'LinkedIn: not read: no browser here'; no fact is tagged LinkedIn, and Still open carries a LinkedIn question that closes the gap.",
+             "test": "No attachment -- B4 and Coverage both read 'LinkedIn: not read: no browser here' (check C16)."},
     "S4-1": {"test": "Check C2 finds unbound > 0 -- the answer is rewritten before it is delivered."},
     "S4-3": None, "S4-4": None,   # the PDF renderer
     "S4-5": {"text": "The heading's meta line carries meeting, prepared for, depth, sources, status and date; the ledger's Run row carries the run details.",

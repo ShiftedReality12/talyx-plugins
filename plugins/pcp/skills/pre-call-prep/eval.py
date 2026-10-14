@@ -198,6 +198,25 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
             q = item.split(": ", 1)[1] if ": " in item else item
             if not (q.rstrip().endswith("?") and q.split()[0].strip("*_").capitalize() in starts) and (gaps or "?" in item):
                 fails.append(f"C12 gaps: Still open item is not a question starting {'/'.join(starts)}: '{item[:60]}'")
+    if want("linkedin"):
+        li = R["linkedin"]
+        status = rf"({re.escape(li['read'])}|{re.escape(li['not_read'])}: ({'|'.join(re.escape(r) for r in li['reasons'])}))"
+        lines = re.findall(r"^\*\*LinkedIn:\*\*.*$", secs.get("B4", ""), re.M)
+        b4 = re.match(r"^\*\*LinkedIn:\*\* " + status + r"\.?\s*$", lines[0]) if len(lines) == 1 else None
+        grid = secs.get(LEDGER, "")
+        cov = next((ln for ln in grid.splitlines() if "**Coverage**" in ln), "")
+        if not b4:
+            fails.append(f"C16 linkedin: B4 needs exactly one line '**LinkedIn:** {li['read']}' or "
+                         f"'**LinkedIn:** {li['not_read']}: <{' | '.join(li['reasons'])}>' (found {lines or 'none'})")
+        elif f"LinkedIn: {b4.group(1)}" not in cov:
+            fails.append(f"C16 linkedin: Coverage does not say 'LinkedIn: {b4.group(1)}' as B4 does")
+        elif b4.group(2):   # not read
+            tagged = [m.group(1) for m in SRC_ROW.finditer(grid) if m.group(4) == "LinkedIn"]
+            if tagged:
+                fails.append(f"C16 linkedin: LinkedIn {li['not_read']}, yet ledger rows {tagged} are tagged LinkedIn")
+            still = next((ln for ln in grid.splitlines() if "Still open" in ln), "")
+            if not re.search(r"LinkedIn:[^·|]*\?", still):
+                fails.append("C16 linkedin: LinkedIn not read and no 'LinkedIn: question?' in Still open")
     if experience and which == "all":
         why = {k: re.findall(r"\*\*Why:\*\*\s*(.+)", secs[k]) for k in secs if re.match(r"P\d+$", k)}
         if experience == "new":
@@ -308,6 +327,10 @@ def pdf_check(pdf, brief_md=""):
             fails.append(f"C10 pages: last page shows '{foot}' {pages[-1].count(foot)} times, need once")
     for h in plain_hits(re.sub(r"\s+", " ", "\n".join(pages))):
         fails.append(f"C11 plain: '{h}' printed in the PDF outside quoted words")
+    if brief_md and re.search(r"^\*\*LinkedIn:\*\* " + re.escape(R["linkedin"]["not_read"]), brief_md, re.M):
+        said = re.sub(r"\s+", " ", "\n".join(pages)).count(f"LinkedIn: {R['linkedin']['not_read']}")
+        if said < 2:
+            fails.append(f"C16 linkedin: the PDF says 'LinkedIn: {R['linkedin']['not_read']}' {said} times, need B4 and Coverage")
     if brief_md:
         rows = [m for m in SRC_ROW.finditer(brief_md) if m.group(4) != "Yours"]
         links = pdf_links(pdf)
@@ -362,6 +385,7 @@ MUST_PASS = [
     ("control_12.md", {"experience": "experienced"}),
     ("control_12.md", {"experience": "top"}),
     ("exp_new.md", {"experience": "new"}),
+    ("linkedin_declined.md", {}),
 ]
 
 
@@ -374,6 +398,8 @@ MUST_TRIP = [
     ("exp_experienced_with_why.md", {"experience": "experienced"}, ["C15"]),
     ("control_12.md", {"experience": "new"}, ["C15"]),
     ("exp_top_long.md", {"experience": "top"}, ["C15"]),
+    ("linkedin_missing.md", {}, ["C16"]),
+    ("linkedin_declined_with_row.md", {}, ["C16"]),
 ]
 
 
@@ -425,7 +451,8 @@ def improve(debriefs):
     print("wrote", out.relative_to(HERE), f"({len(props)} proposals) -- apply to pcp.yaml by hand-review, then `eval.py ratchet`")
 
 
-CHECKS = ["swap", "quotes", "custom-q", "sections", "budgets", "never-say", "outcome", "exclusions", "plain", "gaps", "conditional", "layout"]
+CHECKS = ["swap", "quotes", "custom-q", "sections", "budgets", "never-say", "outcome", "exclusions", "plain", "gaps", "conditional", "layout",
+          "linkedin"]
 
 
 def main():
