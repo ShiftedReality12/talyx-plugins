@@ -574,6 +574,11 @@ def pdf_self_test(fx):
     if shutil.which("pdftotext") is None and importlib.util.find_spec("pypdf") is None:
         return None
     ok, pb, n = True, R["page_budget"], R["names"]
+    heads = tp.b9_html('<div class="sub">A. This meeting</div><div class="sub">Meeting two</div><div class="sub">After the meeting</div>')
+    if re.findall(r'class="sub">([A-H])\. ', heads) == ["A", "B", "C"]:
+        print("passes: B9 subheads lettered A, B, C by position when the brief letters only the first")
+    else:
+        print("FAIL B9 subheads must be lettered A, B, C by position:", heads); ok = False
     with tempfile.TemporaryDirectory() as tmp:
         for name, layout in (("control_12.md", True), ("jargon.md", True), ("control_12.md", False)):
             md = (fx / name).read_text()

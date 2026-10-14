@@ -229,8 +229,8 @@ def b6_html(body):
 
 def b9_html(body):
     """B9: its subheads are lettered as in the schema (A. This meeting, B. Meeting two, C. After the meeting)."""
-    letters = iter("ABCDEFGH")
-    return re.sub(r'<div class="sub">(?![A-H]\. )', lambda m: f'<div class="sub">{next(letters)}. ', body)
+    letters = iter("ABCDEFGH")   # by position: a run that letters some heads itself gets no second A.
+    return re.sub(r'<div class="sub">(?:[A-H]\. )?', lambda m: f'<div class="sub">{next(letters)}. ', body)
 
 
 def b10_html(body):
@@ -293,6 +293,7 @@ function balance() {
 }
 function restack(row) {
   const [a, b] = row.children, secs = [...a.children, ...b.children], authored = a.children.length, tries = [];
+  if (secs.length < 2) return;   // one section: nothing to move
   for (let k = 1; k < secs.length; k++) {
     secs.forEach((s, i) => (i < k ? a : b).appendChild(s));
     tries.push({k, h: Math.max(a.offsetHeight, b.offsetHeight)});
