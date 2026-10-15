@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:ce5f24e5e311) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:d82de5413605) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Search rounds: the record by targeted web search
 
@@ -10,7 +10,7 @@ never drives a browser.
 account that ran them, so reading a profile in your own signed-in browser put your account at risk. A search result
 never touches LinkedIn: the search engine read the page, and PCP reads only what the result shows.
 
-The battery is mandatory (S2-9): every round whose source types the run's depth enables, in order, each with at least osint.battery.queries_per_round queries, most of them carrying an advanced operator or the tool's domain filter. Before each round, write one line in the conversation, 'Round N (name): <query> | <query> | ...', the queries as they will be sent (coverage.rounds); then send them. From round 2 on, the queries carry the names, firms, programmes and topics the rounds before found: each round is refined from the last. A round is skipped only when the depth turns all its source types off, never for convenience; a round that finds nothing still counts, and its gap goes to Coverage.
+The battery is mandatory (S2-9): every round whose source types the run's depth enables, in order, each with at least osint.battery.queries_per_round queries, most of them carrying an advanced operator or the tool's domain filter. Before each round, say one line as visible text in your reply (not only in your reasoning), 'Round N (name): <query> | <query> | ...', the queries as they will be sent (coverage.rounds); then send them, and only them, before the next round's line. From round 2 on, the queries carry the names, firms, programmes and topics the rounds before found: each round is refined from the last. A round is skipped only when the depth turns all its source types off, never for convenience; a round that finds nothing still counts, and its gap goes to Coverage.
 
 | Depth | Rounds | Queries per round, at least | Searches, at least | With an operator or a domain filter, at least |
 |---|---|---|---|---|
