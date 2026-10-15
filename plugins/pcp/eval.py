@@ -266,7 +266,7 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
         lines = re.findall(r"^\*\*LinkedIn:\*\*.*$", secs.get("B4", ""), re.M)
         b4 = re.match(r"^\*\*LinkedIn:\*\* " + status + r"\.?\s*$", lines[0]) if len(lines) == 1 else None
         grid = secs.get(LEDGER, "")
-        cov = next((ln for ln in grid.splitlines() if "**Coverage**" in ln), "")
+        cov = next((ln for ln in grid.splitlines() if "**Coverage**" in ln), "").replace("*", "")   # **LinkedIn:** prints as LinkedIn:
         if not b4:
             fails.append(f"C16 linkedin: B4 needs exactly one line '**LinkedIn:** <{' | '.join(li['read'].values())}>' or "
                          f"'**LinkedIn:** {li['not_read']}: <{' | '.join(li['reasons'])}>' (found {lines or 'none'})")
@@ -541,11 +541,18 @@ def self_test(require_pdf=False):
          c12.replace("read from your file", "read from search results")),
         ("C16 on the reason 'file not given' in a run from Oct 15 (AID-63: search reads LinkedIn now)", "C16",
          (fx / "linkedin_declined.md").read_text().replace("you declined", "file not given").replace("| Sep 20, 2026 ·", "| Oct 15, 2026 ·")),
+        ("C16 on a bold Coverage label that states another status than B4", "C16",
+         (fx / "linkedin_search.md").read_text().replace("· LinkedIn: read from search results |", "· **LinkedIn:** read from your file |")),
         ("C16 on the retired reason 'no browser here' (the R9 run skipped the saved-PDF question)", "C16",
          (fx / "linkedin_declined.md").read_text().replace("not read: you declined", "not read: no browser here")),
         ("C16 on an unread LinkedIn asked inside another Still open item", "C16",
          (fx / "linkedin_declined.md").read_text().replace("says yes? |", "says yes? · The gate: could you share the LinkedIn profile? |")),
     ]
+    bold = (fx / "linkedin_search.md").read_text().replace("· LinkedIn: read from search results |", "· **LinkedIn:** read from search results |")
+    if [x for x in checks(bold) if x.startswith("C16 ")]:   # the Oct 15 chat reply A5: the same words, printed bold
+        print("FAIL C16 must pass a Coverage row whose LinkedIn label is bold"); ok = False
+    else:
+        print("passes: C16 on a bold '**LinkedIn:**' label in Coverage (it prints the same words)")
     old = (fx / "linkedin_declined.md").read_text().replace("you declined", "file not given")   # Sep 20: before AID-63
     if [x for x in checks(old) if x.startswith("C16 ")]:
         print("FAIL C16 must pass 'file not given' in a run before Oct 15 (the frozen Oct 14 targets)"); ok = False

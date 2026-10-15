@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:7998d60639d1) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:4c8aeefdbf29) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Inventory: what the Intelligence Brief prints (v3.1.0)
 

@@ -9,7 +9,7 @@ description: >
   before a meeting, talking points, or shares an intake list. Do not use for general research unrelated
   to a meeting, or for notes on a meeting that has already happened.
 ---
-<!-- GENERATED from pcp.yaml (sha256:7998d60639d1) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:4c8aeefdbf29) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
@@ -251,7 +251,7 @@ Search in rounds, each refined from the last: what a round confirms or leaves op
 **Identity lock.** A LinkedIn result is a lead, not an identity. Use it only when (a) its headline or current role names the person and gives the organisation as their current position (not past experience or a post), and one other detail agrees with the organisation as found elsewhere (its city or region, or its web domain); or (b) a second independent source (the organisation's own site, a filing, a news article) ties that profile or that exact role to the person. A generic title (Owner, President, Founder) counts only with the organisation. A detail that contradicts (another city, another firm) rejects it. A profile URL seen only as a link on another page, with no result of its own, is a lead for the domain-filtered search, not a second profile. Two or more profiles pass: use none. Never pick by guess. Example: Intake 'Mark Brown, Precision Metal Fab'. The firm's own site says Odessa, TX; the only LinkedIn result reads 'Mark Brown - Owner - Precision Metal Fab | Greater Cleveland'. The location contradicts, so nothing from it is used: '**LinkedIn:** not read: no matching profile'.
 
 **Grading.**
-- Open the page behind a result before citing it and grade the page (C1 primary and dated, C2 reputable secondary); LinkedIn is the one source cited from its search result. A page that will not open keeps its fact at C3, logged 'not opened': a gap, not a finding that the fact is false.
+- Open the page behind a result before citing it and grade the page (C1 primary and dated, C2 reputable secondary); LinkedIn is the one source cited from its search result. A page that refuses the fetch (a bot wall, 401 or 403) keeps its fact at C3, logged 'not opened': a gap, not a finding that the fact is false. A page that is gone (404 or 410) is dead: cite another source or drop the fact (S2-8).
 - A LinkedIn result: tag LinkedIn, Measured for what the result shows (text across an ellipsis is not quoted as one), C3, the source written [linkedin.com, search result](the profile URL the result lists), the date 'seen <today>'. A fact resting on it alone says so in the sentence ('per their LinkedIn'); a role seen only there never prints as confirmed current.
 - Items with one origin (a press release, a wire story, the person's own bio: shown by attribution, a link or near-identical wording) count as one source, graded by that origin; a speaker bio, a company bio and their LinkedIn are one self-reported source. Corroboration needs a second item with a different origin.
 
