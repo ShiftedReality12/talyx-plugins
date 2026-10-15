@@ -653,6 +653,18 @@ def self_test(require_pdf=False):
              ("round 3 before round 2", bt[:r2] + bt[r3:r3 + 2] + bt[r2:r3] + bt[r3 + 2:], "", "order"),
              ("round 4 one query short", bt[:r4] + [short4] + bt[r4 + 1:], "", "fewer than 4"),
              ("a Run row that miscounts", bt, "| **Run** | Oct 15, 2026 · standard · 19 searches in 5 rounds |", "the transcript shows")]
+    bare = [re.sub(r'\{"type": "text", "text": "Round [^}]*\}, ', "", ln) for ln in bt]   # the round lines dropped
+    f, summary = battery(bare, "standard")
+    if f:
+        print("FAIL C21 must pass the same searches without round lines, one batch per round:", summary, f); ok = False
+    else:
+        print(f"passes: C21 on battery_standard.jsonl without its round lines ({summary}): each batch is a round")
+    single = []
+    for ln in bare:   # the same searches, one per step: no batch is a round of 4
+        e = json.loads(ln)
+        tools = [x for x in (e.get("message", {}).get("content") or []) if x.get("type") == "tool_use"] if e.get("type") == "assistant" else []
+        single += [json.dumps({"type": "assistant", "message": {"content": [t]}}) for t in tools] if tools else [ln]
+    cases.append(("the same searches one per step, no round lines", single, "", "more rounds"))
     for case, lines, brief, want_msg in cases:
         f, _ = battery(lines, "standard", brief)
         if any(want_msg in x for x in f):
@@ -1095,9 +1107,11 @@ def battery_floor(depth):
 
 def battery(lines, depth="standard", brief=""):
     """C21: the search battery as a run sent it, read from its stream-json transcript (the run's own words and tool
-    calls, not its report). Returns (failures, summary). A 'Round N (name): ...' line opens each round; the WebSearch
-    calls after it are that round's queries."""
-    rounds, cur, early, fails = {}, None, [], []
+    calls, not its report). Returns (failures, summary). Where the run writes 'Round N (name): ...' lines (in its reply
+    or its reasoning), each opens a round and the WebSearch calls after it are that round's queries. Without such
+    lines, each step's batch of searches (one assistant message) is one round: S2-9 sends a round's queries together
+    (the R11 runs, Oct 15, kept their round lines to their reasoning in prose and batched each round)."""
+    rounds, cur, early, fails, batches, seen = {}, None, [], [], {}, 0
     for line in lines:
         try:
             e = json.loads(line)
@@ -1105,14 +1119,17 @@ def battery(lines, depth="standard", brief=""):
             continue
         if e.get("type") != "assistant":
             continue
+        seen += 1
+        mid = e.get("message", {}).get("id") or f"line-{seen}"   # stream-json splits one message's blocks over lines
         for x in e.get("message", {}).get("content") or []:
-            if x.get("type") == "text":
-                heads = re.findall(r"^\W*Round (\d)\s*\(", x.get("text", ""), re.M)
+            if x.get("type") in ("text", "thinking"):
+                heads = re.findall(r"^\W*Round (\d)\s*\(", x.get("text") or x.get("thinking") or "", re.M)
                 if heads:
                     cur = int(heads[-1]); rounds.setdefault(cur, [])
             elif x.get("type") == "tool_use":
                 name, inp = x.get("name", ""), x.get("input") or {}
                 if name == "WebSearch":
+                    batches.setdefault(mid, []).append(inp)
                     if cur is None:
                         early.append(inp)
                     else:
@@ -1123,6 +1140,8 @@ def battery(lines, depth="standard", brief=""):
                     fails.append("C21 battery: a shell command requested linkedin.com; LinkedIn is read from search results only")
                 if BROWSER_TOOL.search(name):
                     fails.append(f"C21 battery: the browser tool {name} was called; research never drives a browser")
+    if not rounds:   # no round lines: each step's batch of searches is one round
+        rounds, early = dict(enumerate(batches.values(), 1)), []
     need, per, ops_min = battery_floor(depth)
     sent = [q for qs in rounds.values() for q in qs]
     done = [n for n in rounds if rounds[n]]
@@ -1133,6 +1152,9 @@ def battery(lines, depth="standard", brief=""):
     missing = [n for n in need if n not in done]
     if missing:
         fails.append(f"C21 battery: rounds {missing} not run; a {depth} run runs rounds {need}")
+    extra = [n for n in done if n not in need]
+    if extra:
+        fails.append(f"C21 battery: {len(extra)} more rounds than the battery's {len(need)}: send each round's queries together, once")
     if done != sorted(done):
         fails.append(f"C21 battery: rounds ran in the order {done}, not 1 to 5")
     short = {n: len(rounds[n]) for n in need if 0 < len(rounds.get(n, [])) < per}
