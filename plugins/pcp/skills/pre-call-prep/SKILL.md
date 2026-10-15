@@ -8,7 +8,7 @@ description: >
   before a meeting, talking points, or shares an intake list. Do not use for general research unrelated
   to a meeting, or for notes on a meeting that has already happened.
 ---
-<!-- GENERATED from pcp.yaml (sha256:210a1656f915) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:dce595c414dd) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
@@ -328,6 +328,7 @@ and `python3 eval.py duf brief.md script.md`; rewrite until both are clean.
 | C17 | cites | `eval.py checks --cites (eval.py cites brief.md --fetch reads the pages too)` | every cited sentence shares content with the ledger claim it cites (2+ content words, 1 when the claim is 3 words or fewer) and every [n] is a ledger row; a hypothetical (Reverses if, Stop if) carries no citation unless the row says it |
 | C18 | quality | `eval.py checks --quality` | no ledger row cites a source_quality.exclude domain; a source_quality.weak domain is never C1 or C2; fewer than 3 ledger rows carry the run's own date unmarked (those are read dates: give the source's date, or 'seen' when it has none) |
 | C19 | render | `eval.py pdf (also eval.py render OUT.pdf)` | every page: no ink within 0.12in of a page edge, no word outside the 0.3in side margins; no page ends more than 0.5in above its footer margin; the schema's pairs (B3|B4, B5|B6, B7|B8) print side by side (Oct 14: a thin run's page 3 ended 2in short); page 1: the logo is whole in the top-right masthead; no block runs across a page break: page 2 opens on Who decides (B7, as in the schema) and no table prints its header row on two pages |
+| C20 | colors | `eval.py pdf (also eval.py render OUT.pdf)` | every printed character is Midnight #0F2744, black #000000 or white #FFFFFF (Ben, Oct 14: no gray, three colors, so the page reads when printed); the hairline #E8EAED is for rules only, never text |
 
 ## Render
 

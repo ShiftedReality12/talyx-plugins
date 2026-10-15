@@ -167,7 +167,7 @@ def _chat_registry(R):
         s["inputs"] = [{**i, **CHAT_INPUTS[i["name"]]} if i["name"] in CHAT_INPUTS else i for i in s["inputs"]]
         if s["id"] == "S4":
             s.pop("outputs", None)   # brief.md, script.md and the PDF are files
-    C["checks"] = [c for c in C["checks"] if c.get("id") != "C10"]
+    C["checks"] = [c for c in C["checks"] if c.get("id") not in ("C10", "C20")]   # the page count and print colours are the PDF's
     # the in-chat self-check is the same as the plug-in's: its ledger rules and worked examples, from pcp.yaml
     src = next(r for st in R["stages"] for r in st["rows"] if r["id"] == "S4-10")["text"]
     rules = re.search(r"(Build the ledger from your claim list.*?) If a code tool exists.*?against these worked examples: (.*?) End with ", src)

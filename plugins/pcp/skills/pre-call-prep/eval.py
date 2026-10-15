@@ -16,6 +16,7 @@ Exit 0 = pass. Non-zero = fail, with the reason and the population on stdout. Ev
 """
 import argparse
 import datetime as dt
+import html
 import json
 import pathlib
 import re
@@ -371,7 +372,8 @@ def _flat(t):
 
 
 def pdf_check(pdf, brief_md=""):
-    """The rendered PDF, as the reader gets it (C10, C11 on the printed text, C19 nothing cut off). [] = pass; None = no PDF text tool."""
+    """The rendered PDF, as the reader gets it (C10, C11 on the printed text, C19 nothing cut off, C20 three colours).
+    [] = pass; None = no PDF text tool."""
     pages = pdf_pages(pdf)
     if pages is None:
         return None
@@ -418,7 +420,7 @@ def pdf_check(pdf, brief_md=""):
         links = pdf_links(pdf)
         if len(links) < len(rows):
             fails.append(f"C10 links: {len(links)} links in the PDF < {len(rows)} ledger rows not tagged Yours")
-    return fails + c19 + block_breaks(pages, brief_md)
+    return fails + c19 + text_colors(pdf) + block_breaks(pages, brief_md)
 
 
 def script_numbers(page, n):
@@ -652,7 +654,7 @@ def pdf_self_test(fx):
                 else:
                     print("FAIL control_12.pdf rendered with --brief-pages 3 must trip C10 (got", f, ")"); ok = False
             elif name == "control_12.md":
-                print(f"pdf control_12: {len(f)} failures (C10, C11, C19)", *f, sep="\n - ")
+                print(f"pdf control_12: {len(f)} failures (C10, C11, C19, C20)", *f, sep="\n - ")
                 ok = ok and not f
                 stacked = pathlib.Path(tmp, "stacked.pdf")   # C19 must fail a render whose schema pairs are stacked
                 subprocess.run([sys.executable, str(HERE / "format/talyx_pdf.py"), "--style", "brief", "--brief", str(b), "--script", str(s),
@@ -673,6 +675,16 @@ def pdf_self_test(fx):
                     print("tripped: C19 by a logo whose top the page margin cuts off")
                 else:
                     print("FAIL C19 must trip on a clipped logo (got", render_check(clipped), ")"); ok = False
+                grey = pathlib.Path(tmp, "grey.pdf")   # C20 must fail grey text (the Oct 14 footer, #8B95A1) and pass the three
+                tp.render_html('<!doctype html><body style="color:#0F2744"><p>Midnight.</p><p style="color:#000">Black.</p>'
+                               '<p style="background:#0F2744;color:#fff">White on Midnight.</p>'
+                               '<p style="color:#8B95A1">page 1 of 3</p><p style="color:#5F6B78">MEASURED</p></body>', grey)
+                if len(text_colors(grey)) == 2:
+                    print("tripped: C20 by grey text (two greys); Midnight, black and white pass")
+                elif shutil.which("pdftohtml"):
+                    print("FAIL C20 must trip on exactly the two greys (got", text_colors(grey), ")"); ok = False
+                else:
+                    print("SKIP C20: no pdftohtml (poppler) on this computer")
                 short = pathlib.Path(tmp, "short.pdf")   # C19 must be able to fail on a page that ends in a blank band
                 tp.render_html("<!doctype html><style>@page { size: Letter; margin: 0.42in 0.55in 0.62in; }</style>"
                                "<p>One line, then nothing to the foot of the page.</p>", short)
@@ -952,6 +964,28 @@ def render_check(pdf, dpi=72):
 
 
 
+COLORS = {"#0F2744": "Midnight", "#000000": "black", "#FFFFFF": "white"}   # brand/BRAND.md, the brief's three
+
+
+def text_colors(pdf):
+    """C20: every printed character is Midnight, black or white (Ben, Oct 14: "get rid of that gray ... three colors";
+    grey text is lost when the page is printed). Reads each text run's fill colour with poppler's pdftohtml."""
+    if shutil.which("pdftohtml") is None:
+        return []
+    x = subprocess.run(["pdftohtml", "-xml", "-i", "-q", "-stdout", str(pdf)], capture_output=True, text=True).stdout
+    rgb = lambda h: [int(h[i:i + 2], 16) for i in (1, 3, 5)]
+    ok = lambda h: any(all(abs(a - b) <= 2 for a, b in zip(rgb(h), rgb(c))) for c in COLORS)   # poppler rounds a channel down
+    bad = {f: c.upper() for f, c in re.findall(r'<fontspec id="(\d+)"[^>]*color="(#[0-9a-fA-F]{6})"', x) if not ok(c)}
+    seen, page = {}, 0
+    for ln in x.splitlines():
+        page += ln.startswith("<page ")
+        m = re.match(r'<text [^>]*font="(\d+)"[^>]*>(.*)</text>', ln)
+        if m and m.group(1) in bad:
+            seen.setdefault(bad[m.group(1)], []).append((page, html.unescape(re.sub(r"<[^>]+>", "", m.group(2))).strip()))
+    return [f"C20 colors: {len(v)} text run{'s' * (len(v) != 1)} print in {c}, e.g. page {v[0][0]} '{v[0][1][:40]}'; text is "
+            + ", ".join(f"{k} {h}" for h, k in COLORS.items()) + " only" for c, v in seen.items()]
+
+
 # ---------------------------------------------------------------- chat (S4-10) ----------------------------------
 CHAT_LABEL = "Intelligence Brief (in chat"
 
@@ -1122,8 +1156,8 @@ def main():
         print("\n".join(f) or "chat: in-chat brief follows the schema; 0 failures")
         sys.exit(1 if f else 0)
     if a.cmd == "render":
-        f = render_check(a.pdf)
-        print("\n".join(f) or "render: nothing clipped, logo whole, no blank band; 0 failures")
+        f = render_check(a.pdf) + text_colors(a.pdf)
+        print("\n".join(f) or "render: nothing clipped, logo whole, no blank band, text in the three colours; 0 failures")
         sys.exit(1 if f else 0)
     if a.cmd == "ratchet":
         sys.exit(ratchet(a.record))
