@@ -258,6 +258,7 @@ def osint_section(R):
 
 **Operators.** {o['operators']}
 
+{chr(10).join(f"**{h['host']}** (checked: {h['checked']}):" + chr(10) + chr(10).join('- ' + r for r in h['rules']) + chr(10) for h in o['hosts'])}
 **Never.** {o['never']}
 
 **Identity lock.** {o['identity_lock']} Example: {o['example']}

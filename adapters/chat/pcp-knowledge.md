@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:adb19ae29fd3) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:536db06f51a7) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
@@ -216,7 +216,18 @@ The battery is mandatory (S2-9): every round whose source types the run's depth 
 | standard | 1, 2, 3, 4, 5 | 4 | 20 | 14 |
 | deep | 1, 2, 3, 4, 5 | 5 | 25 | 18 |
 
-**Operators.** Where the search tool takes a domain filter (Claude's WebSearch: allowed_domains), put a site: domain there, not in the query text: that tool ignores site: typed in a query (Oct 15 runs: no LinkedIn result at all; with allowed_domains [linkedin.com], the profile's headline). Elsewhere write site: in the query. Use the operators the host's search honours: quotes and site: almost always; intitle:, inurl: and filetype: often; a date window through the tool's recency setting or after:. When the results show an operator was ignored, log the round as attempted with that operator ignored, rerun once with plain quoted terms, and filter dates and file types yourself from the URLs and snippets. An ignored operator leaves a gap; it never shows that nothing exists.
+**Operators.** Write each query as its round lists it, then send it the way the host's search takes it (osint.hosts). An operator here is site:, intitle:, inurl:, filetype:, after:, before:, OR, an exclusion (-) or the tool's domain filter; quotes alone are not one. When the results show an operator was ignored, log it on the round's line, rerun once with plain quoted terms, and filter the results yourself by their URLs, titles and dates. An ignored operator leaves a gap; it never shows that nothing exists.
+
+**Claude (Claude Code and the Claude apps): the WebSearch tool** (checked: Oct 15, 2026):
+- site: goes in allowed_domains (one call per domain set) and out of the query text: typed site: is ignored (site:linkedin.com/in returned Wikipedia and wage sites; allowed_domains [linkedin.com] returned the profile). Round 1's LinkedIn query is always the domain-filtered one.
+- filetype:pdf stays in the query, and only results whose URL ends .pdf count for it: the tool ignores the operator (1 PDF in 10 results).
+- after: and before: become the month and year in the query ('October 2026'), and results dated outside the window are dropped: the tool ignores the operators.
+- intitle: stays in the query, and results without the term in their title are dropped: it is honoured only in part. inurl: and quotes work as written (checked); OR and an exclusion (-) are sent as written.
+- On a query without allowed_domains, blocked_domains takes the never-cited domains (source_quality.exclude).
+
+**ChatGPT, Grok, Perplexity, Gemini and other hosts** (checked: not tested):
+- Write each query as listed, operators included; where the search tool has a domain or recency setting, use it for site: and the date window.
+- Apply the ignored-operator rule whenever the results show an operator was dropped.
 
 **Never.** Use only the result text the host's search tool returns for linkedin.com: never request a linkedin.com URL (profiles, posts or Pulse articles; an article republished elsewhere is opened there), never sign in anywhere, never open or drive a browser session (no computer use, no browser extension), and quote snippets minimally. The search provider's terms govern the query. Collect on the professional role only: the exclusions apply to every round, and a result that touches them by accident stays out of the brief.
 
