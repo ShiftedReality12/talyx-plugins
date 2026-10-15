@@ -9,7 +9,7 @@ description: >
   before a meeting, talking points, or shares an intake list. Do not use for general research unrelated
   to a meeting, or for notes on a meeting that has already happened.
 ---
-<!-- GENERATED from pcp.yaml (sha256:68a8547d427d) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:ce5f24e5e311) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
@@ -374,6 +374,7 @@ and `python3 eval.py duf brief.md script.md`; rewrite until both are clean.
 | C18 | quality | `eval.py checks --quality` | no ledger row cites a source_quality.exclude domain; a source_quality.weak domain is never C1 or C2; fewer than 3 ledger rows carry the run's own date unmarked (those are read dates: give the source's date, or 'seen' when it has none) |
 | C19 | render | `eval.py pdf (also eval.py render OUT.pdf)` | every page: no ink within 0.12in of a page edge, no word outside the 0.3in side margins; no page ends more than 0.5in above its footer margin; the schema's pairs (B3|B4, B5|B6, B7|B8) print side by side; page 1: the logo is whole in the top-right masthead; no block runs across a page break: page 2 opens on Who decides (B7, as in the schema) and no table prints its header row on two pages |
 | C20 | colors | `eval.py pdf (also eval.py render OUT.pdf)` | every printed character is Midnight #0F2744, black #000000 or white #FFFFFF (no gray: the page must read when printed); the hairline #E8EAED is for rules only, never text |
+| C21 | battery | `eval.py checks --battery (the Run row); eval.py battery TRANSCRIPT --depth D [--brief brief.md or OUT.pdf] (the searches)` | the Run row ends 'N searches in M rounds', at least the depth's floor (a brief run before osint.battery.since is exempt); the run's transcript opens each round with its 'Round N (name):' line and sends no search before round 1's, runs every round the depth enables in order, at least the battery's queries per round and the share with an operator or a domain filter, sends round 1's LinkedIn query through the domain filter, requests no linkedin.com page and calls no browser tool, and its counts match the Run row |
 
 ## Render
 

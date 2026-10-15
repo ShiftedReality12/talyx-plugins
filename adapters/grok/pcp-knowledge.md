@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:68a8547d427d) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:ce5f24e5e311) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
@@ -334,6 +334,7 @@ Never say: "Does that make sense?"; "Is this helpful?"; "No pressure"; "You'd kn
 | C17 | cites | every cited sentence shares content with the ledger claim it cites (2+ content words, 1 when the claim is 3 words or fewer) and every [n] is a ledger row; a hypothetical (Reverses if, Stop if) carries no citation unless the row says it |
 | C18 | quality | no ledger row cites a source_quality.exclude domain; a source_quality.weak domain is never C1 or C2; fewer than 3 ledger rows carry the run's own date unmarked (those are read dates: give the source's date, or 'seen' when it has none) |
 | C19 | render | every page: no ink within 0.12in of a page edge, no word outside the 0.3in side margins; no page ends more than 0.5in above its footer margin; the schema's pairs (B3|B4, B5|B6, B7|B8) print side by side; page 1: the logo is whole in the top-right masthead; no block runs across a page break: page 2 opens on Who decides (B7, as in the schema) and no table prints its header row on two pages |
+| C21 | battery | the Run row ends 'N searches in M rounds', at least the depth's floor (a brief run before osint.battery.since is exempt); the run's transcript opens each round with its 'Round N (name):' line and sends no search before round 1's, runs every round the depth enables in order, at least the battery's queries per round and the share with an operator or a domain filter, sends round 1's LinkedIn query through the domain filter, requests no linkedin.com page and calls no browser tool, and its counts match the Run row |
 
 ## Deliver
 

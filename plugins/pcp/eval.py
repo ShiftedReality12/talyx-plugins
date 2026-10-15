@@ -18,6 +18,7 @@ import argparse
 import datetime as dt
 import html
 import json
+import math
 import pathlib
 import re
 import shutil
@@ -286,6 +287,18 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
             still = next((ln for ln in grid.splitlines() if "Still open" in ln), "")
             if any("linkedin" in i.lower() and "?" in i for i in re.split(r"\s+·\s+|\|", still)):   # Oct 14: an unread LinkedIn is stated in Coverage, not asked
                 fails.append("C16 linkedin: LinkedIn not read belongs in Coverage only, not as a Still open question")
+    if want("battery"):   # C21: the Run row states the battery as sent (S2-9); briefs run before osint.battery.since are exempt
+        run = re.search(r"\*\*Run\*\*\s*\|\s*([A-Z][a-z]{2} \d{1,2}, \d{4})([^\n]*)", brief_md)
+        if run and _day(run.group(1)) >= dt.date.fromisoformat(str(R["osint"]["battery"]["since"])):
+            said = RUN_COUNTS.search(run.group(2))
+            depth = re.search(r"Depth:\s*(fast|standard|deep)", brief_md, re.I)
+            if not said:
+                fails.append("C21 battery: the Run row does not end 'N searches in M rounds' (the battery as sent)")
+            elif depth:
+                need, per, _ = battery_floor(depth.group(1).lower())
+                if int(said.group(2)) < len(need) or int(said.group(1)) < per * len(need):
+                    fails.append(f"C21 battery: the Run row says {said.group(0)}; a {depth.group(1).lower()} run sends at least "
+                                 f"{per * len(need)} searches in {len(need)} rounds")
     if experience and which == "all":
         why = {k: re.findall(r"\*\*Why:\*\*\s*(.+)", secs[k]) for k in secs if re.match(r"P\d+$", k)}
         if experience == "new":
@@ -614,6 +627,48 @@ def self_test(require_pdf=False):
         print("FAIL C11: a stray quote mark must not exempt the lines after it"); ok = False
     else:
         print(f"passes: C11 on {len(FINANCE)} finance terms; a stray quote mark exempts nothing after its line")
+    bt = (fx / "battery_standard.jsonl").read_text().splitlines()   # C21: a synthetic standard run, 20 searches in 5 rounds
+    f, summary = battery(bt, "standard", "| **Run** | Oct 15, 2026 · standard · US · FULL · 20 searches in 5 rounds |")
+    if f:
+        print("FAIL battery_standard.jsonl must pass C21:", summary, *f, sep="\n - "); ok = False
+    else:
+        print(f"passes: C21 on battery_standard.jsonl ({summary}) and its Run row")
+    li_typed = bt[1].replace('"query": "\\"Jane Doe\\" \\"Alder Grey Capital\\"", "allowed_domains": ["linkedin.com"]',
+                             '"query": "site:linkedin.com/in \\"Jane Doe\\" \\"Alder Grey Capital\\""')
+    plain = [re.sub(r'"query": "[^"]*(?:\\"[^"]*)*", "allowed_domains": \[[^\]]*\]', '"query": "Jane Doe news"', ln) for ln in bt]
+    plain = [re.sub(r'"query": "(?:[^"\\]|\\.)*"', '"query": "Jane Doe news"', ln) for ln in plain]
+    first = '{"type": "assistant", "message": {"content": [{"type": "tool_use", "name": "WebSearch", "input": {"query": "Jane Doe"}}]}}'
+    fetch = '{"type": "assistant", "message": {"content": [{"type": "tool_use", "name": "WebFetch", "input": {"url": "https://www.linkedin.com/in/jane-doe-example"}}]}}'
+    chrome = '{"type": "assistant", "message": {"content": [{"type": "tool_use", "name": "mcp__claude-in-chrome__navigate", "input": {}}]}}'
+    r3 = next(i for i, ln in enumerate(bt) if "Round 3 (" in ln)
+    r2 = next(i for i, ln in enumerate(bt) if "Round 2 (" in ln)
+    r4 = next(i for i, ln in enumerate(bt) if "Round 4 (" in ln)
+    short4 = bt[r4][:bt[r4].rindex(', {"type": "tool_use"')] + "]}}"
+    cases = [("round 3 left out", bt[:r3] + bt[r3 + 2:], "", "not run"),
+             ("no operators or filters", plain, "", "carry an operator"),
+             ("round 1's LinkedIn query typed as site:", [bt[0], li_typed] + bt[2:], "", "typed site:"),
+             ("a linkedin.com page requested", bt + [fetch], "", "linkedin.com page"),
+             ("a browser tool called", bt + [chrome], "", "browser tool"),
+             ("a search before the Round 1 line", [first] + bt, "", "before the Round 1 line"),
+             ("round 3 before round 2", bt[:r2] + bt[r3:r3 + 2] + bt[r2:r3] + bt[r3 + 2:], "", "order"),
+             ("round 4 one query short", bt[:r4] + [short4] + bt[r4 + 1:], "", "fewer than 4"),
+             ("a Run row that miscounts", bt, "| **Run** | Oct 15, 2026 · standard · 19 searches in 5 rounds |", "the transcript shows")]
+    for case, lines, brief, want_msg in cases:
+        f, _ = battery(lines, "standard", brief)
+        if any(want_msg in x for x in f):
+            print(f"tripped: C21 by {case}")
+        else:
+            print(f"FAIL C21 must trip on {case} (got {f})"); ok = False
+    late = c12.replace("| Sep 20, 2026 · standard", "| Oct 15, 2026 · standard")
+    for case, md, trips in (("a Run row from before Oct 15 without counts (frozen targets)", c12, False),
+                            ("a Run row from Oct 15 without counts", late, True),
+                            ("a Run row from Oct 15 below the standard floor", late.replace("· FULL |", "· FULL · 9 searches in 3 rounds |"), True),
+                            ("a Run row from Oct 15 with 20 searches in 5 rounds", late.replace("· FULL |", "· FULL · 20 searches in 5 rounds |"), False)):
+        got = [x for x in checks(md, which="battery") if x.startswith("C21 ")]
+        if bool(got) != trips:
+            print(f"FAIL C21 on {case}: expected {'a failure' if trips else 'a pass'}, got {got}"); ok = False
+        else:
+            print(f"{'tripped' if trips else 'passes'}: C21 on {case}")
     pat = re.compile(R["plain_words"]["internal"])   # consumer-facing copy carries no internal notes (render_skill.py, adapters.py)
     leaks = ["not on the page (Ben, Oct 13)", "the Ben/Danny call", "the R10b run", "Optional (AID-62)", "Notes by Gemini",
              "from the meeting notes", "print side by side (Oct 14: a thin run)", "Daniel decides"]
@@ -1022,6 +1077,85 @@ def text_colors(pdf):
             + ", ".join(f"{k} {h}" for h, k in COLORS.items()) + " only" for c, v in seen.items()]
 
 
+# ---------------------------------------------------------------- battery (C21) ----------------------------------
+OPERATOR = re.compile(r"\b(?:site|intitle|inurl|filetype|after|before|allintitle|allinurl):|\bOR\b|(?:^|\s)-[\"\w]")
+RUN_COUNTS = re.compile(r"(\d+) searches in (\d+) rounds")
+BROWSER_TOOL = re.compile(r"chrome|computer|browser|playwright", re.I)
+
+
+def battery_floor(depth):
+    """S2-9: the rounds a depth runs (every round with a source type the depth enables), the queries each round sends
+    at least, and how many of all of them carry an operator or a domain filter. render_skill.py prints the same table."""
+    b = R["osint"]["battery"]
+    on = {f["id"] for f in R["families"] if depth in f["depth"]}
+    need = [r["round"] for r in R["osint"]["rounds"] if on & set(r["types"])]
+    per = b["queries_per_round"][depth]
+    return need, per, math.ceil(round(per * len(need) * b["operator_share"], 6))
+
+
+def battery(lines, depth="standard", brief=""):
+    """C21: the search battery as a run sent it, read from its stream-json transcript (the run's own words and tool
+    calls, not its report). Returns (failures, summary). A 'Round N (name): ...' line opens each round; the WebSearch
+    calls after it are that round's queries."""
+    rounds, cur, early, fails = {}, None, [], []
+    for line in lines:
+        try:
+            e = json.loads(line)
+        except ValueError:
+            continue
+        if e.get("type") != "assistant":
+            continue
+        for x in e.get("message", {}).get("content") or []:
+            if x.get("type") == "text":
+                heads = re.findall(r"^\W*Round (\d)\s*\(", x.get("text", ""), re.M)
+                if heads:
+                    cur = int(heads[-1]); rounds.setdefault(cur, [])
+            elif x.get("type") == "tool_use":
+                name, inp = x.get("name", ""), x.get("input") or {}
+                if name == "WebSearch":
+                    if cur is None:
+                        early.append(inp)
+                    else:
+                        rounds[cur].append(inp)
+                elif name == "WebFetch" and "linkedin.com" in inp.get("url", "").lower():
+                    fails.append(f"C21 battery: a linkedin.com page was requested ({inp['url']}); LinkedIn is read from search results only")
+                elif name == "Bash" and re.search(r"(?:curl|wget)[^\n]*linkedin\.com", inp.get("command", "")):
+                    fails.append("C21 battery: a shell command requested linkedin.com; LinkedIn is read from search results only")
+                if BROWSER_TOOL.search(name):
+                    fails.append(f"C21 battery: the browser tool {name} was called; research never drives a browser")
+    need, per, ops_min = battery_floor(depth)
+    sent = [q for qs in rounds.values() for q in qs]
+    done = [n for n in rounds if rounds[n]]
+    filtered = lambda q: bool(q.get("allowed_domains") or q.get("blocked_domains"))
+    ops = sum(1 for q in sent + early if filtered(q) or OPERATOR.search(q.get("query", "")))
+    if early:
+        fails.append(f"C21 battery: {len(early)} searches sent before the Round 1 line")
+    missing = [n for n in need if n not in done]
+    if missing:
+        fails.append(f"C21 battery: rounds {missing} not run; a {depth} run runs rounds {need}")
+    if done != sorted(done):
+        fails.append(f"C21 battery: rounds ran in the order {done}, not 1 to 5")
+    short = {n: len(rounds[n]) for n in need if 0 < len(rounds.get(n, [])) < per}
+    if short:
+        fails.append(f"C21 battery: rounds {short} sent fewer than {per} queries each")
+    if ops < ops_min:
+        fails.append(f"C21 battery: {ops} of {len(sent) + len(early)} queries carry an operator or a domain filter; a {depth} run needs {ops_min}")
+    skip_li = re.search(r"LinkedIn:\**\s*not read: (?:scope none|you declined)", brief)
+    li = [q for q in rounds.get(1, []) if "linkedin.com" in " ".join(q.get("allowed_domains") or []) or "linkedin.com" in q.get("query", "")]
+    if not skip_li and not li:
+        fails.append("C21 battery: round 1 sent no LinkedIn query")
+    elif li and not any("linkedin.com" in " ".join(q.get("allowed_domains") or []) for q in li):
+        fails.append("C21 battery: round 1's LinkedIn query typed site: into a search that ignores it; use the domain filter (allowed_domains)")
+    total = len(sent) + len(early)
+    if brief:
+        said = RUN_COUNTS.search(re.sub(r"\s+", " ", brief))
+        if not said:
+            fails.append("C21 battery: the brief's Run row does not say 'N searches in M rounds'")
+        elif (int(said.group(1)), int(said.group(2))) != (total, len(done)):
+            fails.append(f"C21 battery: the Run row says {said.group(0)}; the transcript shows {total} searches in {len(done)} rounds")
+    return fails, f"{total} searches in {len(done)} rounds {done}, {ops} with an operator or a domain filter"
+
+
 # ---------------------------------------------------------------- chat (S4-10) ----------------------------------
 CHAT_LABEL = "Intelligence Brief (in chat"
 
@@ -1117,7 +1251,7 @@ def improve(debriefs):
 
 
 CHECKS = ["swap", "quotes", "custom-q", "sections", "budgets", "never-say", "outcome", "exclusions", "plain", "gaps", "conditional", "layout",
-          "linkedin", "cites", "quality"]
+          "linkedin", "cites", "quality", "battery"]
 
 
 def main():
@@ -1135,6 +1269,9 @@ def main():
     ct = sub.add_parser("cites"); ct.add_argument("brief"); ct.add_argument("--fetch", action="store_true"); ct.add_argument("--claims")
     lk = sub.add_parser("links"); lk.add_argument("pdf")
     rc = sub.add_parser("render"); rc.add_argument("pdf")
+    bt = sub.add_parser("battery"); bt.add_argument("transcripts", nargs="+", help="the run's stream-json transcript(s), in order")
+    bt.add_argument("--depth", default="standard", choices=["fast", "standard", "deep"])
+    bt.add_argument("--brief", help="brief.md or the PDF: its Run row counts must match the transcript")
     ch = sub.add_parser("chat"); ch.add_argument("reply"); ch.add_argument("--target-nouns", default="")
     ch.add_argument("--experience"); ch.add_argument("--authority", choices=["high", "medium"])
     sub.add_parser("concordance")
@@ -1194,6 +1331,13 @@ def main():
     if a.cmd == "render":
         f = render_check(a.pdf) + text_colors(a.pdf)
         print("\n".join(f) or "render: nothing clipped, logo whole, no blank band, text in the three colours; 0 failures")
+        sys.exit(1 if f else 0)
+    if a.cmd == "battery":
+        text = ""
+        if a.brief:
+            text = "\n".join(pdf_pages(a.brief) or []) if a.brief.lower().endswith(".pdf") else pathlib.Path(a.brief).read_text()
+        f, summary = battery([ln for t in a.transcripts for ln in open(t)], a.depth, text)
+        print(f"battery: {summary}", *[" - " + x for x in f], f"{len(f)} failures", sep="\n")
         sys.exit(1 if f else 0)
     if a.cmd == "ratchet":
         sys.exit(ratchet(a.record))
