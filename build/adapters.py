@@ -99,8 +99,6 @@ CHAT_ROWS = {
     "CAL-4": {"text": "Files the user attaches about their business are read once; a summary of at most 150 words goes in the Saved setup block under context. Facts from them are tagged Yours, never presented as public. Supported: .pdf .docx .md .txt .csv. Any other file gets one line naming the supported types, and the Saved setup block is not changed.",
               "test": "Attach a one-page file -- the updated Saved setup block holds its summary, and a fact from it carries tag Yours. Attach a .pptx -- one line names the supported types and no new block is given."},
     "S2-2": {"test": "A claim missing any field is dropped and counted in coverage.dropped."},
-    "S2-7": {"text": "LinkedIn only from a profile the user saves and attaches; never open LinkedIn. Ask once, in one line: 'Do you have <name>'s LinkedIn profile saved as a PDF (on their profile: More > Save to PDF) or as copied text? Attach it and I'll use it as your file; nothing else from LinkedIn is read.' Attached: its facts are tagged Yours, the source is the file name, and B4's last line is '**LinkedIn:** read from your file' and the Coverage row 'LinkedIn: read from your file'. Not attached: '**LinkedIn:** not read: file not given' and 'LinkedIn: not read: file not given'; no fact is tagged LinkedIn, and Still open asks nothing about LinkedIn.",
-             "test": "No attachment -- B4 and Coverage both read 'LinkedIn: not read: file not given' and Still open asks nothing about LinkedIn; a profile PDF attached -- both read 'read from your file' and its facts carry tag Yours (check C16)."},
     "S4-1": {"test": "Check C2 finds unbound > 0 -- the answer is rewritten before it is delivered."},
     "S4-3": None, "S4-4": None,   # the PDF renderer
     "S4-10": {"text": "This host cannot make the PDF, so always deliver the full brief in the chat, never a summary: first line exactly 'Intelligence Brief (in chat: this app cannot make the PDF, so the same 3 pages follow as text)'; the heading lines; '--- Page 1 ---' and B1-B6; '--- Page 2 ---' and B7-B10 with the 5-column ledger and its Coverage / Still open / Left out on purpose / Run rows; '--- Page 3 ---' and '# Meeting script' with P1-P9. Same blocks, order, titles, word budgets, citations, grades and plain-words rules. Apply the checks yourself and end with 'Checks: self-reviewed, not run as code'.",
@@ -146,7 +144,7 @@ Follow pcp-knowledge.md exactly, in stage order: calibrate, intake, collect, rea
 
 Calibration is asked once. The Saved setup block at the end of pcp-knowledge.md holds the saved answers. Ask only the questions it has no answer for, then give the user the updated block to paste into their copy of pcp-knowledge.md. Never say it was saved: only the user can update that file.
 
-Never start research without a full name and an organisation. If two people match, stop and ask. Public sources, plus files the user attaches: you cannot open LinkedIn here, so offer to read a profile the user saves as a PDF. Every fact carries a numbered citation to a source you actually opened. Say what you could not find before what you found. Never invent a fact, a quote or a source.
+Never start research without a full name and an organisation. If two people match, stop and ask. Public sources found by web search in rounds; LinkedIn only as its search results show it, never opened. A LinkedIn profile the user saves as a PDF and attaches is read as their file. Every fact carries a numbered citation to a source you actually opened. Say what you could not find before what you found. Never invent a fact, a quote or a source.
 
 This host has no PDF renderer and runs no code. Apply the checks yourself and say they were self-checked. Deliver one document and say it is not the Talyx PDF.
 """
@@ -200,6 +198,7 @@ def chat_knowledge():
     n = R["names"]
     text = text.replace(f"The deliverable is one 3-page PDF, the {n['deliverable']}.", f"The deliverable is one document: the {n['deliverable']}, then the {n['script']}.")
     text = text.replace("`references/socratic-questions.md`", "the Socratic questions section below").replace("references/socratic-questions.md", "the Socratic questions section below")
+    text = text.replace("The round plan with its reasons: `references/osint-search.md`.\n", "").replace("references/osint-search.md", "the Search rounds section")
     s0 = text.index("## Stage 0")
     text = text[:s0] + "## Stage 0: Calibrate (once)\n\n" + CHAT_STAGE0 + "\n\n" + text[text.index("| # | Chip", s0):]
     text = text.replace(f"## The PDF: pages 1-2, the {n['deliverable']}", f"## The {n['deliverable']}").replace(f"## The PDF: page 3, the {n['script']}", f"## The {n['script']}")

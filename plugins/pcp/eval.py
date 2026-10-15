@@ -258,8 +258,11 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
                 fails.append(f"C12 gaps: Still open item is not a question starting {'/'.join(starts)}: '{item[:60]}'")
     if want("linkedin"):
         li = R["linkedin"]
+        run = re.search(r"\*\*Run\*\*\s*\|\s*([A-Z][a-z]{2} \d{1,2}, \d{4})", brief_md)
+        reasons = li["reasons"] + [r for r, until in li["retired"].items()   # a frozen run keeps the reasons of its day
+                                   if run and _day(run.group(1)) < dt.date.fromisoformat(str(until))]
         status = (rf"({'|'.join(re.escape(r) for r in li['read'].values())}|"
-                  rf"{re.escape(li['not_read'])}: ({'|'.join(re.escape(r) for r in li['reasons'])}))")
+                  rf"{re.escape(li['not_read'])}: ({'|'.join(re.escape(r) for r in reasons)}))")
         lines = re.findall(r"^\*\*LinkedIn:\*\*.*$", secs.get("B4", ""), re.M)
         b4 = re.match(r"^\*\*LinkedIn:\*\* " + status + r"\.?\s*$", lines[0]) if len(lines) == 1 else None
         grid = secs.get(LEDGER, "")
@@ -269,6 +272,9 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
                          f"'**LinkedIn:** {li['not_read']}: <{' | '.join(li['reasons'])}>' (found {lines or 'none'})")
         elif f"LinkedIn: {b4.group(1)}" not in cov:
             fails.append(f"C16 linkedin: Coverage does not say 'LinkedIn: {b4.group(1)}' as B4 does")
+        elif b4.group(1) == li["read"]["search"]:   # AID-63: the profile's search result is a ledger row, cited to its URL
+            if not any("linkedin.com/in/" in m.group(3).lower() for m in SRC_ROW.finditer(grid)):
+                fails.append(f"C16 linkedin: {li['read']['search']}, yet no ledger row cites the linkedin.com/in profile it showed")
         elif b4.group(1) == li["read"]["file"]:   # the saved profile is the user's file: cited by its name, tagged Yours
             profile = [m.group(1) for m in SRC_ROW.finditer(grid) if "linkedin.com/in/" in m.group(3).lower()]
             if profile:
@@ -530,12 +536,21 @@ def self_test(require_pdf=False):
          c12.replace("- **What to bring:** the introduction", "- **What to bring:** the deck. **Fallback:** the introduction")),
         ("C14 on '(Unconfirmed)'", "C14", c12.replace("the introduction to the custodian [12]", "the custodian (Unconfirmed) [12]")),
         ("C16 on 'read from your file' while a ledger row cites a LinkedIn profile page", "C16",
-         (fx / "linkedin_browser.md").read_text().replace("read in your browser", "read from your file")),
+         (fx / "linkedin_search.md").read_text().replace("read from search results", "read from your file")),
+        ("C16 on 'read from search results' with no ledger row citing the profile", "C16",
+         c12.replace("read from your file", "read from search results")),
+        ("C16 on the reason 'file not given' in a run from Oct 15 (AID-63: search reads LinkedIn now)", "C16",
+         (fx / "linkedin_declined.md").read_text().replace("you declined", "file not given").replace("| Sep 20, 2026 ·", "| Oct 15, 2026 ·")),
         ("C16 on the retired reason 'no browser here' (the R9 run skipped the saved-PDF question)", "C16",
          (fx / "linkedin_declined.md").read_text().replace("not read: you declined", "not read: no browser here")),
         ("C16 on an unread LinkedIn asked inside another Still open item", "C16",
          (fx / "linkedin_declined.md").read_text().replace("says yes? |", "says yes? · The gate: could you share the LinkedIn profile? |")),
     ]
+    old = (fx / "linkedin_declined.md").read_text().replace("you declined", "file not given")   # Sep 20: before AID-63
+    if [x for x in checks(old) if x.startswith("C16 ")]:
+        print("FAIL C16 must pass 'file not given' in a run before Oct 15 (the frozen Oct 14 targets)"); ok = False
+    else:
+        print("passes: C16 on 'file not given' in a run before Oct 15 (the frozen targets keep the reasons of their day)")
     for case, cid, md in blind:
         if any(x.startswith(cid + " ") for x in checks(md)):
             print(f"tripped: {case}")
@@ -717,7 +732,7 @@ MUST_PASS = [
     ("control_12.md", {"experience": "top"}),
     ("exp_new.md", {"experience": "new"}),
     ("linkedin_declined.md", {}),
-    ("linkedin_browser.md", {}),
+    ("linkedin_search.md", {}),
 ]
 
 
@@ -732,6 +747,7 @@ MUST_TRIP = [
     ("exp_top_long.md", {"experience": "top"}, ["C15"]),
     ("linkedin_missing.md", {}, ["C16"]),
     ("linkedin_declined_with_row.md", {}, ["C16"]),
+    ("linkedin_browser.md", {}, ["C16"]),   # AID-63 (Oct 15): no browser session reads LinkedIn; the status is retired
     ("recent_wins_unsourced.md", {}, ["C13"]),
     ("cites_broken.md", {}, ["C17", "C18"]),
     ("control_12.md", {"authority": "medium"}, ["C13"]),

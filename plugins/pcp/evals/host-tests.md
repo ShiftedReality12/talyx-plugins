@@ -34,5 +34,5 @@ results do not carry over to 3.1.0.
 | T4 Context file | `/pcp --context sample-onepager.pdf`: `profile.yaml` holds the path and a summary of at most 150 words; a fact from the file is in the ledger tagged Yours (CAL-4) | not run | | |
 | T5 Unsupported file | `/pcp --context deck.pptx`: one line naming .pdf .docx .md .txt .csv; `sha256sum ~/.pcp/profile.yaml` unchanged (CAL-4) | not run | | |
 | T6 Missing Q9 | A profile with Q1-Q8 and no Q9: only Q9 is asked (CAL-1) | not run | | |
-| T7 LinkedIn No | Answer No: the PDF says `LinkedIn: not read: you declined` in B4 and Coverage; no ledger row tagged LinkedIn (S2-7, C16) | not run | | |
+| T7 LinkedIn by search only | A public executive: the transcript shows no linkedin.com request and no browser tool; B4 and Coverage both read `LinkedIn: read from search results` with the profile's search result in the ledger, or `LinkedIn: not read: no matching profile` with no row tagged LinkedIn (S2-7, C16) | not run | | |
 | T8 Real person, end to end | `eval.py checks ... --experience <Q9>`, `eval.py duf ... --pdf OUT.pdf` and `eval.py pdf OUT.pdf brief.md` exit 0; `curl -sIL` on every ledger link returns < 400 | not run | | |

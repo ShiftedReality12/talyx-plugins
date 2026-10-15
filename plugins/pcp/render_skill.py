@@ -52,8 +52,9 @@ def description(R):
     """The skill's listing text: user-facing, so it is held to plain words."""
     n = R["names"]
     return (f"Prepare for an upcoming meeting with a named person, company or deal. A few one-time setup\n"
-            f"  questions, research from public sources (plus LinkedIn, read in your browser or from a PDF you save, and\n"
-            f"  your own files, when you allow it), and ONE 3-page PDF: a 2-page {n['deliverable']} and a 1-page meeting script, every fact\n"
+            f"  questions, research from public sources by targeted web search (LinkedIn only as its public search results\n"
+            f"  show it, never your browser), plus your own files when you give them, and ONE 3-page PDF: a 2-page\n"
+            f"  {n['deliverable']} and a 1-page meeting script, every fact\n"
             f"  cited. Use when the user mentions pre-call prep, meeting prep, call preparation, researching someone\n"
             f"  before a meeting, talking points, or shares an intake list. Do not use for general research unrelated\n"
             f"  to a meeting, or for notes on a meeting that has already happened.")
@@ -152,6 +153,9 @@ Registers by domain: {'; '.join(f"{k}: " + ', '.join(r['name'] for r in v) for k
 **Exclusions (dropped before the writer, counted in coverage):** {', '.join(excl['base'])}.
 By jurisdiction: {'; '.join(f"{k}: {', '.join(v)}" for k, v in excl['by_jurisdiction'].items() if v)}.
 
+{osint_section(R)}
+The round plan with its reasons: `references/osint-search.md`.
+
 **LinkedIn status (S2-7), in B4's last line and the Coverage row:** {' or '.join(f"`LinkedIn: {r}`" for r in R['linkedin']['read'].values())}, or
 `LinkedIn: {R['linkedin']['not_read']}: <reason>` with one of these reasons, word for word: {'; '.join(R['linkedin']['reasons'])}.
 
@@ -228,6 +232,56 @@ Made by Talyx AI, https://talyx.ai. Free to use under the licence in the plug-in
 """
 
 
+def osint_section(R):
+    """S2-7 / AID-63: the search rounds, from pcp.yaml osint -- in SKILL.md (so every host has them) and in the reference."""
+    o = R["osint"]
+    rounds = "\n".join(f"| {r['round']} | {r['name']} | {', '.join(r['types'])} | {r['goal']} | "
+                       + "<br>".join(f"`{q}`" for q in r["queries"]) + f" | {fill(R, r['next'])} |" for r in o["rounds"])
+    return f"""## Search rounds (S2-7)
+
+{o['rule']}
+
+**Operators.** {o['operators']}
+
+**Never.** {o['never']}
+
+**Identity lock.** {o['identity_lock']} Example: {o['example']}
+
+**Grading.**
+{chr(10).join('- ' + g for g in o['grading'])}
+
+| Round | Name | Source types | Goal | Queries (fill the braces; fewer when one answers) | Then |
+|---|---|---|---|---|---|
+{rounds}
+"""
+
+
+def render_osint(R, sha):
+    li = R["linkedin"]
+    return f"""{R['render_header'].format(sha=sha)}
+
+# Search rounds: the record by targeted web search
+
+How PCP researches the person you're meeting: five rounds of targeted web searches, each refined from the
+last, and LinkedIn only as its public search results show it. PCP never signs in, never opens LinkedIn and
+never drives a browser.
+
+**Why.** LinkedIn's User Agreement bars bots and automated tools that copy profiles, and lets LinkedIn restrict the
+account that ran them, so reading a profile in your own signed-in browser put your account at risk. A search result
+never touches LinkedIn: the search engine read the page, and PCP reads only what the result shows (AID-63).
+
+{osint_section(R).split(chr(10), 2)[2]}
+## LinkedIn status
+
+Every run says, in B4's last line and in the Coverage row: {' or '.join(f"`LinkedIn: {r}`" for r in li['read'].values())}, or
+`LinkedIn: {li['not_read']}: <reason>` with one of: {'; '.join(li['reasons'])}. Check C16 holds the two lines to each other and to the ledger.
+
+**A saved profile (optional, AID-62).** When you give PCP the person's LinkedIn profile saved as a PDF (on their
+profile: More > Save to PDF) or as copied text, it is read as your file: its facts are tagged Yours and cited by
+the file name, and the status reads `LinkedIn: {li['read']['file']}`. PCP never waits for one. This path is under review.
+"""
+
+
 def render_socratic(R, sha):
     s = R["socratic"]
     trig = "\n".join(f"| {t['when']} | {t['ask']} |" for t in s["ask_user"]["triggers"])
@@ -274,7 +328,7 @@ First load the `pre-call-prep` skill in this plug-in (Skill tool, or read `skill
 
 0. **Setup** -- ask only the questions `{R['calibration']['profile_path']}` has no answer for (all with `--recalibrate`); read files given with `--context`.
 1. **Intake** -- resolve `$ARGUMENTS` (CSV path, `"Name, Org"`, or ask). Never start without a full name and an organisation. Ask the user only as `references/socratic-questions.md` says.
-2. **{n['collection']}** -- run the enabled source types, LinkedIn only with a yes each run; write `claims.jsonl` and the coverage ledger. Drop excluded claims before writing.
+2. **{n['collection']}** -- run the enabled source types in the search rounds of `references/osint-search.md` (LinkedIn only as its search results show it; never a browser); write `claims.jsonl` and the coverage ledger. Drop excluded claims before writing.
 3. **{n['profile']}** -- read six dimensions from claim ids only; set the evidence tier.
 4. **{n['deliverable']}** -- write `brief.md` (B1-B10) and `script.md` (P1-P9); run `python3 eval.py checks brief.md script.md --target-nouns \"<name>,<org>\" --experience <Q9> --authority <caller.authority_level>` and `python3 eval.py duf brief.md script.md`; rewrite until clean; render with `format/talyx_pdf.py --style brief --brief-pages {pb['brief_pages']} --max-pages {pb['total_pages']}` and check it with `python3 eval.py pdf <the PDF> brief.md`. Deliver the PDF path. Delete `brief.md`/`script.md` after a clean render.
 5. **After the call** -- offer the four-field template in `evals/debrief_template.yaml`; never ask for more.
@@ -380,6 +434,7 @@ def main():
     R, sha = load()
     targets = {HERE / "skills/pre-call-prep/SKILL.md": render_skill(R, sha),
                HERE / "skills/pre-call-prep/references/socratic-questions.md": render_socratic(R, sha),
+               HERE / "skills/pre-call-prep/references/osint-search.md": render_osint(R, sha),
                HERE / "commands/pcp.md": render_command(R, sha),
                HERE / "INVENTORY.md": render_inventory(R, sha),
                HERE / "pcp.json": json.dumps(R, ensure_ascii=False, separators=(",", ":"), default=str) + "\n"}
