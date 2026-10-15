@@ -12,6 +12,7 @@ Usage:
 import argparse
 import hashlib
 import json
+import math
 import pathlib
 import re
 import sys
@@ -232,14 +233,28 @@ Made by Talyx AI, https://talyx.ai. Free to use under the licence in the plug-in
 """
 
 
+def battery_rounds(R, depth):
+    """S2-9: the rounds a depth runs -- every round with a source type the depth enables (eval.py C21 reads the same)."""
+    on = {f["id"] for f in R["families"] if depth in f["depth"]}
+    return [r["round"] for r in R["osint"]["rounds"] if on & set(r["types"])]
+
+
 def osint_section(R):
     """S2-7 / AID-63: the search rounds, from pcp.yaml osint -- in SKILL.md (so every host has them) and in the reference."""
-    o = R["osint"]
+    o, b = R["osint"], R["osint"]["battery"]
+    floor = []
+    for d, per in b["queries_per_round"].items():
+        rs = battery_rounds(R, d)
+        floor.append(f"| {d} | {', '.join(map(str, rs))} | {per} | {per * len(rs)} | {math.ceil(round(per * len(rs) * b['operator_share'], 6))} |")
     rounds = "\n".join(f"| {r['round']} | {r['name']} | {', '.join(r['types'])} | {r['goal']} | "
                        + "<br>".join(f"`{q}`" for q in r["queries"]) + f" | {fill(R, r['next'])} |" for r in o["rounds"])
     return f"""## Search rounds (S2-7)
 
 {o['rule']}
+
+| Depth | Rounds | Queries per round, at least | Searches, at least | With an operator or a domain filter, at least |
+|---|---|---|---|---|
+{chr(10).join(floor)}
 
 **Operators.** {o['operators']}
 
@@ -250,7 +265,7 @@ def osint_section(R):
 **Grading.**
 {chr(10).join('- ' + g for g in o['grading'])}
 
-| Round | Name | Source types | Goal | Queries (fill the braces; fewer when one answers) | Then |
+| Round | Name | Source types | Goal | Queries (fill the braces; send at least the depth's count) | Then |
 |---|---|---|---|---|---|
 {rounds}
 """
