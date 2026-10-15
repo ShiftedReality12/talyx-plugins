@@ -284,7 +284,7 @@ never drives a browser.
 
 **Why.** LinkedIn's User Agreement bars bots and automated tools that copy profiles, and lets LinkedIn restrict the
 account that ran them, so reading a profile in your own signed-in browser put your account at risk. A search result
-never touches LinkedIn: the search engine read the page, and PCP reads only what the result shows (AID-63).
+never touches LinkedIn: the search engine read the page, and PCP reads only what the result shows.
 
 {osint_section(R).split(chr(10), 2)[2]}
 ## LinkedIn status
@@ -292,7 +292,7 @@ never touches LinkedIn: the search engine read the page, and PCP reads only what
 Every run says, in B4's last line and in the Coverage row: {' or '.join(f"`LinkedIn: {r}`" for r in li['read'].values())}, or
 `LinkedIn: {li['not_read']}: <reason>` with one of: {'; '.join(li['reasons'])}. Check C16 holds the two lines to each other and to the ledger.
 
-**A saved profile (optional, AID-62).** When you give PCP the person's LinkedIn profile saved as a PDF (on their
+**A saved profile (optional).** When you give PCP the person's LinkedIn profile saved as a PDF (on their
 profile: More > Save to PDF) or as copied text, it is read as your file: its facts are tagged Yours and cited by
 the file name, and the status reads `LinkedIn: {li['read']['file']}`. PCP never waits for one. This path is under review.
 """
@@ -436,6 +436,13 @@ def plain_violations(R, texts):
     return sorted({m.group(0) for t in texts for pat in (words, re.compile(pw["codes"])) for m in pat.finditer(t)})
 
 
+def internal_refs(R, texts):
+    """Consumer-facing copy carries no internal notes (plain_words.internal): no team names, meeting notes, ticket or
+    run ids, no '(Oct 14)' provenance. Those stay in pcp.yaml's basis fields and comments."""
+    pat = re.compile(R["plain_words"]["internal"])
+    return sorted({m.group(0) for t in texts for m in pat.finditer(t)})
+
+
 def user_facing(R):
     out = [description(R), *R["names"].values()]
     for q in R["calibration"]["questions"]:
@@ -461,6 +468,10 @@ def main():
     bad_words = plain_violations(R, user_facing(R))
     if bad_words:
         print("PLAIN WORDS FAIL -- user-facing text in pcp.yaml uses:", ", ".join(bad_words))
+        sys.exit(1)
+    leaked = internal_refs(R, [txt for path, txt in targets.items() if path.suffix == ".md"])
+    if leaked:
+        print("INTERNAL FAIL -- consumer-facing files carry internal notes:", ", ".join(leaked))
         sys.exit(1)
     inv = inventory_problems(R, targets[HERE / "INVENTORY.md"], targets[HERE / "skills/pre-call-prep/SKILL.md"])
     if inv:

@@ -239,6 +239,11 @@ def check_listing(files):
         bad = rs.plain_violations(R, ts)
         if bad:
             out.append(f"{where} uses {', '.join(bad)} -- plain words")
+    chat = {rel: [txt] for rel, txt in files.items() if rel.endswith(("instructions.txt", "pcp-knowledge.md"))}
+    for where, ts in {**texts, **chat, **{rel: [(ROOT / rel).read_text()] for rel in USER_DOCS}}.items():
+        leaked = rs.internal_refs(R, ts)
+        if leaked:
+            out.append(f"{where} carries internal notes: {', '.join(leaked)} -- keep them in pcp.yaml basis and comments")
     return out
 
 

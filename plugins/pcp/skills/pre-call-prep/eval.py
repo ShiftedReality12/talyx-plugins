@@ -614,6 +614,19 @@ def self_test(require_pdf=False):
         print("FAIL C11: a stray quote mark must not exempt the lines after it"); ok = False
     else:
         print(f"passes: C11 on {len(FINANCE)} finance terms; a stray quote mark exempts nothing after its line")
+    pat = re.compile(R["plain_words"]["internal"])   # consumer-facing copy carries no internal notes (render_skill.py, adapters.py)
+    leaks = ["not on the page (Ben, Oct 13)", "the Ben/Danny call", "the R10b run", "Optional (AID-62)", "Notes by Gemini",
+             "from the meeting notes", "print side by side (Oct 14: a thin run)", "Daniel decides"]
+    clean = ["Gemini CLI (Code Assist plans)", "send the one-page example by Oct 17.", "the tightest rung", "B10, C21 and S2-9",
+             "a benchmark, not a Benefit", "Prepared Oct 15, 2026", "an R&D budget"]
+    shipped = [f for f in ["skills/pre-call-prep/SKILL.md", "SKILL.md", "commands/pcp.md", "INVENTORY.md", "README.md"] if (HERE / f).exists()]
+    shipped += [str(f.relative_to(HERE)) for d in ("skills/pre-call-prep/references", "references") if (HERE / d).is_dir() for f in (HERE / d).glob("*.md")]
+    missed, false = [t for t in leaks if not pat.search(t)], [t for t in clean if pat.search(t)]
+    dirty = {f: sorted(set(pat.findall((HERE / f).read_text()))) for f in shipped if pat.search((HERE / f).read_text())}
+    if missed or false or dirty:
+        print("FAIL internal notes in consumer copy: missed", missed, "| false hits", false, "| shipped files", dirty); ok = False
+    else:
+        print(f"passes: consumer copy free of internal notes ({len(shipped)} shipped files); tripped by {len(leaks)} leaks, none of {len(clean)} clean lines")
     pdf = pdf_self_test(fx)
     if pdf is None:
         print("SKIP the PDF checks: no Chromium, or no pdftotext / pypdf, on this computer"

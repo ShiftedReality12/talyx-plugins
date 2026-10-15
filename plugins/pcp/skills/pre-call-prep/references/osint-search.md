@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:536db06f51a7) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:68a8547d427d) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Search rounds: the record by targeted web search
 
@@ -8,7 +8,7 @@ never drives a browser.
 
 **Why.** LinkedIn's User Agreement bars bots and automated tools that copy profiles, and lets LinkedIn restrict the
 account that ran them, so reading a profile in your own signed-in browser put your account at risk. A search result
-never touches LinkedIn: the search engine read the page, and PCP reads only what the result shows (AID-63).
+never touches LinkedIn: the search engine read the page, and PCP reads only what the result shows.
 
 The battery is mandatory (S2-9): every round whose source types the run's depth enables, in order, each with at least osint.battery.queries_per_round queries, most of them carrying an advanced operator or the tool's domain filter. Before each round, write one line in the conversation, 'Round N (name): <query> | <query> | ...', the queries as they will be sent (coverage.rounds); then send them. From round 2 on, the queries carry the names, firms, programmes and topics the rounds before found: each round is refined from the last. A round is skipped only when the depth turns all its source types off, never for convenience; a round that finds nothing still counts, and its gap goes to Coverage.
 
@@ -53,6 +53,6 @@ The battery is mandatory (S2-9): every round whose source types the run's depth 
 Every run says, in B4's last line and in the Coverage row: `LinkedIn: read from search results` or `LinkedIn: read from your file`, or
 `LinkedIn: not read: <reason>` with one of: you declined; scope none; no matching profile. Check C16 holds the two lines to each other and to the ledger.
 
-**A saved profile (optional, AID-62).** When you give PCP the person's LinkedIn profile saved as a PDF (on their
+**A saved profile (optional).** When you give PCP the person's LinkedIn profile saved as a PDF (on their
 profile: More > Save to PDF) or as copied text, it is read as your file: its facts are tagged Yours and cited by
 the file name, and the status reads `LinkedIn: read from your file`. PCP never waits for one. This path is under review.
