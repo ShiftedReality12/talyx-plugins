@@ -34,13 +34,14 @@ For the whole workspace, an admin imports it once: **Admin > Plugins > Add > Imp
 |---|---|
 | Claude Code | `/plugin marketplace add talyx-ai/talyx-plugins`, then `/plugin install pcp@talyx` |
 | Codex | `codex plugin marketplace add talyx-ai/talyx-plugins`, then `codex plugin add pcp@talyx` |
-| Gemini (Antigravity CLI) | `agy plugin install https://github.com/talyx-ai/talyx-plugins` |
-| Gemini CLI (Code Assist plans) | clone this repository, then `gemini extensions install ./talyx-plugins/plugins/pcp` |
+| Gemini (Antigravity CLI) | clone this repository, then `agy plugin install ./talyx-plugins/plugins/pcp` |
+| Gemini CLI (Code Assist Standard or Enterprise) | clone this repository, then `gemini extensions install ./talyx-plugins/plugins/pcp` |
 | Grok | `grok plugin marketplace add talyx-ai/talyx-plugins`, then `grok plugin install pcp@talyx-plugins --trust` |
-| Cursor | add this repository as a team marketplace |
-| Devin | `devin plugins install talyx-ai/talyx-plugins#plugins/pcp` |
-| Perplexity | download [`adapters/perplexity/pre-call-prep.zip`](adapters/perplexity/pre-call-prep.zip) and upload it as a skill |
+| Cursor | Teams and Enterprise: **Dashboard > Plugins & MCPs > Team Marketplaces > Add Marketplace > Import from Repo**; on your own: **Customize > From GitHub Repository** |
+| Devin | `devin auth login`, then `devin plugins install talyx-ai/talyx-plugins#plugins/pcp` |
+| Perplexity | download [`adapters/perplexity/pre-call-prep.zip`](adapters/perplexity/pre-call-prep.zip), then in Computer **Plugins > Add custom > Skill > Upload skill**; whether it can make the PDF there is untested, so the brief may come as text |
 | Gemini app (Gem), Microsoft 365 Copilot | paste two files; no scripts there, so no PDF: see [adapters/chat](adapters/chat) |
+| Grok app (a Project) | paste two files; the brief comes as text: see [adapters/grok](adapters/grok) |
 
 The PDF uses the Chrome, Edge or Chromium already on the computer. With none of them, run
 `python3 format/talyx_pdf.py --setup` once from the plug-in folder.
@@ -53,8 +54,10 @@ The PDF uses the Chrome, Edge or Chromium already on the computer. With none of 
 /pcp --recalibrate
 ```
 
-In ChatGPT and Codex use `$pre-call-prep`. Anywhere, you can also ask: "Prep me for my call with Jane Doe at
-Acme Capital." See [plugins/pcp/README.md](plugins/pcp/README.md) for what it does.
+Claude Code lists the command as `/pcp:pcp`. In ChatGPT type `@` and pick Talyx Pre-call Prep; in Codex use
+`$pre-call-prep`; in Antigravity `/pre-call-prep`; in Devin `/pcp:pre-call-prep`. Anywhere, including Gemini CLI,
+you can also ask: "Prep me for my call with Jane Doe at Acme Capital." ChatGPT in Work mode and the Codex app can
+run the plug-in's scripts to make the PDF; a plain chat gives the same brief as text. See [plugins/pcp/README.md](plugins/pcp/README.md) for what it does.
 
 ## Where each host's files live
 
@@ -62,13 +65,14 @@ Acme Capital." See [plugins/pcp/README.md](plugins/pcp/README.md) for what it do
 |---|---|
 | Claude desktop, Claude Code | `.claude-plugin/marketplace.json`, `plugins/pcp/.claude-plugin/plugin.json` |
 | ChatGPT, Codex | `.agents/plugins/marketplace.json`, `plugins/pcp/.codex-plugin/plugin.json` |
-| Gemini (Antigravity) | `.claude-plugin/marketplace.json`, `plugins/pcp/plugin.json` |
+| Gemini (Antigravity) | `plugins/pcp/plugin.json` |
 | Gemini CLI | `plugins/pcp/gemini-extension.json` |
 | Grok | `.grok-plugin/marketplace.json`, `plugins/pcp/.grok-plugin/plugin.json` |
 | Cursor | `.cursor-plugin/marketplace.json`, `plugins/pcp/.cursor-plugin/plugin.json` |
 | Devin | `plugins/pcp/.devin-plugin/plugin.json` |
 | Perplexity | `adapters/perplexity/pre-call-prep.zip` |
-| Gemini app, Microsoft 365 Copilot | `adapters/chat/` |
+| Gemini app, Microsoft 365 Copilot | `adapters/chat/` (Copilot uploads `pcp-knowledge.txt`) |
+| Grok app | `adapters/grok/` |
 
 All of them are written by `python3 build/adapters.py` from `build/plugin.source.json` and
 `plugins/pcp/pcp.yaml`; `python3 build/adapters.py --check` fails if any is out of date.

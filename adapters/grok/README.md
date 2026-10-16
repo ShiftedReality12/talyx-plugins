@@ -1,7 +1,7 @@
 # Talyx Pre-call Prep for the Grok app
 
-The Grok app takes instructions plus files and runs no scripts, so this is the same reduced `/pcp` as the
-[chat hosts](../chat/README.md):
+The Grok app takes instructions plus files. It is not known to run the plug-in's scripts in a Project (untested), so
+this is the same reduced `/pcp` as the [chat hosts](../chat/README.md):
 
 - **No PDF.** The brief and script come back in the chat as text, labelled as not the Talyx PDF.
 - **Checks are self-applied** by the assistant, not run as code, and it says so.
@@ -12,7 +12,7 @@ Both files are generated from `plugins/pcp/pcp.yaml` by `build/adapters.py`. Do 
 | File | Where it goes |
 |---|---|
 | [instructions.txt](instructions.txt) | the Project's **Instructions** |
-| [pcp-knowledge.md](pcp-knowledge.md) | a file in the Project's **Sources** |
+| [pcp-knowledge.md](pcp-knowledge.md) | a file in the Project's **files** |
 
 ## Setup
 
