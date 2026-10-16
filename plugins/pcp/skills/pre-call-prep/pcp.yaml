@@ -39,7 +39,8 @@ names:
 # PLAIN WORDS -- PCP thinks in intelligence concepts and writes in plain words (Oct 9).
 # ------------------------------------------------------------------------------------------------
 plain_words:
-  rule: "Nothing the user reads -- the PDF, replies, setup questions, the listing -- uses military, intelligence-trade or technical jargon. Their own quoted words are exempt."
+  rule: "Nothing the user reads -- the PDF, replies, setup questions, the listing -- uses military, intelligence-trade or technical jargon, or a grade or rule code (C3, S2-9): say 'a single, weaker source'. The closing reply too: after the call, offer 'after-call notes' (four fields), never a debrief. Their own quoted words are exempt."
+  # Oct 16: the closing replies of R12 and R13 said "treat it as C3" and offered "the four-field debrief"; C11 now reads the reply (eval.py battery)
   banned: [OSINT, SOCINT, SOCMINT, HUMINT, human intelligence, SIGINT, intelligence cycle, tradecraft, collection plan, competing hypotheses, ACH, target package, asset, source handling, exploitation, debrief, kill chain, dossier, duf_pp, claims.jsonl, read.json, source families, scrape, scraped, scraping, crawl, LLM]
   # a banned word inside one of these phrases is the finance term, not the trade word ("asset" = a recruited source)
   # (red-team Oct 13: wealth and bank briefs print these daily -- J.P. Morgan's "Asset & Wealth Management", NAV, a bank's asset quality)

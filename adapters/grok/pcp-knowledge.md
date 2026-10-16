@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:c13cc65d01e9) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:1a1e7026ac9c) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
@@ -22,7 +22,7 @@ given in the message stand in for the saved setup file.
 
 **Sources never cited:** goodfest.westfield.com, peoplefinders.com, spokeo.com, whitepages.com, beenverified.com, radaris.com, truthfinder.com, mylife.com. **Weak (never C1/C2, never the only support on page 1):** mexc.com, medium.com, substack.com, quora.com, reddit.com, wikipedia.org, crunchbase.com, zoominfo.com, rocketreach.co, signalhire.com, contactout.com, theorg.com, famousbirthdays.com, celebsages.com, wealthygorilla.com, idcrawl.com.
 
-**Plain words.** Nothing the user reads -- the PDF, replies, setup questions, the listing -- uses military, intelligence-trade or technical jargon. Their own quoted words are exempt. Never write a word banned: OSINT, SOCINT, SOCMINT, HUMINT, human intelligence, SIGINT, intelligence cycle, tradecraft, collection plan, competing hypotheses, ACH, target package, asset, source handling, exploitation, debrief, kill chain, dossier, duf_pp, claims.jsonl, read.json, source families, scrape, scraped, scraping, crawl, LLM, or an internal id
+**Plain words.** Nothing the user reads -- the PDF, replies, setup questions, the listing -- uses military, intelligence-trade or technical jargon, or a grade or rule code (C3, S2-9): say 'a single, weaker source'. The closing reply too: after the call, offer 'after-call notes' (four fields), never a debrief. Their own quoted words are exempt. Never write a word banned: OSINT, SOCINT, SOCMINT, HUMINT, human intelligence, SIGINT, intelligence cycle, tradecraft, collection plan, competing hypotheses, ACH, target package, asset, source handling, exploitation, debrief, kill chain, dossier, duf_pp, claims.jsonl, read.json, source families, scrape, scraped, scraping, crawl, LLM, or an internal id
 (C1-C4, F1-F12, row ids). Allowed only inside these phrases: asset manager, asset managers, asset management, asset & wealth management, asset and wealth management, asset class, asset classes, asset allocation, asset owner, asset owners, asset-light, asset-heavy, asset-backed, asset-based, asset-liability, asset and liability, asset base, asset quality, asset growth, asset mix, asset value, asset values, net asset value, asset price, asset prices, asset sale, asset sales, asset purchase, asset purchases, asset deal, asset finance, asset servicing, asset gathering, real asset, alternative asset, digital asset, fixed asset, financial asset, hard asset, single-asset, multi-asset.
 Use "source types", not families; "the person you're meeting", not target. Call the deliverable the Intelligence Brief, nothing else.
 

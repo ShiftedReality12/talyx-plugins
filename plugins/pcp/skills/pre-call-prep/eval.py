@@ -686,6 +686,8 @@ def self_test(require_pdf=False):
     read = (row.format(n=1, h="aldergrey.example", u="https://www.aldergrey.example/team/#jane")
             + row.format(n=2, h="linkedin.com, search result", u="https://www.linkedin.com/in/jane-doe-example")
             + "| **Run** | Oct 15, 2026 · standard · US · FULL · 20 searches in 5 rounds |\n")
+    said = '{"type": "result", "result": "Treat it as C3 (single weak source). I can send the four-field debrief."}'
+    cases.append(("a reply that says C3 and debrief", bt + [said], "", "C11 reply"))
     cases.append(("a ledger page the run never opened", bt, read + row.format(n=3, h="news.example", u="https://news.example/jane-doe"), "never opened"))
     moved = ['{"type": "assistant", "message": {"content": [{"type": "tool_use", "id": "toolu_r", "name": "WebFetch", "input": {"url": "https://old.example/a"}}]}}',
              '{"type": "user", "message": {"content": [{"type": "tool_result", "tool_use_id": "toolu_r", "content": "REDIRECT DETECTED: https://new.example/a"}]}}']
@@ -694,6 +696,12 @@ def self_test(require_pdf=False):
         print("FAIL C21 must pass a ledger of opened pages (one by redirect), its LinkedIn row unopened:", f); ok = False
     else:
         print("passes: C21 on a ledger whose pages the run opened (www., a fragment, a redirect), LinkedIn cited from its search result")
+    plain = '{"type": "result", "result": "Treat it as a single, weaker source. After the call, I can take your after-call notes."}'
+    f, _ = battery(bt + [plain], "standard")
+    if f:
+        print("FAIL C11 must pass a plain reply:", f); ok = False
+    else:
+        print("passes: C11 on a plain closing reply ('a single, weaker source', 'after-call notes')")
     for case, lines, brief, want_msg in cases:
         f, _ = battery(lines, "standard", brief)
         if any(want_msg in x for x in f):
@@ -1150,8 +1158,10 @@ def battery(lines, depth="standard", brief="", cited=None):
     or the reasoning) gives its number; a batch with no line takes the number after the round before it (the R11 runs
     kept their lines to their reasoning in prose; the chat-app reply A6, Oct 16, stated only round 1's). With the brief,
     every page its ledger cites (the PDF's links, or the brief.md's) must be one the run requested, LinkedIn aside:
-    R11b (Oct 15) cited 5 results from their snippets alone."""
+    R11b (Oct 15) cited 5 results from their snippets alone. C11 also reads each reply the user got (the closing
+    replies of R12 and R13, Oct 16, said 'C3' and 'debrief')."""
     pending, early, fails, batches, named, seen, opened, fetch_ids = None, [], [], {}, {}, 0, set(), set()
+    replies, last = [], ""
     for line in lines:
         try:
             e = json.loads(line)
@@ -1163,12 +1173,15 @@ def battery(lines, depth="standard", brief="", cited=None):
                 if x.get("tool_use_id") in fetch_ids and re.search(r"redirect", body, re.I):
                     opened.update(_page(u) for u in URL.findall(body.replace("\\n", " ")))
             continue
+        if e.get("type") == "result" and e.get("result"):
+            replies.append(e["result"])
         if e.get("type") != "assistant":
             continue
         seen += 1
         mid = e.get("message", {}).get("id") or f"line-{seen}"   # stream-json splits one message's blocks over lines
         for x in e.get("message", {}).get("content") or []:
             if x.get("type") in ("text", "thinking"):
+                last = x.get("text") or last
                 heads = re.findall(r"^\W*Round (\d)\s*\(", x.get("text") or x.get("thinking") or "", re.M)
                 if heads:
                     pending = int(heads[-1])
@@ -1233,6 +1246,11 @@ def battery(lines, depth="standard", brief="", cited=None):
             fails.append("C21 battery: the brief's Run row does not say 'N searches in M rounds'")
         elif (int(said.group(1)), int(said.group(2))) != (total, len(done)):
             fails.append(f"C21 battery: the Run row says {said.group(0)}; the transcript shows {total} searches in {len(done)} rounds")
+    for i, reply in enumerate(replies or [last], 1):   # a session file has no result line: its last text is the reply
+        hits = plain_hits(reply)
+        if hits:
+            fails.append(f"C11 reply: reply {i} to the user says {hits}; plain words only (a grade is 'a single, weaker source'; "
+                         "after the call, 'after-call notes')")
     pages = list(dict.fromkeys(_page(u) for u in (URL.findall(brief) if cited is None else cited)))
     unread = [p for p in pages if p and "linkedin.com" not in p and p not in opened]
     if unread:
