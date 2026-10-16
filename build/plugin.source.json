@@ -35,7 +35,7 @@
   "interface": {
     "displayName": "Talyx Pre-call Prep",
     "developerName": "Talyx AI",
-    "shortDescription": "One cited Intelligence Brief and meeting script before any call",
+    "shortDescription": "Pre-call Intelligence Brief",
     "longDescription": "Sets up once, then researches the person, company or deal you are about to meet from public sources found by targeted web search, LinkedIn only as its public search results show it (never your browser), and your own files when you give them, and renders one 3-page PDF: a 2-page Intelligence Brief and a 1-page meeting script. Every fact carries a source; what it could not find becomes a question to ask in the room.",
     "category": "Productivity",
     "capabilities": [
@@ -47,6 +47,7 @@
       "Recalibrate my pre-call prep settings."
     ],
     "websiteURL": "https://talyx.ai",
+    "composerIcon": "./assets/logo-icon-light-512.png",
     "logo": "./assets/logo-icon-light-512.png",
     "logoDark": "./assets/logo-icon-dark-512.png"
   }

@@ -19,7 +19,7 @@ from pcp.yaml; this writes only what each host needs to find and install it:
                                              names, at the same relative paths: hosts without the /pcp
                                              command resolve them from the skill's own folder
   adapters/perplexity/pre-call-prep.zip      Perplexity: the pre-call-prep skill folder
-  adapters/chat/{instructions.txt,pcp-knowledge.md}   Gemini app (Gem), Microsoft 365 Copilot: no scripts,
+  adapters/chat/{instructions.txt,pcp-knowledge.md,.txt} Gemini app (Gem), Microsoft 365 Copilot (.txt): no scripts,
                                              no PDF; the chat wording lives here, pcp.yaml stays as it is
   adapters/grok/{instructions.txt,pcp-knowledge.md}   the Grok app (a Project): the same two files
 
@@ -142,9 +142,9 @@ accuracy per dimension (hit or miss), outcome -- and nothing else.
 
 CHAT_INSTRUCTIONS = """You are Talyx Pre-call Prep. Before a meeting you research the named person, company or deal from public sources and the user's own files, and write one cited Intelligence Brief plus a one-page meeting script.
 
-Follow pcp-knowledge.md exactly, in stage order: calibrate, intake, collect, read, brief and script, after the call. It holds the questions, source types, exclusions, rubric, page budgets and checks. Where it and this text differ, it wins.
+Follow the knowledge file pcp-knowledge exactly, in stage order: calibrate, intake, collect, read, brief and script, after the call. It holds the questions, source types, exclusions, rubric, page budgets and checks. Where it and this text differ, it wins.
 
-Calibration is asked once. The Saved setup block at the end of pcp-knowledge.md holds the saved answers. Ask only the questions it has no answer for, then give the user the updated block to paste into their copy of pcp-knowledge.md. Never say it was saved: only the user can update that file.
+Calibration is asked once. The Saved setup block at the end of pcp-knowledge holds the saved answers. Ask only the questions it has no answer for, then give the user the updated block to paste into their copy of pcp-knowledge. Never say it was saved: only the user can update that file.
 
 Never start research without a full name and an organisation. If two people match, stop and ask. Public sources found by web search in rounds; LinkedIn only as its search results show it, never opened. A LinkedIn profile the user saves as a PDF and attaches is read as their file. Every fact carries a numbered citation to a source you actually opened. Say what you could not find before what you found. Never invent a fact, a quote or a source.
 
@@ -317,6 +317,7 @@ def render():
     files["adapters/perplexity/pre-call-prep.zip"] = perplexity_zip(files)
     files["adapters/chat/instructions.txt"] = CHAT_INSTRUCTIONS
     files["adapters/chat/pcp-knowledge.md"] = chat_knowledge()
+    files["adapters/chat/pcp-knowledge.txt"] = files["adapters/chat/pcp-knowledge.md"]   # Microsoft 365 Copilot uploads .txt, not .md
     files["adapters/grok/instructions.txt"] = files["adapters/chat/instructions.txt"]   # the Grok app: the same chat brief (S4-10)
     files["adapters/grok/pcp-knowledge.md"] = files["adapters/chat/pcp-knowledge.md"]
     return files
