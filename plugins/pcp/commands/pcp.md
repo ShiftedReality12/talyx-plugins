@@ -2,7 +2,7 @@
 description: Prepare for a meeting. Sets up once, researches the person, and writes ONE 3-page PDF -- the Intelligence Brief and a meeting script.
 argument-hint: "[intake.csv | \"Full Name, Organisation\"] [--recalibrate] [--profile <name>] [--context <file>] [--out <dir>]"
 ---
-<!-- GENERATED from pcp.yaml (sha256:018b3f050198) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:c13cc65d01e9) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # /pcp: pre-call prep
 

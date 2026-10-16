@@ -673,6 +673,15 @@ def self_test(require_pdf=False):
         tools = [x for x in (e.get("message", {}).get("content") or []) if x.get("type") == "tool_use"] if e.get("type") == "assistant" else []
         single += [json.dumps({"type": "assistant", "message": {"content": [t]}}) for t in tools] if tools else [ln]
     cases.append(("the same searches one per step, no round lines", single, "", "more rounds"))
+    e2 = json.loads(bt[r2]); c = e2["message"]["content"]   # round 2's line and its 4 searches, sent in two steps
+    halves = [{"type": "assistant", "message": {"content": c[:3]}}, {"type": "assistant", "message": {"content": c[3:]}}]
+    cases.append(("round 2 sent over two steps under its line", bt[:r2] + [json.dumps(h) for h in halves] + bt[r2 + 1:], "", "several steps"))
+    first = [bt[0]] + [ln if i == 1 else re.sub(r'\{"type": "text", "text": "Round [^}]*\}, ', "", ln) for i, ln in enumerate(bt[1:], 1)]
+    f, summary = battery(first, "standard")
+    if f or any("Round 2 (" in ln for ln in first):
+        print("FAIL C21 must pass round 1's line followed by rounds 2-5 as one batch each, unnamed:", summary, f); ok = False
+    else:
+        print(f"passes: C21 when only round 1's line is stated and each later round is one batch ({summary})")
     row = "| [{n}] | Fact | [{h}]({u}) | Measured | Oct 1, 2026 |\n"
     read = (row.format(n=1, h="aldergrey.example", u="https://www.aldergrey.example/team/#jane")
             + row.format(n=2, h="linkedin.com, search result", u="https://www.linkedin.com/in/jane-doe-example")
@@ -1136,13 +1145,13 @@ def battery_floor(depth):
 
 def battery(lines, depth="standard", brief="", cited=None):
     """C21: the search battery as a run sent it, read from its stream-json transcript (the run's own words and tool
-    calls, not its report). Returns (failures, summary). Where the run writes 'Round N (name): ...' lines (in its reply
-    or its reasoning), each opens a round and the WebSearch calls after it are that round's queries. Without such
-    lines, each step's batch of searches (one assistant message) is one round: S2-9 sends a round's queries together
-    (the R11 runs, Oct 15, kept their round lines to their reasoning in prose and batched each round). With the brief,
+    calls, not its report). Returns (failures, summary). S2-9 sends a round's queries together, in one step, so each
+    step's batch of searches (one assistant message) is one round. A 'Round N (name): ...' line before it (in the reply
+    or the reasoning) gives its number; a batch with no line takes the number after the round before it (the R11 runs
+    kept their lines to their reasoning in prose; the chat-app reply A6, Oct 16, stated only round 1's). With the brief,
     every page its ledger cites (the PDF's links, or the brief.md's) must be one the run requested, LinkedIn aside:
     R11b (Oct 15) cited 5 results from their snippets alone."""
-    rounds, cur, early, fails, batches, seen, opened, fetch_ids = {}, None, [], [], {}, 0, set(), set()
+    pending, early, fails, batches, named, seen, opened, fetch_ids = None, [], [], {}, {}, 0, set(), set()
     for line in lines:
         try:
             e = json.loads(line)
@@ -1162,15 +1171,13 @@ def battery(lines, depth="standard", brief="", cited=None):
             if x.get("type") in ("text", "thinking"):
                 heads = re.findall(r"^\W*Round (\d)\s*\(", x.get("text") or x.get("thinking") or "", re.M)
                 if heads:
-                    cur = int(heads[-1]); rounds.setdefault(cur, [])
+                    pending = int(heads[-1])
             elif x.get("type") == "tool_use":
                 name, inp = x.get("name", ""), x.get("input") or {}
                 if name == "WebSearch":
-                    batches.setdefault(mid, []).append(inp)
-                    if cur is None:
-                        early.append(inp)
-                    else:
-                        rounds[cur].append(inp)
+                    if mid not in batches:
+                        batches[mid], named[mid], pending = [], pending, None
+                    batches[mid].append(inp)
                 elif name == "WebFetch":
                     opened.add(_page(inp.get("url", ""))); fetch_ids.add(x.get("id"))
                     if "linkedin.com" in inp.get("url", "").lower():
@@ -1181,8 +1188,18 @@ def battery(lines, depth="standard", brief="", cited=None):
                         fails.append("C21 battery: a shell command requested linkedin.com; LinkedIn is read from search results only")
                 if BROWSER_TOOL.search(name):
                     fails.append(f"C21 battery: the browser tool {name} was called; research never drives a browser")
-    if not rounds:   # no round lines: each step's batch of searches is one round
-        rounds, early = dict(enumerate(batches.values(), 1)), []
+    rounds, steps, n, lined = {}, {}, 0, any(v is not None for v in named.values())
+    for mid, qs in batches.items():
+        if named[mid] is not None:
+            n = named[mid]
+        elif lined and n == 0:   # searches before the run's first round line
+            early += qs; continue
+        else:
+            n += 1
+        rounds.setdefault(n, []).extend(qs); steps[n] = steps.get(n, 0) + 1
+    split = sorted(k for k, v in steps.items() if v > 1)
+    if split:
+        fails.append(f"C21 battery: rounds {split} went out over several steps; send each round's queries together, once")
     need, per, ops_min = battery_floor(depth)
     sent = [q for qs in rounds.values() for q in qs]
     done = [n for n in rounds if rounds[n]]
