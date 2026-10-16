@@ -205,6 +205,7 @@ and `python3 eval.py duf brief.md script.md`; rewrite until both are clean. Wher
 (Claude Code: `T=$(ls -t ~/.claude/projects/<the folder the session started in, each character but letters and digits
 as ->/*.jsonl | head -1)`), also run `python3 eval.py battery "$T" --depth <depth> --brief brief.md` and fix what it
 reports: open a cited page you never opened or drop its fact, and correct the Run row; say in the reply what cannot be fixed.
+Check the links with `python3 eval.py links brief.md` (S2-8): replace a dead link or drop its fact.
 
 | Id | Check | Command | Passes when |
 |---|---|---|---|
