@@ -41,20 +41,21 @@ Use "source types", not families; "the person you're meeting", not target. Call 
 
 Read `~/.pcp/profile.yaml`. Ask only the questions it has no answer for -- all of them the first time
 or with `--recalibrate` -- using the host's question form (`AskUserQuestion` in Claude; else one chat
-message with numbered options), first option recommended, in these calls: Q1+Q2+Q3+Q4 · Q5+Q6+Q7+Q9 · Q8 (free text). Then write the profile
+message with the options numbered as in the table -- a label such as 'Sales / BD' is one option), first option
+recommended, in these calls: Q1+Q2+Q3+Q4 · Q5+Q6+Q7+Q9 · Q8 (free text). Then write the profile
 (`pcp_profile_format: 1`, answers under `profiles: <name>: answers: Qn: {value, defaulted}`, plus `context`
 and `linkedin` when set) and continue.
 
 | # | Chip | Question | Options | Sets |
 |---|---|---|---|---|
-| Q1 | Your role | Who is making the call? | Founder / principal (Recommended) / Sales / BD / Advisor / relationship manager / Investor / allocator | caller.role, caller.authority_level |
-| Q2 | Domain | Where do your targets mostly live? | General professional (Recommended) / Wealth management / Private equity / VC / Enterprise / SaaS | domain |
-| Q3 | Target kind | Who do you usually prep for? | A person (Recommended) / A company or team / A deal or transaction / Mixed | target.kind_default |
-| Q4 | Meeting | What is the typical call? | First intro (cold or warm) (Recommended) / Discovery / qualification / Pitch / close / Relationship / renewal | meeting.format_default |
-| Q5 | Depth | Research depth versus speed? | Standard -- 12 source types, about 8 minutes (Recommended) / Fast -- 6 source types, about 3 minutes / Deep -- every source type + what they may want | research.depth |
-| Q6 | Social | Public social footprint -- how far? | Professional only (Recommended) / Plus public X / Bluesky / Substack / None | socmint.scope |
-| Q7 | Compliance | Jurisdiction and compliance posture? | US (Recommended) / UK / EU (GDPR strict) / Regulated sales (FINRA / FCA style) / APAC | jurisdiction |
-| Q9 | Experience | How long have you been running meetings like this? | Experienced (Recommended) / Newer -- under two years / Top producer | caller.experience |
+| Q1 | Your role | Who is making the call? | 1. Founder / principal (Recommended) · 2. Sales / BD · 3. Advisor / relationship manager · 4. Investor / allocator | caller.role, caller.authority_level |
+| Q2 | Domain | Where do your targets mostly live? | 1. General professional (Recommended) · 2. Wealth management · 3. Private equity / VC · 4. Enterprise / SaaS | domain |
+| Q3 | Target kind | Who do you usually prep for? | 1. A person (Recommended) · 2. A company or team · 3. A deal or transaction · 4. Mixed | target.kind_default |
+| Q4 | Meeting | What is the typical call? | 1. First intro (cold or warm) (Recommended) · 2. Discovery / qualification · 3. Pitch / close · 4. Relationship / renewal | meeting.format_default |
+| Q5 | Depth | Research depth versus speed? | 1. Standard -- 12 source types, about 8 minutes (Recommended) · 2. Fast -- 6 source types, about 3 minutes · 3. Deep -- every source type + what they may want | research.depth |
+| Q6 | Social | Public social footprint -- how far? | 1. Professional only (Recommended) · 2. Plus public X / Bluesky / Substack · 3. None | socmint.scope |
+| Q7 | Compliance | Jurisdiction and compliance posture? | 1. US (Recommended) · 2. UK / EU (GDPR strict) · 3. Regulated sales (FINRA / FCA style) · 4. APAC | jurisdiction |
+| Q9 | Experience | How long have you been running meetings like this? | 1. Experienced (Recommended) · 2. Newer -- under two years · 3. Top producer | caller.experience |
 | Q8 | Your offer | In one line -- what do you offer, and what does a win in this meeting look like? If you have files about your business (a deck, a one-page summary, case studies -- PDF, Word, Markdown, text or CSV), add their paths and PCP will use them. (free text) | free text | caller.offer_one_line, meeting.win_definition, context.files |
 
 - **CAL-1** Ask only the questions with no saved answer in ~/.pcp/profile.yaml -- all of them the first time, all again with --recalibrate. Otherwise read it silently.  

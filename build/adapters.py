@@ -116,7 +116,8 @@ CHAT_INPUTS = {"arguments": {"type": "'Full Name, Organisation' | a pasted list"
 CHAT_STAGE0 = """This host runs no scripts. The saved setup is the **Saved setup** block at the end of this knowledge file.
 
 - Every question has a saved answer there -- use them silently. Ask nothing.
-- Otherwise ask ONLY the unanswered questions, in one chat message with numbered options, first option recommended.
+- Otherwise ask ONLY the unanswered questions, in one chat message with the options numbered as in the table (a label
+  such as 'Sales / BD' is one option), first option recommended.
 - A skipped question takes its first (Recommended) option, marked defaulted.
 - Then output the complete updated **Saved setup** block in the same YAML shape -- each answer as
   `Q1: {value: <option value or your text>, defaulted: false}` under `profiles: default: answers:` -- and tell

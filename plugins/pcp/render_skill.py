@@ -66,7 +66,7 @@ def render_skill(R, sha):
     qs = {q["id"]: q for q in cal["questions"]}
     q_lines = []
     for q in cal["questions"]:
-        opts = " / ".join(o["label"] for o in q["options"]) if q["options"] else "free text"
+        opts = " · ".join(f"{i}. {o['label']}" for i, o in enumerate(q["options"], 1)) if q["options"] else "free text"   # labels hold ' / '
         q_lines.append(f"| {q['id']} | {q['header']} | {q['question']} | {opts} | {', '.join(q['sets'].keys())} |")
     calls = " · ".join("+".join(c) + (" (free text)" if any(qs[i].get("free_text") for i in c) else "") for c in cal["calls"])
     fam_lines = [f"| {f['id']} | {f['name']} | {'/'.join(f['depth'])} | {'yes' if f['socmint'] else 'no'} | `{f['query']}` | {f['extract']} |"
@@ -124,7 +124,8 @@ Use "source types", not families; "the person you're meeting", not target. Call 
 
 Read `{cal['profile_path']}`. Ask only the questions it has no answer for -- all of them the first time
 or with `{cal['reask_flag']}` -- using the host's question form (`AskUserQuestion` in Claude; else one chat
-message with numbered options), first option recommended, in these calls: {calls}. Then write the profile
+message with the options numbered as in the table -- a label such as 'Sales / BD' is one option), first option
+recommended, in these calls: {calls}. Then write the profile
 (`pcp_profile_format: 1`, answers under `profiles: <name>: answers: Qn: {{value, defaulted}}`, plus `context`
 and `linkedin` when set) and continue.
 
