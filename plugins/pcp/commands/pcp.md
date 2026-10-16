@@ -3,7 +3,7 @@ name: pcp
 description: Prepare for a meeting. Sets up once, researches the person, and writes ONE 3-page PDF -- the Intelligence Brief and a meeting script.
 argument-hint: "[intake.csv | \"Full Name, Organisation\"] [--recalibrate] [--profile <name>] [--context <file>] [--out <dir>]"
 ---
-<!-- GENERATED from pcp.yaml (sha256:f33a6021d0a3) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:1f5bd15dff8e) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # /pcp: pre-call prep
 
@@ -11,7 +11,7 @@ Input from the user: `$ARGUMENTS`
 
 First load the `pre-call-prep` skill in this plug-in (Skill tool, or read `skills/pre-call-prep/SKILL.md`) -- the block schema, titles and budgets live there, not here. Never write a brief without it. Then follow it exactly, in stage order:
 
-0. **Setup** -- ask only the questions `~/.pcp/profile.yaml` has no answer for (all with `--recalibrate`); read files given with `--context`.
+0. **Setup** -- ask the questions with `AskUserQuestion` (3 calls, first option recommended), only those `~/.pcp/profile.yaml` has no answer for (all with `--recalibrate`), a typed list only where the host has no question tool; read files given with `--context`.
 1. **Intake** -- resolve `$ARGUMENTS` (CSV path, `"Name, Org"`, or ask). Never start without a full name and an organisation. Ask the user only as `references/socratic-questions.md` says.
 2. **Intelligence collection** -- run the enabled source types in the search rounds of `references/osint-search.md` (LinkedIn only as its search results show it; never a browser); write `claims.jsonl` and the coverage ledger. Drop excluded claims before writing.
 3. **Behavioral profile** -- read six dimensions from claim ids only; set the evidence tier.

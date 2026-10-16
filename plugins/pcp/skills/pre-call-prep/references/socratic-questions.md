@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:f33a6021d0a3) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:1f5bd15dff8e) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Socratic questions
 
@@ -7,7 +7,7 @@ Two uses: questions PCP asks **you** when it needs something only you know, and 
 
 ## Asking the user
 
-Ask the user only when a trigger below fires: at most 2 questions per run after setup, in one message, each skippable. Never ask what the record or the saved setup already answers. Answers are the user's own facts: tag Yours.
+Ask the user only when a trigger below fires: at most 2 questions per run after setup, in one call, each skippable. Never ask what the record or the saved setup already answers. Answers are the user's own facts: tag Yours. How to ask (CAL-5): with the host's native question tool, never a typed list while that tool exists.
 
 | When | Ask |
 |---|---|
@@ -16,6 +16,7 @@ Ask the user only when a trigger below fires: at most 2 questions per run after 
 | The intake says you already know them, and no notes came with it | When did you last speak, and what did they tell you that isn't public? |
 | You mention notes, a CRM record, a Slack or Google Chat thread, a saved LinkedIn PDF or a profile on them | Can you paste it or give me the file? I'll mark it as yours, not public. |
 | Who decides, the gate or the timing is still Not determined after collection | Who else has a say in this, as far as you know? |
+| What the user asks for names a business, offer or domain other than the saved offer (Q8) or domain (Q2), e.g. a saved transaction-advisory offer and a request about AI meeting prep | Your saved offer is '<saved offer>', and this request is about '<what they asked>'. Use the saved offer, use this one for this run only, or change the saved one? Reply skip and I'll use the saved offer. |
 
 ## Questions for the room
 

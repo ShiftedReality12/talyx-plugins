@@ -105,8 +105,9 @@ that each carry a falsification test. Every fact traces to a source. Nothing is 
 The deliverable is one 3-page PDF, the {n['deliverable']}. Nothing else is emitted.
 
 **No shell or code tool (plain chat)?** Run the same stages anyway; never stop or refuse for lack of tools.
-Research with the host's own web search and fetch tools. Keep claims, coverage and the behavioral read in
-the conversation instead of files. Apply the checks yourself. Then deliver the full {n['deliverable']} in chat
+Research with the host's own web search and fetch tools. Keep claims, coverage and the behavioral read as the
+records below, in your working notes, not in the reply: say one short status line, then nothing until a question or
+the brief itself (S2-10). Apply the checks yourself. Then deliver the full {n['deliverable']} in chat
 exactly as S4-10 says (label, page markers, every block, the ledger, the {n['script']}). Profile answers
 given in the message stand in for the saved setup file.
 
@@ -122,10 +123,11 @@ Use "source types", not families; "the person you're meeting", not target. Call 
 
 ## Stage 0: Setup (once)
 
-Read `{cal['profile_path']}`. Ask only the questions it has no answer for -- all of them the first time
-or with `{cal['reask_flag']}` -- using the host's question form (`AskUserQuestion` in Claude; else one chat
-message with the options numbered as in the table -- a label such as 'Sales / BD' is one option), first option
-recommended, in these calls: {calls}. Then write the profile
+If `{cal['profile_path']}` is missing or invalid, or `{cal['reask_flag']}` is passed, ask these questions with
+`AskUserQuestion` -- {calls}, first option recommended -- (the host's native question tool: the structured question tool in
+ChatGPT, Codex and Grok), asking only those the saved profile has no answer for. A label such as 'Sales / BD' is one option.
+{R['socratic']['ask_user']['how']['wait']} Only if the host has no question tool, or the tool returns no answer:
+{R['socratic']['ask_user']['how']['fallback']} Then write the profile
 (`pcp_profile_format: 1`, answers under `profiles: <name>: answers: Qn: {{value, defaulted}}`, plus `context`
 and `linkedin` when set) and continue.
 
@@ -139,6 +141,17 @@ and `linkedin` when set) and continue.
 ## Asking questions
 
 When a question is needed -- of the user, or for the room -- read `references/socratic-questions.md` first.
+{R['socratic']['ask_user']['how']['tool']} {R['socratic']['ask_user']['how']['wait']}
+
+## Records (C23)
+
+Keep three records while you work, in these files beside the brief (a host with no files keeps the same fields in its
+working notes). Compose the brief from them alone (S4-12), and run `python3 eval.py records <folder> --depth <depth> --brief brief.md`
+before you say the run is done.
+
+| Record | File | Fields |
+|---|---|---|
+{chr(10).join(f"| {k} | `{v['file']}` | {', '.join(v['fields'])}{' -- ' + v['note'] if v.get('note') else ''} |" for k, v in R['records'].items())}
 
 ## Source families
 
@@ -198,13 +211,25 @@ Beats by meeting format:
 
 Never say: {'; '.join(f'"{p}"' for p in R['guardrails']['never_say'])}.
 
+## fields.json: what you fill (S4-13)
+
+You never write brief.md or script.md. Fill `fields.json` -- the keys below, per block; text cites a claim as `[c<id>]` (claims.jsonl),
+the assembler numbers the ledger -- then run `python3 eval.py assemble <folder>`. A key marked optional may be left out; `missing` prints
+as shown. Labels print exactly as the forms table in pcp.yaml says.
+
+| Block | Form | Keys |
+|---|---|---|
+{forms_table(R)}
+
 ## Checks (all pass before render)
 
 Run `python3 eval.py checks brief.md script.md --target-nouns "<Full Name>,<surname>,<Organization>,<their key programmes>" --experience <{qs['Q9']['id']}: {', '.join(o['value'] for o in qs['Q9']['options'])}> --authority <caller.authority_level: high, medium>`
-and `python3 eval.py duf brief.md script.md`; rewrite until both are clean. Where the host keeps the session as a file
-(Claude Code: `T=$(ls -t ~/.claude/projects/<the folder the session started in, each character but letters and digits
-as ->/*.jsonl | head -1)`), also run `python3 eval.py battery "$T" --depth <depth> --brief brief.md` and fix what it
-reports: open a cited page you never opened or drop its fact, and correct the Run row; say in the reply what cannot be fixed.
+and `python3 eval.py duf brief.md script.md`; rewrite until both are clean. Before the first fit pass, copy the draft to
+`brief.draft.md`; after the last, run `python3 eval.py kept brief.draft.md brief.md` (C24: cut wording, never cited facts).
+Then run `python3 eval.py battery --latest --depth <depth> --brief brief.md --profile ~/.pcp/profile.yaml`: it reads this
+session's own history on Claude Code, Codex, and from the ChatGPT or Claude app export (`python3 eval.py battery conversations.json ...`),
+so no host is "unavailable". Fix what it reports: open a cited page you never opened or drop its fact, correct the Run row,
+keep the rounds out of the reply; say in the reply what cannot be fixed.
 Check the links with `python3 eval.py links brief.md` (S2-8): replace a dead link or drop its fact.
 
 | Id | Check | Command | Passes when |
@@ -242,6 +267,44 @@ def battery_rounds(R, depth):
     """S2-9: the rounds a depth runs -- every round with a source type the depth enables (eval.py C21 reads the same)."""
     on = {f["id"] for f in R["families"] if depth in f["depth"]}
     return [r["round"] for r in R["osint"]["rounds"] if on & set(r["types"])]
+
+
+def forms_table(R):
+    """The forms table as the model reads it: per block, the keys it fills and the labels they print under."""
+    F, rows = R["forms"], []
+    keyof = lambda f: f"`{f['key']}`" + (f" ({f['label'].rstrip(':.')})" if f.get("label") else "") + (" optional" if f.get("optional") else "") + (f" else '{f['missing']}'" if f.get("missing") else "")
+    for b in R["brief"]["sections"] + R["script"]["blocks"]:
+        s = F[b["id"]]
+        if s["form"] in ("bullets", "labels_para"):
+            ks = ", ".join(keyof(f) for f in s["fields"])
+        elif s["form"] == "questions":
+            ks = f"`b2`: {s['count'][0]} to {s['count'][1]} of " + ", ".join(f"`{f['key']}`" for f in s["item"])
+        elif s["form"] == "quotes":
+            ks = "`quotes`: list of `label`, `quote`, `cite`; or `themes`; the LinkedIn line is computed"
+        elif s["form"] == "table":
+            ks = f"`b5`: {len(s['rows'])} of `observable`, `action` (" + ", ".join(r['key'] for r in s['rows']) + ")"
+        elif s["form"] == "profile_table":
+            ks = "`b6`: one observation per rubric dimension id (" + ", ".join(d["id"] for d in R["rubric"]["dimensions"]) + "); the moves and the tier come from read.json"
+        elif s["form"] == "case_against":
+            ks = f"`against`: up to {s['max']} of `against`, `reverses_if`; `{s['confirm']['key']}`; deep: `hypotheses` of `hypothesis`, `test`"
+        elif s["form"] == "angle":
+            ks = ", ".join(keyof(f) + (f" + `{f['join']['key']}`" if f.get("join") else "") for sec in s["sections"] for f in sec["fields"])
+        elif s["form"] == "ledger":
+            ks = "computed from claims.jsonl, coverage.json and `still_open` (up to " + str(s["still_open_max"]) + " of `label`, `question`)"
+        elif s["form"] == "question_order":
+            ks = f"`beats`: list; `order`: B2 question numbers for " + ", ".join(x.lower() for x in s["order"])
+        elif s["form"] == "objections":
+            ks = f"`p3`: {s['count']} of `objection`, `answer`"
+        elif s["form"] == "repeat":
+            ks = f"`{s['key']}`: {s['count'][0]} to {s['count'][1]} moves"
+        elif s["form"] == "guardrails":
+            ks = "`rule`; the never-say list and the domain's forbidden claims are computed"
+        else:
+            ks = f"`{s['key']}`"
+        rows.append(f"| {b['id']} | {s['form']} | {ks} |")
+    t = R["forms"]["masthead"]
+    rows.append("| masthead | -- | `target` (`name`, `org`, `role_since`, `city` only when a source confirms it), `meeting`, `prepared` (Mon D, YYYY) |")
+    return "\n".join(rows)
 
 
 def osint_section(R):
@@ -334,6 +397,7 @@ Two uses: questions PCP asks **you** when it needs something only you know, and 
 
 def render_command(R, sha):
     n, pb = R["names"], R["page_budget"]
+    calls_txt = f"{len(R['calibration']['calls'])} calls, first option recommended"
     # frontmatter must be the first bytes of the file or the host drops description and argument-hint -- header after it;
     # name: Cursor's plugin validator requires it on every command file (cursor/plugin-template, Oct 16)
     return f"""---
@@ -349,7 +413,7 @@ Input from the user: `$ARGUMENTS`
 
 First load the `pre-call-prep` skill in this plug-in (Skill tool, or read `skills/pre-call-prep/SKILL.md`) -- the block schema, titles and budgets live there, not here. Never write a brief without it. Then follow it exactly, in stage order:
 
-0. **Setup** -- ask only the questions `{R['calibration']['profile_path']}` has no answer for (all with `--recalibrate`); read files given with `--context`.
+0. **Setup** -- ask the questions with `AskUserQuestion` ({calls_txt}), only those `{R['calibration']['profile_path']}` has no answer for (all with `--recalibrate`), a typed list only where the host has no question tool; read files given with `--context`.
 1. **Intake** -- resolve `$ARGUMENTS` (CSV path, `"Name, Org"`, or ask). Never start without a full name and an organisation. Ask the user only as `references/socratic-questions.md` says.
 2. **{n['collection']}** -- run the enabled source types in the search rounds of `references/osint-search.md` (LinkedIn only as its search results show it; never a browser); write `claims.jsonl` and the coverage ledger. Drop excluded claims before writing.
 3. **{n['profile']}** -- read six dimensions from claim ids only; set the evidence tier.

@@ -32,12 +32,15 @@ LEDGER = R["brief"]["sections"][-1]["id"]          # B10, the evidence ledger
 CITE = re.compile(r"\[(\d+)\]")
 TAGS, GRADES, CONFS = "Direct|Search|LinkedIn|Yours", "Measured|Derived|Inference|Not determined", "Primary|Reputable|Single source|Inferred"
 # Printed ledger (Ben, Oct 13): | # | What it says | Source | Grade | Date |. Tag and confidence stay in claims.jsonl.
-SRC_ROW = re.compile(r"^\|\s*\[(\d+)\]\s*\|\s*([^|]+?)\s*\|\s*([^|\s][^|]*?)\s*\|\s*(" + GRADES + r")\s*\|\s*"
+SRC_ROW = re.compile(r"^\|\s*\[(\d+)\]\s*\|\s*([^|]+?)\s*\|\s*([^|\s][^|]*?)\s*\|\s*(" + GRADES + r")(?:\s*·[^|]*)?\s*\|\s*"
                      r"((?:seen )?[A-Z][a-z]{2}(?: \d{1,2},)? \d{4})\s*\|", re.M)
 
 
 def _tag(source):
     """The printed ledger has no Tag column: a source with no link is Yours, a linkedin.com link is LinkedIn."""
+    m = re.search(r" · (Direct|Search|LinkedIn|Yours)\s*$", source)
+    if m:
+        return m.group(1)
     if not re.search(r"https?://", source):
         return "Yours"
     return "LinkedIn" if "linkedin.com" in source.lower() else "Direct"
@@ -162,6 +165,10 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
     secs = _sections(md)
     fails = []
     budgets = {s["id"]: s["words"] for s in R["brief"]["sections"]} | {b["id"]: b["words"] for b in R["script"]["blocks"]}
+    prepared = re.search(r"Prepared\s+([A-Z][a-z]{2} \d{1,2}, \d{4})", brief_md)
+    dens = R["page_budget"]["density"]
+    if prepared and _day(prepared.group(1)) < dt.date.fromisoformat(str(dens["since"])):
+        budgets = budgets | dens["legacy_words"]   # a brief written before the 9.5 pt density keeps its day's budgets (the frozen targets)
 
     def want(name):
         return which in ("all", name)
@@ -175,6 +182,10 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
             fails.append(f"C17 cites: the masthead says {mast.group(2)} cited; the ledger lists {rows} facts")
         if mast and line and mast.group(1) != line.group(2):
             fails.append(f"C17 cites: the masthead says {mast.group(1)} source types; the ledger line says {line.group(2)}")
+    if want("grading"):
+        fails += grading_check(brief_md)
+    if which == "schema":   # not in --all: the loose fixtures are not assembled briefs; assemble runs it on every real one
+        fails += schema_check(brief_md, script_md)
     if want("quality"):
         fails += source_quality(ledger(brief_md))
         run = re.search(r"\*\*Run\*\*\s*\|\s*([A-Z][a-z]{2} \d{1,2}, \d{4})", brief_md)
@@ -304,13 +315,17 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
         if run and _day(run.group(1)) >= dt.date.fromisoformat(str(R["osint"]["battery"]["since"])):
             said = RUN_COUNTS.search(run.group(2))
             depth = re.search(r"Depth:\s*(fast|standard|deep)", brief_md, re.I)
+            has_base = _day(run.group(1)) >= dt.date.fromisoformat(str(R["osint"]["battery"]["base_since"]))
             if not said:
-                fails.append("C21 battery: the Run row does not end 'N searches in M rounds' (the battery as sent)")
+                fails.append("C21 battery: the Run row does not end 'N searches (B base) in M rounds' (both passes as sent)")
+            elif has_base and said.group(2) is None:
+                fails.append(f"C21 battery: the Run row says '{said.group(0)}'; from {R['osint']['battery']['base_since']} it gives the base pass: 'N searches (B base) in M rounds'")
             elif depth:
                 need, per, _ = battery_floor(depth.group(1).lower())
-                if int(said.group(2)) < len(need) or int(said.group(1)) < per * len(need):
+                base_min = len(base_families(depth.group(1).lower())) if has_base else 0
+                if int(said.group(3)) < len(need) or int(said.group(1)) < per * len(need) + base_min or (has_base and int(said.group(2)) < base_min):
                     fails.append(f"C21 battery: the Run row says {said.group(0)}; a {depth.group(1).lower()} run sends at least "
-                                 f"{per * len(need)} searches in {len(need)} rounds")
+                                 f"{base_min + per * len(need)} searches ({base_min} base) in {len(need)} rounds")
     if experience and which == "all":
         why = {k: re.findall(r"\*\*Why:\*\*\s*(.+)", secs[k]) for k in secs if re.match(r"P\d+$", k)}
         if experience == "new":
@@ -652,13 +667,26 @@ def self_test(require_pdf=False):
         print("FAIL C11: a stray quote mark must not exempt the lines after it"); ok = False
     else:
         print(f"passes: C11 on {len(FINANCE)} finance terms; a stray quote mark exempts nothing after its line")
-    bt = (fx / "battery_standard.jsonl").read_text().splitlines()   # C21: a synthetic standard run, 20 searches in 5 rounds
-    f, summary = battery(bt, "standard", "| **Run** | Oct 15, 2026 · standard · US · FULL · 20 searches in 5 rounds |")
+    rounds_only = (fx / "battery_standard.jsonl").read_text().splitlines()   # the five rounds, 20 searches: rc2's whole research
+    base_q = ['"Jane Doe" "Alder Grey Capital" managing partner', '"Jane Doe" Alder Grey career OR joined OR appointed OR promoted',
+              '"Alder Grey Capital" news OR announces OR partnership OR acquisition OR raises 2026', 'aldergrey.example about OR mission',
+              '"Jane Doe" interview OR podcast OR panel OR quoted OR keynote', '"Jane Doe" site:x.com OR site:substack.com OR site:bsky.app',
+              '"Jane Doe" board OR trustee OR advisory OR member OR association OR alumni', '"Jane Doe" author OR paper OR patent OR whitepaper OR book',
+              '"Jane Doe" site:sec.gov', '"Jane Doe" OR "Alder Grey Capital" conference OR summit OR webinar 2026',
+              '"Alder Grey Capital" lawsuit OR layoffs OR departure OR decline OR criticism']
+    def base_steps(qs, step=6):   # the base pass: each source type's template, sent in steps
+        return [json.dumps({"type": "assistant", "message": {"id": f"base{i}", "content": [{"type": "tool_use", "id": f"tb{i}{k}", "name": "WebSearch", "input": {"query": q}}
+                                                                                           for k, q in enumerate(qs[i:i + step])]}}) for i in range(0, len(qs), step)]
+    base_lines = base_steps(base_q)
+    bt = [rounds_only[0]] + base_lines + rounds_only[1:]   # C21: a synthetic standard run, 11 base + 20 round searches
+    ROW = "| **Run** | Oct 16, 2026 · standard · US · FULL · 31 searches (11 base) in 5 rounds |"
+    f, summary = battery(bt, "standard", ROW)
     if f:
         print("FAIL battery_standard.jsonl must pass C21:", summary, *f, sep="\n - "); ok = False
     else:
         print(f"passes: C21 on battery_standard.jsonl ({summary}) and its Run row")
-    li_typed = bt[1].replace('"query": "\\"Jane Doe\\" \\"Alder Grey Capital\\"", "allowed_domains": ["linkedin.com"]',
+    r1 = next(i for i, ln in enumerate(bt) if "Round 1 (" in ln)
+    li_typed = bt[r1].replace('"query": "\\"Jane Doe\\" \\"Alder Grey Capital\\"", "allowed_domains": ["linkedin.com"]',
                              '"query": "site:linkedin.com/in \\"Jane Doe\\" \\"Alder Grey Capital\\""')
     plain = [re.sub(r'"query": "[^"]*(?:\\"[^"]*)*", "allowed_domains": \[[^\]]*\]', '"query": "Jane Doe news"', ln) for ln in bt]
     plain = [re.sub(r'"query": "(?:[^"\\]|\\.)*"', '"query": "Jane Doe news"', ln) for ln in plain]
@@ -671,14 +699,17 @@ def self_test(require_pdf=False):
     short4 = bt[r4][:bt[r4].rindex(', {"type": "tool_use"')] + "]}}"
     cases = [("round 3 left out", bt[:r3] + bt[r3 + 2:], "", "not run"),
              ("no operators or filters", plain, "", "carry an operator"),
-             ("round 1's LinkedIn query typed as site:", [bt[0], li_typed] + bt[2:], "", "typed site:"),
+             ("round 1's LinkedIn query typed as site:", bt[:r1] + [li_typed] + bt[r1 + 1:], "", "typed site:"),
              ("a linkedin.com page requested", bt + [fetch], "", "linkedin.com page"),
              ("a browser tool called", bt + [chrome], "", "browser tool"),
-             ("a search before the Round 1 line", [first] + bt, "", "before the Round 1 line"),
              ("round 3 before round 2", bt[:r2] + bt[r3:r3 + 2] + bt[r2:r3] + bt[r3 + 2:], "", "order"),
              ("round 4 one query short", bt[:r4] + [short4] + bt[r4 + 1:], "", "fewer than 4"),
-             ("a Run row that miscounts", bt, "| **Run** | Oct 15, 2026 · standard · 19 searches in 5 rounds |", "the transcript shows")]
-    bare = [re.sub(r'\{"type": "text", "text": "Round [^}]*\}, ', "", ln) for ln in bt]   # the round lines dropped
+             ("a Run row that miscounts", bt, "| **Run** | Oct 16, 2026 · standard · 30 searches (11 base) in 5 rounds |", "the history shows"),
+             ("a Run row with no base count", bt, "| **Run** | Oct 16, 2026 · standard · 31 searches in 5 rounds |", "no base count"),
+             ("no base pass (the five rounds alone, rc2's whole research)", rounds_only, "", "no base pass"),
+             ("a source type (F4, the organisation in its own words) never searched", [ln for ln in bt if "aldergrey.example about" not in ln]
+              + [], "", "never searched in the base pass")]
+    bare = [re.sub(r'\{"type": "thinking", "thinking": "Round [^}]*\}, ', "", ln) for ln in bt]   # the round lines dropped
     f, summary = battery(bare, "standard")
     if f:
         print("FAIL C21 must pass the same searches without round lines, one batch per round:", summary, f); ok = False
@@ -689,11 +720,11 @@ def self_test(require_pdf=False):
         e = json.loads(ln)
         tools = [x for x in (e.get("message", {}).get("content") or []) if x.get("type") == "tool_use"] if e.get("type") == "assistant" else []
         single += [json.dumps({"type": "assistant", "message": {"content": [t]}}) for t in tools] if tools else [ln]
-    cases.append(("the same searches one per step, no round lines", single, "", "more rounds"))
+    cases.append(("the same searches one per step, no round lines", single, "", "fewer than"))
     e2 = json.loads(bt[r2]); c = e2["message"]["content"]   # round 2's line and its 4 searches, sent in two steps
     halves = [{"type": "assistant", "message": {"content": c[:3]}}, {"type": "assistant", "message": {"content": c[3:]}}]
     cases.append(("round 2 sent over two steps under its line", bt[:r2] + [json.dumps(h) for h in halves] + bt[r2 + 1:], "", "several steps"))
-    first = [bt[0]] + [ln if i == 1 else re.sub(r'\{"type": "text", "text": "Round [^}]*\}, ', "", ln) for i, ln in enumerate(bt[1:], 1)]
+    first = [bt[0]] + [ln if i == r1 else re.sub(r'\{"type": "thinking", "thinking": "Round [^}]*\}, ', "", ln) for i, ln in enumerate(bt[1:], 1)]
     f, summary = battery(first, "standard")
     if f or any("Round 2 (" in ln for ln in first):
         print("FAIL C21 must pass round 1's line followed by rounds 2-5 as one batch each, unnamed:", summary, f); ok = False
@@ -702,7 +733,7 @@ def self_test(require_pdf=False):
     row = "| [{n}] | Fact | [{h}]({u}) | Measured | Oct 1, 2026 |\n"
     read = (row.format(n=1, h="aldergrey.example", u="https://www.aldergrey.example/team/#jane")
             + row.format(n=2, h="linkedin.com, search result", u="https://www.linkedin.com/in/jane-doe-example")
-            + "| **Run** | Oct 15, 2026 · standard · US · FULL · 20 searches in 5 rounds |\n")
+            + "| **Run** | Oct 16, 2026 · standard · US · FULL · 31 searches (11 base) in 5 rounds |\n")
     said = '{"type": "result", "result": "Treat it as C3 (single weak source). I can send the four-field debrief."}'
     cases.append(("a reply that says C3 and debrief", bt + [said], "", "C11 reply"))
     cases.append(("a ledger page the run never opened", bt, read + row.format(n=3, h="news.example", u="https://news.example/jane-doe"), "never opened"))
@@ -725,11 +756,235 @@ def self_test(require_pdf=False):
             print(f"tripped: C21 by {case}")
         else:
             print(f"FAIL C21 must trip on {case} (got {f})"); ok = False
+    # ---- the type scale: the renderer's own defaults are the registry's numbers (page_budget), so a copy with no pcp.json draws the same page
+    import ast
+    src = ast.parse((HERE / "format/talyx_pdf.py").read_text())
+    lit = {}
+    for node in src.body:
+        if isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name) and node.targets[0].id in ("LADDER", "BRIEF_LADDER"):
+            lit[node.targets[0].id] = [{k.arg: ast.literal_eval(k.value) for k in c.keywords} for c in node.value.elts]
+        if isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name) and node.targets[0].id == "SZ":
+            lit["SZ"] = {k.arg: ast.literal_eval(k.value) for k in node.value.keywords}
+    pb = R["page_budget"]
+    norm = lambda rows: [{k: (tuple(v) if isinstance(v, list) else v) for k, v in r.items()} for r in rows]
+    same = (norm(lit.get("LADDER", [])) == norm(pb["ladder"]) and norm(lit.get("BRIEF_LADDER", [])) == norm(pb["brief_ladder"])
+            and lit.get("SZ") == pb["text_sizes_pt"] and pb["body_pt_floor"] == min(r["body_pt"] for r in pb["ladder"] + pb["brief_ladder"]))
+    if same:
+        print(f"passes: the renderer's type scale equals page_budget (floor {pb['body_pt_floor']} pt, {len(pb['ladder'])} + {len(pb['brief_ladder'])} rungs, {len(pb['text_sizes_pt'])} text sizes)")
+    else:
+        print("FAIL the renderer's default ladders or text sizes differ from page_budget in pcp.yaml"); ok = False
+    # ---- quiet research (S2-10): rounds and progress stay out of the reply
+    def msg(kind, text):
+        return json.dumps({"type": "assistant", "message": {"content": [{"type": kind, kind if kind == "thinking" else "text": text}]}})
+    run_row = ROW
+    in_reply = [ln.replace('{"type": "thinking", "thinking": "Round', '{"type": "text", "text": "Round') for ln in bt]
+    r3 = next(i for i, ln in enumerate(bt) if "Round 3" in ln)
+    for case, lines, want_msg in (("a round line printed in the reply", in_reply, "round line went out in the reply"),
+                                  ("a progress message between searches", bt[:r3] + [msg("text", "Two rounds done; searching their own words next.")] + bt[r3:], "between the first and the last search")):
+        f, _ = battery(lines, "standard", run_row)
+        if any(want_msg in x for x in f):
+            print(f"tripped: C21 by {case}")
+        else:
+            print(f"FAIL C21 must trip on {case} (got {f})"); ok = False
+    f, _ = battery([msg("text", "Researching Jane Doe, Alder Grey Capital. The results go in the brief.")] + bt, "standard", run_row)
+    if f:
+        print("FAIL C21 must pass one short status before the first search:", f); ok = False
+    else:
+        print("passes: C21 on one short status before the first search, rounds kept in the reasoning")
+    # ---- every host's own history is readable (no 'unavailable'): Claude Code, Codex, ChatGPT, the Claude app
+    for name, host, want in (("history_codex.jsonl", "Codex", None), ("history_chatgpt.json", "ChatGPT export", None), ("history_claudeapp.json", "Claude app export", None),
+                             ("history_codex_noisy.jsonl", "Codex", "round line went out in the reply"),
+                             ("history_codex_widget.jsonl", "Codex", "no line of the reply before it")):
+        f, summary = battery((fx / name).read_text().splitlines(), "standard", run_row)
+        if want is None and (f or not summary.startswith(host) or "31 searches (11 base) in 5 rounds" not in summary):
+            print(f"FAIL {name} must pass C21 and C22 as a {host} history with 31 searches (11 base) in 5 rounds:", summary, f); ok = False
+        elif want is not None and not any(want in x for x in f):
+            print(f"FAIL {name} must trip ({want}); got {f}"); ok = False
+        else:
+            print(f"{'passes' if want is None else 'tripped'}: C21/C22 on {name} ({host}: {summary.split(': ', 1)[1]})" if want is None else f"tripped: {want} by {name} ({host})")
+    widget = battery((fx / "history_codex_widget.jsonl").read_text().splitlines(), "standard", run_row)[0]
+    for part in ("no line of the reply before it", "came back with no answer", "kept working after asking"):
+        if any(part in x for x in widget):
+            print(f"tripped: C22 {part} (a popup with no lead-in line, no answer, the run went on)")
+        else:
+            print(f"FAIL C22 must trip: {part} (got {widget})"); ok = False
+    asked = [msg("text", "1. Who else has a say in custodian choices at Alder Grey?\n\nReply with your answer, or reply skip and I'll go on without it."),
+             json.dumps({"type": "assistant", "message": {"content": [{"type": "tool_use", "name": "AskUserQuestion", "input": {"questions": [{"question": "Who else has a say in custodian choices at Alder Grey?"}]}}]}}),
+             json.dumps({"type": "user", "message": {"role": "user", "content": "skip"}})]
+    f, _ = battery(asked + bt, "standard", run_row)
+    if any(x.startswith("C22") for x in f):
+        print("FAIL C22 must pass a question written in the reply, with a skip rule, then the user's answer before the searches:", f); ok = False
+    else:
+        print("passes: C22 on a question in the reply with its skip rule, the run waiting for the answer")
+    typed = [msg("text", "Setup: 1. Who is making the call? (1 Founder, 2 Sales) 2. Domain? (1 General, 2 Wealth) 3. Depth? 4. Where? Reply with one number per line, such as 1, 4, 1, 1.")]
+    popup_init = json.dumps({"type": "system", "subtype": "init", "tools": ["WebSearch", "WebFetch", "Bash", "AskUserQuestion"]})
+    f, _ = battery([popup_init] + typed + bt[1:], "standard", run_row)
+    if any("typed in the reply" in x for x in f):
+        print("tripped: C22 by setup questions typed out ('one number per line') where the host has a question tool (the ChatGPT regression)")
+    else:
+        print("FAIL C22 must trip on a typed setup list where the host has a question tool:", f); ok = False
+    f, _ = battery([popup_init] + typed + bt[1:], "standard", run_row, popup=False)
+    if any(x.startswith("C22") for x in f):
+        print("FAIL C22 must allow a typed list where the host has no question tool:", f); ok = False
+    else:
+        print("passes: C22 on a typed list where the host has no question tool (the fallback)")
+    if any(x.startswith("C22") for x in battery(typed + bt, "standard", run_row)[0]) or not any("typed in the reply" in x for x in battery([popup_init] + typed + bt[1:], "standard", run_row)[0]):
+        print("FAIL C22 must read the host's tool list: no AskUserQuestion = fallback allowed, AskUserQuestion listed = a typed list fails"); ok = False
+    else:
+        print("passes: C22 reads the session's tool list (typed list allowed without a question tool, a failure with one)")
+    bt = [popup_init] + bt[1:]
+    empty = [msg("text", "One quick question: answer in the popup, or skip and I'll go on without it."),
+             '{"type": "assistant", "message": {"content": [{"type": "tool_use", "id": "q1", "name": "AskUserQuestion", "input": {"questions": [{"question": "Who else has a say in custodian choices at Alder Grey?"}]}}]}}',
+             '{"type": "user", "message": {"content": [{"type": "tool_result", "tool_use_id": "q1", "content": "The user doesn\'t want to proceed with this tool use."}]}}']
+    f, _ = battery(empty + bt, "standard", run_row)
+    if any("came back with no answer" in x for x in f):
+        print("tripped: C22 by a popup that came back empty and was not asked again in the reply")
+    else:
+        print("FAIL C22 must trip on an empty popup that is not re-asked:", f); ok = False
+    again = empty + [msg("text", "The popup closed with no answer. Who else has a say in custodian choices at Alder Grey? Reply, or reply skip and I'll go on without it."),
+                     json.dumps({"type": "user", "message": {"role": "user", "content": "skip"}})]
+    f, _ = battery(again + bt, "standard", run_row)
+    if any(x.startswith("C22") for x in f):
+        print("FAIL C22 must pass an empty popup asked again in the reply, then the user's answer:", f); ok = False
+    else:
+        print("passes: C22 on an empty popup asked again in the reply (the typed fallback), then the user's answer")
+    prof = "Transaction advisory for mid-market sellers"
+    for case, req, expect in (("AI meeting prep against a saved transaction-advisory offer", "Satya Nadella, Microsoft -- first introduction; I want a second meeting about AI meeting prep for his executive team.", True),
+                              ("the same business in other words", "Jane Doe, Alder Grey -- I want to talk about transaction advisory for her firm's sale.", False),
+                              ("a request with no stated purpose", "Jane Doe, Alder Grey Capital", False)):
+        got = bool(offer_conflict(prof, req))
+        if got != expect:
+            print(f"FAIL offer-conflict on {case}: expected {expect}"); ok = False
+        else:
+            print(f"{'tripped' if expect else 'passes'}: C22 offer conflict on {case}")
+    f, _ = battery([json.dumps({"type": "user", "message": {"role": "user", "content": "Satya Nadella, Microsoft -- I want a second meeting about AI meeting prep for his executive team."}})] + bt,
+                   "standard", run_row, profile=prof)
+    if any("conflicts with the request" in x for x in f):
+        print("tripped: C22 by a saved offer that conflicts with the request and no question before the first search")
+    else:
+        print("FAIL C22 must trip on a saved-offer conflict with no question:", f); ok = False
+    # ---- records (C23): the three records are complete and agree
+    rec_dir = fx / "records_ok"
+    c12_md = c12
+    if records_check(rec_dir, "standard", c12_md):
+        print("FAIL records_ok must pass C23:", records_check(rec_dir, "standard", c12_md)); ok = False
+    else:
+        print("passes: C23 on records_ok (12 claims, 12 source-type counts, six dimensions) against control_12.md")
+    import tempfile
+    def broken(edit, name):
+        with tempfile.TemporaryDirectory() as td:
+            for fn in ("claims.jsonl", "coverage.json", "read.json"):
+                (pathlib.Path(td) / fn).write_text((rec_dir / fn).read_text())
+            edit(pathlib.Path(td))
+            return records_check(td, "standard", c12_md)
+    def jedit(fn, mut):
+        def go(d):
+            j = json.loads((d / fn).read_text()); mut(j); (d / fn).write_text(json.dumps(j))
+        return go
+    for case, edit, want in (
+            ("a coverage record without per-source-type counts", jedit("coverage.json", lambda j: j.pop("hits_by_family")), "hits_by_family"),
+            ("a coverage record that skips one source type", jedit("coverage.json", lambda j: j["hits_by_family"].pop("F12")), "must hold a count for each"),
+            ("a coverage count that disagrees with the claims", jedit("coverage.json", lambda j: j["hits_by_family"].update(F3=5)), "claims.jsonl holds"),
+            ("a FULL status the claims do not support", jedit("coverage.json", lambda j: j.update(status="LIMITED")), "coverage.status"),
+            ("a coverage record without its rounds", jedit("coverage.json", lambda j: j.pop("rounds")), "lacks"),
+            ("a behavioral record missing a field", jedit("read.json", lambda j: j[0].pop("observation_ids")), "lacks"),
+            ("a behavioral record with five dimensions", jedit("read.json", lambda j: j.pop()), "six dimensions"),
+            ("a band whose move is not the rubric's", jedit("read.json", lambda j: j[0].update(meeting_meaning="Be nice.")), "word for word"),
+            ("a tier its observations cannot carry", jedit("read.json", lambda j: j[0].update(observation_ids=[3])), "needs 3 observations"),
+            ("a claim missing a field", lambda d: (d / "claims.jsonl").write_text("\n".join(json.dumps({k: v for k, v in json.loads(x).items() if k != "grade"} if i == 0 else json.loads(x))
+                                                                                           for i, x in enumerate((d / "claims.jsonl").read_text().splitlines()))), "lacks"),
+            ("a ledger row whose page is not in claims.jsonl", lambda d: (d / "claims.jsonl").write_text("\n".join(x for x in (d / "claims.jsonl").read_text().splitlines() if '"id": 5,' not in x)), "does not hold")):
+        f = broken(edit, case)
+        if any(want in x for x in f):
+            print(f"tripped: C23 by {case}")
+        else:
+            print(f"FAIL C23 must trip on {case} (got {f})"); ok = False
+    # ---- assemble (C26): the brief is built from the schema, never written; grading (C25): weak sources never read strong
+    import yaml as _y
+    prof_ok = _y.safe_load((fx / "profile_ok.yaml").read_text())
+    ab, asc, aprobs = assemble(rec_dir, prof_ok)
+    afail = aprobs + schema_check(ab, asc) + grading_check(ab) + checks(ab, asc, "all", ["Jane Doe", "Doe", "Alder Grey Capital"], "experienced", "high")
+    if afail:
+        print("FAIL assemble(records_ok) must build a brief that passes schema, grading and every check:", *afail, sep="\n - "); ok = False
+    else:
+        print(f"passes: C26 and C25 on the assembled brief (12 facts, {len(re.findall(chr(10) + '## ', ab))} blocks) and every other check")
+    mut = {"a block renamed": (lambda b, s: (b.replace("## B3 Who they are", "## B3 About them"), s), "titled"),
+           "a block out of order": (lambda b, s: (b.replace("## B7 Who decides", "## B8 Strongest case against", 1), s), "blocks are"),
+           "a label its form does not have": (lambda b, s: (b.replace("- **The gate:**", "- **Gatekeeper:**"), s), "which its form does not have"),
+           "a table header changed": (lambda b, s: (b.replace("| Observable | What to do with it |", "| Signal | Action |"), s), "table header"),
+           "the tier line gone": (lambda b, s: (re.sub(r"\*\*Evidence tier:\*\*[^\n]*", "", b), s), "tier line"),
+           "the ledger's label grid reordered": (lambda b, s: (b.replace("| **Still open** |", "| **Open items** |"), s), "label grid"),
+           "a subhead of B9 renamed": (lambda b, s: (b.replace("### Meeting two", "### Next meeting"), s), "subheads"),
+           "the masthead's meta line rewritten": (lambda b, s: (b.replace("Meeting: ", "Call: ", 1), s), "meta line"),
+           "the script's title changed": (lambda b, s: (b, s.replace("# Meeting script", "# Call script", 1)), "script must open"),
+           "a script section out of order": (lambda b, s: (b, s.replace("## P1 Open", "## P9 Next step", 1)), "script's sections")}
+    for case, (fn, want) in mut.items():
+        mb, ms = fn(ab, asc)
+        f = schema_check(mb, ms)
+        if any(want in x for x in f):
+            print(f"tripped: C26 by {case}")
+        else:
+            print(f"FAIL C26 must trip on {case} (wanted '{want}'; got {f})"); ok = False
+    with tempfile.TemporaryDirectory() as td:
+        for fn in ("claims.jsonl", "coverage.json", "read.json", "fields.json"):
+            (pathlib.Path(td) / fn).write_text((rec_dir / fn).read_text())
+        (pathlib.Path(td) / "brief.md").write_text(ab); (pathlib.Path(td) / "script.md").write_text(asc)
+        if assembled_matches(td, prof_ok):
+            print("FAIL assemble --check must pass the files assemble wrote:", assembled_matches(td, prof_ok)); ok = False
+        else:
+            print("passes: C26 assemble --check on the files assemble wrote")
+        (pathlib.Path(td) / "brief.md").write_text(ab.replace("Raising a second vehicle", "Raising a second fund"))
+        if any("differs from what eval.py assemble builds" in x for x in assembled_matches(td, prof_ok)):
+            print("tripped: C26 by a hand edit to brief.md after assembly")
+        else:
+            print("FAIL C26 must trip on a hand edit to brief.md"); ok = False
+        fj = json.loads((rec_dir / "fields.json").read_text()); fj["b1"].pop("avoid")
+        (pathlib.Path(td) / "fields.json").write_text(json.dumps(fj))
+        if any("needs 'avoid'" in x for x in assemble(td, prof_ok)[2]):
+            print("tripped: C26 by a field left empty in fields.json (B1 avoid)")
+        else:
+            print("FAIL assemble must report a missing required field"); ok = False
+    gcases = {"a weak domain read Strong": (lambda b: re.sub(r"(\[thefabulous\.co\]\(https://thefabulous\.co/12\)[^|]*\| )[^|]+\|", "\\1Measured · Strong |", b), "weak"),
+              "an Inference row read Strong": (lambda b: re.sub(r"(Sets agendas on panels \|[^|]*\| )[^|]+\|", "\\1Inference · Strong |", b), "caps"),
+              "a Search row read Solid": (lambda b: re.sub(r"(Fact 6 about Alder Grey Capital \|[^|]*\| )[^|]+\|", "\\1Derived · Solid |", b).replace("career profile", "career profile"), "caps"),
+              "the strength key left out": (lambda b: re.sub(r"Strength: [^.]*\.", "", b), "key the strengths"),
+              "a row with no tag": (lambda b: b.replace("(https://example.org/1) · Direct", "(https://example.org/1)"), "how it was found"),
+              "a row with no strength": (lambda b: b.replace("Measured · Strong", "Measured", 1), "no source strength")}
+    weak_ab = ab.replace("[example.org](https://example.org/12)", "[thefabulous.co](https://thefabulous.co/12)")   # the real regression: a weak domain printed Measured
+    for case, (fn, want) in gcases.items():
+        f = grading_check(fn(weak_ab if "weak" in want else ab))
+        if any(want in x for x in f):
+            print(f"tripped: C25 by {case}")
+        else:
+            print(f"FAIL C25 must trip on {case} (got {f})"); ok = False
+    c_weak = dict(id=1, url="https://thefabulous.co/pod/x", tag="Direct", grade="Measured", confidence="C1")
+    if effective_conf(c_weak) != "C3" or effective_conf(dict(c_weak, url="https://sec.gov/x")) != "C1" or effective_conf(dict(c_weak, url="https://sec.gov/x", tag="Search")) != "C3" or effective_conf(dict(c_weak, url="https://sec.gov/x", grade="Inference")) != "C4":
+        print("FAIL effective_conf: a weak domain, a Search tag and an Inference grade must each cap a C1 claim"); ok = False
+    else:
+        print("passes: a C1 claim from a weak domain prints Weak (C3), from a Search result Weak, an Inference Inferred; from sec.gov, Measured and Direct, Strong")
+    if "F2" in [f["id"] for f in base_families("standard", "company")] or "F6" in [f["id"] for f in base_families("standard", "person", "none")] or 2 in battery_floor("standard", "company")[0]:
+        print("FAIL a company target must drop the person-only source types and round 2; scope none must drop F6"); ok = False
+    else:
+        print("passes: target kind and social scope steer the base pass (company drops F2 F5 F6 F7 and round 2; scope none drops F6)")
+    # ---- kept facts (C24): a fit pass cuts wording, never cited facts
+    cut = re.sub(r"^\| \[12\].*\n", "", c12, flags=re.M).replace(" [12]", "").replace("12 facts cited", "11 facts cited").replace("12 cited", "11 cited")
+    shorter = c12.replace("Introduction to the custodian offered", "Custodian introduction offered").replace("Sets agendas on panels", "Sets panel agendas")
+    for case, final, allow, trips in (("a cited fact cut to fit the page", cut, (), True),
+                                      ("the same fact cut, named as a dead link", cut, ("https://example.org/12",), False),
+                                      ("shorter wording, every fact kept", shorter, (), False)):
+        f = kept_check(c12, final, allow)
+        if bool(f) != trips:
+            print(f"FAIL C24 on {case}: expected {'a failure' if trips else 'a pass'}, got {f}"); ok = False
+        else:
+            print(f"{'tripped' if trips else 'passes'}: C24 on {case}")
     late = c12.replace("| Sep 20, 2026 · standard", "| Oct 15, 2026 · standard")
     for case, md, trips in (("a Run row from before Oct 15 without counts (frozen targets)", c12, False),
                             ("a Run row from Oct 15 without counts", late, True),
                             ("a Run row from Oct 15 below the standard floor", late.replace("· FULL |", "· FULL · 9 searches in 3 rounds |"), True),
-                            ("a Run row from Oct 15 with 20 searches in 5 rounds", late.replace("· FULL |", "· FULL · 20 searches in 5 rounds |"), False)):
+                            ("a Run row from Oct 15 with 20 searches in 5 rounds", late.replace("· FULL |", "· FULL · 20 searches in 5 rounds |"), False),
+                            ("a Run row from Oct 16 without the base count", late.replace("Oct 15", "Oct 16").replace("· FULL |", "· FULL · 20 searches in 5 rounds |"), True),
+                            ("a Run row from Oct 16 below the base floor", late.replace("Oct 15", "Oct 16").replace("· FULL |", "· FULL · 25 searches (5 base) in 5 rounds |"), True),
+                            ("a Run row from Oct 16 with 31 searches (11 base) in 5 rounds", late.replace("Oct 15", "Oct 16").replace("· FULL |", "· FULL · 31 searches (11 base) in 5 rounds |"), False)):
         got = [x for x in checks(md, which="battery") if x.startswith("C21 ")]
         if bool(got) != trips:
             print(f"FAIL C21 on {case}: expected {'a failure' if trips else 'a pass'}, got {got}"); ok = False
@@ -1069,7 +1324,8 @@ def side_by_side(pdf):
         cols = [c.split("+")[0] for c in group.split("|")]
         if len(cols) != 2 or not all(c in title for c in cols):
             continue   # the script's columns (page 3) flow; only the brief's pairs are fixed
-        a, b = (lines.get(title[c]) for c in cols)
+        first = lambda ttl: lines.get(ttl) or next((v for k, v in lines.items() if len(k) >= 10 and ttl.startswith(k)), None)   # a long title may wrap: its first line counts
+        a, b = (first(title[c]) for c in cols)
         if not (a and b and a[0] == b[0] and abs(a[2] - b[2]) <= 6 and b[1] - a[1] >= 150):
             at = lambda v: f"page {v[0]}, x {v[1]:.0f}, y {v[2]:.0f}" if v else "not found"
             fails.append(f"C19 render: {cols[0]} and {cols[1]} do not print side by side as the schema's columns "
@@ -1151,7 +1407,7 @@ def text_colors(pdf):
 
 # ---------------------------------------------------------------- battery (C21) ----------------------------------
 OPERATOR = re.compile(r"\b(?:site|intitle|inurl|filetype|after|before|allintitle|allinurl):|\bOR\b|(?:^|\s)-[\"\w]")
-RUN_COUNTS = re.compile(r"(\d+) searches in (\d+) rounds")
+RUN_COUNTS = re.compile(r"(\d+) searches(?: \((\d+) base\))? in (\d+) rounds")   # N total, B in the base pass, M rounds
 BROWSER_TOOL = re.compile(r"chrome|computer|browser|playwright", re.I)
 URL = re.compile(r"https?://[^\s\"'<>)\]]+")
 
@@ -1164,85 +1420,437 @@ def _page(url):
     return p.netloc.lower().removeprefix("www.") + p.path.rstrip("/") + ("?" + q if q else "")
 
 
-def battery_floor(depth):
+def enabled(depth, kind="person", scope="professional"):
+    """The source types a run enables: the depth column, the target kind (company and deal targets drop person-only types) and the
+    social scope (none: no public-social type). Same filter as the source-types table in SKILL.md."""
+    return [f for f in R["families"] if depth in f["depth"] and kind in f["kinds"] and not (scope == "none" and f["socmint"])]
+
+
+def base_families(depth, kind="person", scope="professional"):
+    """S2-9 base pass: the source types enabled that have a search template of their own. F11 reads the user's
+    notes (no search); F9 searches the registers of the user's domain (none for a general one), so neither is required."""
+    return [f for f in enabled(depth, kind, scope) if not str(f["query"]).startswith(("known_context", "by_domain"))]
+
+
+def family_sig(f):
+    """The terms of a source type's query template that make it that type: placeholders, quotes, OR and the filter left out."""
+    q = re.sub(r"\{[^}]*\}", " ", str(f["query"]).split(" -- ")[0])
+    return [w for w in (x.lower().removeprefix("site:") for x in re.findall(r"[A-Za-z][\w.:/-]*", q)) if w not in ("or", "and", "site", "") and len(w) > 2]
+
+
+def family_sent(f, queries):
+    """Did one of the base-pass queries carry this source type's template terms? Half of them, at least one (F1's template is
+    all placeholders: any base search is its). F6 also counts a search filtered to one of its networks."""
+    sig = family_sig(f)
+    nets = R["research"]["socmint_networks"]["social"]
+    for q in queries:
+        text, doms = q.get("query", "").lower(), " ".join(q.get("domains") or []).lower()
+        if not sig or sum(1 for w in sig if w in text) >= max(1, len(sig) // 2) or (f["id"] == "F6" and any(n.split("/")[0] in doms for n in nets if "." in n)):
+            return True
+    return False
+
+
+def battery_floor(depth, kind="person", scope="professional"):
     """S2-9: the rounds a depth runs (every round with a source type the depth enables), the queries each round sends
     at least, and how many of all of them carry an operator or a domain filter. render_skill.py prints the same table."""
     b = R["osint"]["battery"]
-    on = {f["id"] for f in R["families"] if depth in f["depth"]}
+    on = {f["id"] for f in enabled(depth, kind, scope)}
     need = [r["round"] for r in R["osint"]["rounds"] if on & set(r["types"])]
     per = b["queries_per_round"][depth]
     return need, per, math.ceil(round(per * len(need) * b["operator_share"], 6))
 
 
-def battery(lines, depth="standard", brief="", cited=None):
-    """C21: the search battery as a run sent it, read from its stream-json transcript (the run's own words and tool
-    calls, not its report). Returns (failures, summary). S2-9 sends a round's queries together, in one step, so each
-    step's batch of searches (one assistant message) is one round. A 'Round N (name): ...' line before it (in the reply
-    or the reasoning) gives its number; a batch with no line takes the number after the round before it (the R11 runs
-    kept their lines to their reasoning in prose; the chat-app reply A6, Oct 16, stated only round 1's). With the brief,
-    every page its ledger cites (the PDF's links, or the brief.md's) must be one the run requested, LinkedIn aside:
-    R11b (Oct 15) cited 5 results from their snippets alone. C11 also reads each reply the user got (the closing
-    replies of R12 and R13, Oct 16, said 'C3' and 'debrief')."""
-    pending, early, fails, batches, named, seen, opened, fetch_ids = None, [], [], {}, {}, 0, set(), set()
-    replies, last = [], ""
-    for line in lines:
+# ---------------------------------------------------------------- history: one reader for every host -------------------
+# The battery (C21), quiet research (C21), questions (C22) are read from the run's own history, not its report. Hosts keep
+# that history in different files; each is read into the same events, so no host is "unavailable":
+#   Claude Code / Agent SDK  stream-json or ~/.claude/projects/<folder>/<session>.jsonl   (assistant / user / result lines)
+#   Codex                    ~/.codex/sessions/YYYY/MM/DD/rollout-<time>-<thread id>.jsonl (response_item / event_msg lines)
+#   ChatGPT app              the export's conversations.json (a mapping of messages)
+#   Claude app               the export's conversations.json (chat_messages with content blocks)
+# An event is a dict: kind text | thinking | user | search | open | ask | browser | shell | result | redirect, plus step
+# (the tool step it belongs to: searches of one step are one round), and text / query / filtered / url / name / questions.
+HOST_FILES = ("Claude Code: the newest ~/.claude/projects/<folder>/*.jsonl; Codex: ~/.codex/sessions/**/rollout-*<$CODEX_THREAD_ID>.jsonl; "
+              "ChatGPT or the Claude app: the conversations.json from the account's data export")
+ASK_TOOL = re.compile(r"ask|question|user_input", re.I)
+
+
+def _blocks_claude(e, ev, st):
+    """One Claude Code / Agent SDK line (stream-json and session files share it)."""
+    if e.get("type") == "system" and e.get("subtype") == "init":
+        ev.append(dict(kind="tools", names=e.get("tools") or [])); return
+    if e.get("type") == "result" and e.get("result"):
+        ev.append(dict(kind="result", text=e["result"])); return
+    if e.get("type") == "user":
+        c = e.get("message", {}).get("content")
+        if isinstance(c, str):
+            ev.append(dict(kind="user", text=c))
+        for x in c if isinstance(c, list) else []:
+            if x.get("type") == "text":
+                ev.append(dict(kind="user", text=x.get("text", "")))
+            elif x.get("type") == "tool_result":
+                body = json.dumps(x.get("content"))
+                ev.append(dict(kind="tool_result", id=x.get("tool_use_id"), text=body))
+                if re.search(r"redirect", body, re.I):
+                    ev.append(dict(kind="redirect", id=x.get("tool_use_id"), urls=URL.findall(body.replace("\\n", " "))))
+        return
+    if e.get("type") != "assistant":
+        return
+    st["n"] += 1
+    step = e.get("message", {}).get("id") or f"line-{st['n']}"   # stream-json splits one message's blocks over lines
+    side = bool(e.get("isSidechain") or e.get("parent_tool_use_id"))   # a subagent's own messages: not the reply
+    for x in e.get("message", {}).get("content") or []:
+        t = x.get("type")
+        if t == "text":
+            ev.append(dict(kind="text", text=x.get("text", ""), step=step, side=side))
+        elif t == "thinking":
+            ev.append(dict(kind="thinking", text=x.get("thinking") or x.get("text") or "", step=step))
+        elif t == "tool_use":
+            name, inp = x.get("name", ""), x.get("input") or {}
+            if name == "WebSearch":
+                ev.append(dict(kind="search", step=step, query=inp.get("query", ""),
+                               filtered=bool(inp.get("allowed_domains") or inp.get("blocked_domains")),
+                               domains=inp.get("allowed_domains") or []))
+            elif name == "WebFetch":
+                ev.append(dict(kind="open", step=step, url=inp.get("url", ""), id=x.get("id")))
+            elif name == "Bash" and re.search(r"\b(?:curl|wget)\b", inp.get("command", "")):
+                ev.append(dict(kind="shell", step=step, urls=URL.findall(inp["command"]), command=inp["command"]))
+            elif ASK_TOOL.search(name):
+                ev.append(dict(kind="ask", step=step, name=name, id=x.get("id"), questions=_ask_texts(inp)))
+            elif name in ("Agent", "Task"):
+                ev.append(dict(kind="delegate", step=step, name=name, text=str(inp.get("description", ""))))
+            if BROWSER_TOOL.search(name):
+                ev.append(dict(kind="browser", step=step, name=name))
+
+
+def _ask_texts(obj):
+    """Every question string a question widget's arguments carry (question, title, prompt, label, header)."""
+    out = []
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if k in ("question", "title", "prompt", "text", "message") and isinstance(v, str):
+                out.append(v)
+            else:
+                out += _ask_texts(v)
+    elif isinstance(obj, list):
+        for v in obj:
+            out += _ask_texts(v)
+    return out
+
+
+JS_Q = re.compile(r"""\bq\s*:\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"|`((?:[^`\\]|\\.)*)`)\s*(?:,\s*domains\s*:\s*\[([^\]]*)\])?""")
+
+
+def _js_unescape(s):
+    return re.sub(r"\\(.)", lambda m: {"n": "\n", "t": "\t"}.get(m.group(1), m.group(1)), s)
+
+
+def _blocks_codex(e, ev, st):
+    """One Codex rollout line. Searches and page opens are the app's own item_completed events (web.search); each
+    carries the queries it sent. Their domain filters are only in the script that sent them (domains:[...]), so those are
+    read from the exec call's text."""
+    p = e.get("payload") or {}
+    if e.get("type") == "response_item":
+        t = p.get("type")
+        if t == "message":
+            txt = "".join(x.get("text", "") for x in p.get("content") or [] if isinstance(x, dict))
+            if p.get("role") == "assistant":
+                ev.append(dict(kind="text", text=txt, step=st["call"]))
+            elif p.get("role") == "user" and txt.strip() and not txt.lstrip().startswith(("<", "# AGENTS")):
+                ev.append(dict(kind="user", text=txt))
+        elif t == "reasoning":
+            summ = " ".join(x.get("text", "") for x in p.get("summary") or [] if isinstance(x, dict))
+            ev.append(dict(kind="thinking", text=summ, step=st["call"]))
+        elif t == "function_call_output":
+            out = p.get("output")
+            ev.append(dict(kind="tool_result", id=p.get("call_id"), text=out if isinstance(out, str) else json.dumps(out)))
+        elif t in ("custom_tool_call", "function_call"):
+            st["call"] += 1
+            body = p.get("input") or p.get("arguments") or ""
+            name = p.get("name", "")
+            if t == "function_call" and ASK_TOOL.search(name):
+                try:
+                    qs = _ask_texts(json.loads(body))
+                except ValueError:
+                    qs = [body]
+                ev.append(dict(kind="ask", step=st["call"], name=name, id=p.get("call_id"), questions=qs))
+            for m in JS_Q.finditer(body):
+                q = _js_unescape(next(g for g in m.groups()[:3] if g is not None))
+                if m.group(4) and re.search(r"\w", m.group(4)):
+                    st["filters"].setdefault(q, [])
+                    st["filters"][q] += re.findall(r"[\"'`]([^\"'`]+)[\"'`]", m.group(4))
+            for tool in set(re.findall(r"\btools\.(\w+)\(", body)):
+                if BROWSER_TOOL.search(tool):
+                    ev.append(dict(kind="browser", step=st["call"], name=tool))
+            if re.search(r"\b(?:curl|wget)\b", body):
+                ev.append(dict(kind="shell", step=st["call"], urls=URL.findall(body), command=body))
+            for u in re.findall(r"open\s*:\s*\[([^\]]*)\]", body):   # web__run({open:[{ref_id:"https://..."}]})
+                ev.append(dict(kind="open", step=st["call"], url=" ".join(URL.findall(u)), planned=True))
+        return
+    if e.get("type") == "event_msg" and p.get("type") == "item_completed":
+        it = p.get("item") or {}
+        if it.get("kind") == "web.search":
+            a = it.get("action") or {}
+            if a.get("type") == "search":
+                for q in a.get("queries") or ([a["query"]] if a.get("query") else []):
+                    doms = st["filters"].get(q, [])
+                    ev.append(dict(kind="search", step=st["call"], query=q, filtered=bool(doms), domains=doms))
+            elif a.get("type") == "openPage" and a.get("url"):
+                ev.append(dict(kind="open", step=st["call"], url=a["url"]))
+
+
+def _parts_text(content):
+    if not isinstance(content, dict):
+        return str(content or "")
+    parts = content.get("parts")
+    if parts:
+        return "\n".join(x if isinstance(x, str) else (x.get("text", "") if isinstance(x, dict) else "") for x in parts)
+    return content.get("text") or ""
+
+
+def _chatgpt(conv, ev):
+    """One ChatGPT export conversation: walk the message tree from the current node back to the root. Searches are the
+    assistant's tool calls to the browser tool (search("..."), a JSON search_query list) or the message's own search queries."""
+    mp = conv.get("mapping") or {}
+    chain, node = [], conv.get("current_node") or next(reversed(mp), None)
+    while node and node in mp:
+        chain.append(mp[node]); node = mp[node].get("parent")
+    for n, nd in enumerate(reversed(chain)):
+        m = nd.get("message") or {}
+        role = (m.get("author") or {}).get("role")
+        c = m.get("content") or {}
+        ctype, text, step = c.get("content_type"), _parts_text(c), m.get("id") or f"msg-{n}"
+        rcp = m.get("recipient") or "all"
+        if role == "user" and ctype in ("text", "multimodal_text") and text.strip():
+            ev.append(dict(kind="user", text=text))
+        elif role == "assistant" and rcp == "all" and ctype in ("text", "multimodal_text") and text.strip():
+            ev.append(dict(kind="text", text=text, step=step))
+        elif role == "assistant" and ctype in ("thoughts", "reasoning_recap"):
+            ev.append(dict(kind="thinking", text=text or json.dumps(c.get("thoughts", "")), step=step))
+        elif role == "assistant" and rcp != "all":   # a tool call: browser / web / web.run
+            qs = [m_.group(1) or m_.group(2) for m_ in re.finditer(r"""search\(\s*(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)')""", text)]
+            try:
+                j = json.loads(text)
+            except ValueError:
+                j = None
+            doms = {}
+            if isinstance(j, dict):
+                for x in j.get("search_query", []):
+                    if isinstance(x, dict):
+                        qs.append(x.get("q", "")); doms[x.get("q", "")] = x.get("domains") or []
+                for x in j.get("open", []) or []:
+                    if isinstance(x, dict) and str(x.get("ref_id", "")).startswith("http"):
+                        ev.append(dict(kind="open", step=step, url=x["ref_id"]))
+            for q in qs:
+                ev.append(dict(kind="search", step=step, query=_js_unescape(q), filtered=bool(doms.get(q)), domains=doms.get(q, [])))
+            for u in re.findall(r"""open_url\(\s*["']([^"']+)""", text):
+                ev.append(dict(kind="open", step=step, url=u))
+        sq = (m.get("metadata") or {}).get("search_model_queries") or {}
+        for q in sq.get("queries", []) if isinstance(sq, dict) else []:
+            ev.append(dict(kind="search", step=step, query=q, filtered=False, domains=[]))
+        for x in (m.get("metadata") or {}).get("search_result_groups") or []:
+            for r in x.get("entries", []) if isinstance(x, dict) else []:
+                pass   # results are not requests
+
+
+def _claude_app(conv, ev):
+    for n, m in enumerate(conv.get("chat_messages") or []):
+        step = m.get("uuid") or f"msg-{n}"
+        if m.get("sender") == "human":
+            ev.append(dict(kind="user", text=m.get("text") or " ".join(x.get("text", "") for x in m.get("content") or [] if isinstance(x, dict))))
+            continue
+        blocks = m.get("content") or [dict(type="text", text=m.get("text", ""))]
+        for x in blocks:
+            t = x.get("type")
+            if t == "text" and (x.get("text") or "").strip():
+                ev.append(dict(kind="text", text=x["text"], step=step))
+            elif t == "thinking":
+                ev.append(dict(kind="thinking", text=x.get("thinking", ""), step=step))
+            elif t == "tool_use":
+                name, inp = x.get("name", ""), x.get("input") or {}
+                if re.search(r"web_search|WebSearch", name):
+                    ev.append(dict(kind="search", step=step, query=inp.get("query", ""),
+                                   filtered=bool(inp.get("allowed_domains") or inp.get("blocked_domains")), domains=inp.get("allowed_domains") or []))
+                elif re.search(r"web_fetch|WebFetch", name):
+                    ev.append(dict(kind="open", step=step, url=inp.get("url", ""), id=x.get("id")))
+                elif ASK_TOOL.search(name):
+                    ev.append(dict(kind="ask", step=step, name=name, id=x.get("id"), questions=_ask_texts(inp)))
+                if BROWSER_TOOL.search(name):
+                    ev.append(dict(kind="browser", step=step, name=name))
+
+
+def read_history(lines):
+    """The events of one run, whatever host kept them. `lines` is the file's lines (jsonl) or its whole text (json);
+    an already-read event list passes through. Returns (events, host)."""
+    if lines and isinstance(lines[0], dict):
+        return lines, "events"
+    text = "\n".join(ln.rstrip("\n") for ln in lines)
+    host, ev = None, []
+    try:
+        data = json.loads(text)   # a whole-file export; a .jsonl history is many documents, so this fails and the lines are read
+    except ValueError:
+        data = None
+    convs = data if isinstance(data, list) else [data] if isinstance(data, dict) else []
+    if convs and isinstance(convs[0], dict) and "mapping" in convs[0]:
+        host = "ChatGPT export"
+        for c in convs:
+            _chatgpt(c, ev)
+        return ev, host
+    if convs and isinstance(convs[0], dict) and "chat_messages" in convs[0]:
+        host = "Claude app export"
+        for c in convs:
+            _claude_app(c, ev)
+        return ev, host
+    st = {"n": 0, "call": 0, "filters": {}}
+    for line in text.splitlines():
         try:
             e = json.loads(line)
         except ValueError:
             continue
-        if e.get("type") == "user" and isinstance(e.get("message", {}).get("content"), list):
-            for x in e["message"]["content"]:   # a fetch that was redirected opened the page it names
-                body = json.dumps(x.get("content")) if x.get("type") == "tool_result" else ""
-                if x.get("tool_use_id") in fetch_ids and re.search(r"redirect", body, re.I):
-                    opened.update(_page(u) for u in URL.findall(body.replace("\\n", " ")))
+        if not isinstance(e, dict):
             continue
-        if e.get("type") == "result" and e.get("result"):
-            replies.append(e["result"])
-        if e.get("type") != "assistant":
-            continue
-        seen += 1
-        mid = e.get("message", {}).get("id") or f"line-{seen}"   # stream-json splits one message's blocks over lines
-        for x in e.get("message", {}).get("content") or []:
-            if x.get("type") in ("text", "thinking"):
-                last = x.get("text") or last
-                heads = re.findall(r"^\W*Round (\d)\s*\(", x.get("text") or x.get("thinking") or "", re.M)
-                if heads:
-                    pending = int(heads[-1])
-            elif x.get("type") == "tool_use":
-                name, inp = x.get("name", ""), x.get("input") or {}
-                if name == "WebSearch":
-                    if mid not in batches:
-                        batches[mid], named[mid], pending = [], pending, None
-                    batches[mid].append(inp)
-                elif name == "WebFetch":
-                    opened.add(_page(inp.get("url", ""))); fetch_ids.add(x.get("id"))
-                    if "linkedin.com" in inp.get("url", "").lower():
-                        fails.append(f"C21 battery: a linkedin.com page was requested ({inp['url']}); LinkedIn is read from search results only")
-                elif name == "Bash" and re.search(r"\b(?:curl|wget)\b", inp.get("command", "")):
-                    opened.update(_page(u) for u in URL.findall(inp["command"]))
-                    if re.search(r"(?:curl|wget)[^\n]*linkedin\.com", inp["command"]):
-                        fails.append("C21 battery: a shell command requested linkedin.com; LinkedIn is read from search results only")
-                if BROWSER_TOOL.search(name):
-                    fails.append(f"C21 battery: the browser tool {name} was called; research never drives a browser")
-    rounds, steps, n, lined = {}, {}, 0, any(v is not None for v in named.values())
-    for mid, qs in batches.items():
-        if named[mid] is not None:
-            n = named[mid]
-        elif lined and n == 0:   # searches before the run's first round line
-            early += qs; continue
+        if host is None:
+            host = "Codex" if e.get("type") in ("session_meta", "response_item", "event_msg", "turn_context", "world_state", "token_usage_record") else "Claude Code"
+        (_blocks_codex if host == "Codex" else _blocks_claude)(e, ev, st)
+    return ev, host or "Claude Code"
+
+
+def find_history(host=None, cwd=None):
+    """The newest history file this host keeps for the current session (--latest): Claude Code's project folder for the
+    working folder, or the Codex rollout whose name carries $CODEX_THREAD_ID (else the newest). Returns a path or None."""
+    import os
+    home = pathlib.Path.home()
+    tid = os.environ.get("CODEX_THREAD_ID", "")
+    if host in (None, "codex") and (tid or host == "codex"):
+        files = sorted((home / ".codex/sessions").glob("**/rollout-*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
+        hit = [p for p in files if tid and tid in p.name]
+        if hit or (host == "codex" and files):
+            return (hit or files)[0]
+    folder = re.sub(r"[^A-Za-z0-9]", "-", str(pathlib.Path(cwd or os.getcwd()).resolve()))
+    files = sorted((home / ".claude/projects" / folder).glob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True) if (home / ".claude/projects" / folder).is_dir() else []
+    return files[0] if files else None
+
+
+def _content_words(t):
+    return {w for w in re.findall(r"\b(?:ai|[a-z][a-z'-]{2,})\b", t.lower()) if w not in STOP}
+
+
+STOP = set("the and for are but not you your with that this from have has had was were will can could would should about into over than then them they their "
+           "who what when where which how why any all one two out our its his her him she who whom also use used using per via get got let may might "
+           "meeting call prep prepare first second time want need new".split())
+
+
+def offer_conflict(saved, request):
+    """C22: the saved offer (Q8) and the request name different businesses. The clear case only: the request states a purpose
+    (about / sell / pitch / offer / discuss / my ...) whose content words share none with the saved offer or the saved domain's
+    vocabulary. A judgment call stays the model's; this flags the one it must not miss. Returns the request's purpose words or []."""
+    purpose = re.findall(r"(?:about|sell(?:ing)?|pitch(?:ing)?|offer(?:ing)?|discuss(?:ing)?|propos(?:e|ing)|introduc(?:e|ing)|demo)\s+([^.;\n]{3,120})", request, re.I)
+    words = set().union(*[_content_words(p) for p in purpose]) if purpose else set()
+    # the domain's own vocabulary counts as the saved business too (Q2)
+    sv = _content_words(saved)
+    sv_stems = {w[:5] for w in sv}
+    shared = {w for w in words if w[:5] in sv_stems}
+    return sorted(words) if len(words) >= 2 and not shared else []
+
+
+# ---------------------------------------------------------------- battery (C21), questions (C22) -------------------
+ROUND_LIST = re.compile(r"\bRounds?\s+\d\b[^\n]{0,90}(?:\||`[^`]+`[^\n]*`[^`]+`|\"[^\"]+\"[^\n]*\"[^\"]+\")")
+
+
+def _round_heads(t):
+    return re.findall(r"^\W*Round (\d)\s*\(", t or "", re.M)
+
+
+def battery(lines, depth="standard", brief="", cited=None, profile=None, popup=None, kind="person", scope="professional"):
+    """C21 and C22, read from the run's history (read_history: Claude Code, Codex, ChatGPT, Claude app). Returns
+    (failures, summary).
+
+    C21. S2-9 sends a round's queries together, in one step, so each step's batch of searches is one round. A 'Round N
+    (name): ...' line in the reasoning gives its number; a batch with no line takes the number after the round before it.
+    Quiet: the reply carries no round line and no text between the first search and the last (one short status before the
+    first search, a question or a stop aside): Codex (Oct 16) printed all ten rounds in chat. With the brief, every page
+    its ledger cites (the PDF's links, or the brief.md's) must be one the run requested, LinkedIn aside. C11 also reads each
+    reply the user got.
+    C22. A question is written in the reply (visible, with its skip rule), and the run waits for the answer: no search, page
+    or file work between the question and the user's next message. A saved offer (profile) that conflicts with the request
+    needs a question before the first search."""
+    ev, host = read_history(lines)
+    fails, batches, named, order = [], {}, {}, []
+    pending, early, opened, fetch_ids = None, [], set(), set()
+    searches = [e for e in ev if e["kind"] == "search"]
+    first_s = next((i for i, e in enumerate(ev) if e["kind"] == "search"), None)
+    last_s = max((i for i, e in enumerate(ev) if e["kind"] == "search"), default=None)
+    for i, e in enumerate(ev):
+        k = e["kind"]
+        if k in ("text", "thinking"):
+            heads = _round_heads(e["text"])
+            if heads:
+                pending = int(heads[-1])
+                if k == "text" and not e.get("side"):
+                    fails.append(f"C21 quiet: a round line went out in the reply ('Round {heads[-1]} (...'): keep each round's line in your reasoning; "
+                                 "the Run row counts them ('N searches (B base) in M rounds')")
+            elif k == "text" and not e.get("side") and ROUND_LIST.search(e["text"]):
+                fails.append("C21 quiet: the reply lists a round's queries ('" + ROUND_LIST.search(e["text"]).group(0)[:50] + "'): search queries live in coverage.json, never in chat")
+        elif k == "search":
+            s = e["step"]
+            if s not in batches:
+                batches[s], named[s], pending = [], pending, None
+                order.append(s)
+            batches[s].append(e)
+        elif k == "open":
+            opened.add(_page(e["url"])); fetch_ids.add(e.get("id"))
+            if "linkedin.com" in e["url"].lower():
+                fails.append(f"C21 battery: a linkedin.com page was requested ({e['url']}); LinkedIn is read from search results only")
+        elif k == "redirect" and e.get("id") in fetch_ids:
+            opened.update(_page(u) for u in e["urls"])
+        elif k == "shell":
+            opened.update(_page(u) for u in e["urls"])
+            if re.search(r"(?:curl|wget)[^\n]*linkedin\.com", e["command"]):
+                fails.append("C21 battery: a shell command requested linkedin.com; LinkedIn is read from search results only")
+        elif k == "browser":
+            fails.append(f"C21 battery: the browser tool {e['name']} was called; research never drives a browser")
+    if first_s is not None:   # quiet: no reply text between the first and the last search, a question aside
+        loud = [e for i, e in enumerate(ev) if e["kind"] == "text" and not e.get("side") and first_s < i < last_s and e["text"].strip()
+                and not any(x["kind"] == "ask" for x in ev[i + 1:i + 3]) and not _round_heads(e["text"])]
+        if loud:
+            fails.append(f"C21 quiet: {len(loud)} reply message{'s' * (len(loud) != 1)} between the first and the last search "
+                         f"(e.g. '{loud[0]['text'].strip()[:60]}'): write nothing in the reply until the brief; results go in the brief")
+    shown = [i for i, e in enumerate(ev) if e["kind"] == "text" and not e.get("side") and e["text"].strip()]
+    final = shown[-1] if shown else None   # the last reply is the closing reply, not a status
+    status = [ev[i] for i in shown if i != final and not any(x["kind"] == "ask" for x in ev[i + 1:i + 3])]
+    long = [e for e in status if len(e["text"].split()) > 30]
+    if long:
+        fails.append(f"C21 quiet: {len(long)} status message{'s' * (len(long) != 1)} over 30 words (e.g. '{long[0]['text'].strip()[:50]}...'): one short status line per stage")
+    if first_s is not None and len(status) > 5:
+        fails.append(f"C21 quiet: {len(status)} status messages in the reply; at most one per stage (five)")
+    need, per, ops_min = battery_floor(depth, kind, scope)
+    lined = any(v is not None for v in named.values())
+    if lined:   # round lines name the rounds; the searches before the first one are the base pass
+        base_steps = order[:next(i for i, s in enumerate(order) if named[s] is not None)]
+    else:       # no lines: the last batches, one per round, are the rounds; the batches before them are the base pass
+        base_steps = order[:max(0, len(order) - len(need))]
+    base = [q for s in base_steps for q in batches[s]]
+    rounds, steps, n = {}, {}, 0
+    for s in order[len(base_steps):]:
+        qs = batches[s]
+        if named[s] is not None:
+            n = named[s]
         else:
             n += 1
         rounds.setdefault(n, []).extend(qs); steps[n] = steps.get(n, 0) + 1
     split = sorted(k for k, v in steps.items() if v > 1)
     if split:
         fails.append(f"C21 battery: rounds {split} went out over several steps; send each round's queries together, once")
-    need, per, ops_min = battery_floor(depth)
     sent = [q for qs in rounds.values() for q in qs]
     done = [n for n in rounds if rounds[n]]
-    filtered = lambda q: bool(q.get("allowed_domains") or q.get("blocked_domains"))
-    ops = sum(1 for q in sent + early if filtered(q) or OPERATOR.search(q.get("query", "")))
-    if early:
-        fails.append(f"C21 battery: {len(early)} searches sent before the Round 1 line")
+    ops = sum(1 for q in sent if q.get("filtered") or OPERATOR.search(q.get("query", "")))
+    req = base_families(depth, kind, scope)
+    lacking = [f for f in req if not family_sent(f, base)]
+    if not base:
+        fails.append(f"C21 base: no base pass before the rounds; send each source type's query template first ({len(req)} for a {depth} run, S2-9)")
+    elif lacking:
+        fails.append(f"C21 base: {len(lacking)} of {len(req)} source types never searched in the base pass: "
+                     + ", ".join(f"{f['id']} {f['name']}" for f in lacking[:5]) + (" ..." if len(lacking) > 5 else "")
+                     + "; the rounds add to the base pass and never replace it")
     missing = [n for n in need if n not in done]
     if missing:
         fails.append(f"C21 battery: rounds {missing} not run; a {depth} run runs rounds {need}")
@@ -1255,21 +1863,27 @@ def battery(lines, depth="standard", brief="", cited=None):
     if short:
         fails.append(f"C21 battery: rounds {short} sent fewer than {per} queries each")
     if ops < ops_min:
-        fails.append(f"C21 battery: {ops} of {len(sent) + len(early)} queries carry an operator or a domain filter; a {depth} run needs {ops_min}")
+        fails.append(f"C21 battery: {ops} of {len(sent)} round queries carry an operator or a domain filter; a {depth} run needs {ops_min}")
     skip_li = re.search(r"LinkedIn:\**\s*not read: (?:scope none|you declined)", brief)
-    li = [q for q in rounds.get(1, []) if "linkedin.com" in " ".join(q.get("allowed_domains") or []) or "linkedin.com" in q.get("query", "")]
+    li = [q for q in rounds.get(1, []) if "linkedin.com" in " ".join(q.get("domains") or []) or "linkedin.com" in q.get("query", "")]
     if not skip_li and not li:
         fails.append("C21 battery: round 1 sent no LinkedIn query")
-    elif li and not any("linkedin.com" in " ".join(q.get("allowed_domains") or []) for q in li):
+    elif li and not any("linkedin.com" in " ".join(q.get("domains") or []) for q in li):
         fails.append("C21 battery: round 1's LinkedIn query typed site: into a search that ignores it; use the domain filter (allowed_domains)")
-    total = len(sent) + len(early)
+    total = len(sent) + len(base)
     if brief:
         said = RUN_COUNTS.search(re.sub(r"\s+", " ", brief))
+        runday = re.search(r"\*\*Run\*\*\s*\|\s*([A-Z][a-z]{2} \d{1,2}, \d{4})", brief)
+        need_base = bool(runday) and _day(runday.group(1)) >= dt.date.fromisoformat(str(R["osint"]["battery"]["base_since"]))
         if not said:
-            fails.append("C21 battery: the brief's Run row does not say 'N searches in M rounds'")
-        elif (int(said.group(1)), int(said.group(2))) != (total, len(done)):
-            fails.append(f"C21 battery: the Run row says {said.group(0)}; the transcript shows {total} searches in {len(done)} rounds")
-    for i, reply in enumerate(replies or [last], 1):   # a session file has no result line: its last text is the reply
+            fails.append("C21 battery: the brief's Run row does not say 'N searches (B base) in M rounds'")
+        elif need_base and said.group(2) is None:
+            fails.append("C21 battery: the Run row gives no base count; it says 'N searches (B base) in M rounds'")
+        elif (int(said.group(1)), int(said.group(3))) != (total, len(done)) or (said.group(2) is not None and int(said.group(2)) != len(base)):
+            fails.append(f"C21 battery: the Run row says {said.group(0)}; the history shows {total} searches ({len(base)} base) in {len(done)} rounds")
+    fails += ask_check(ev, profile, popup)
+    replies = [e["text"] for e in ev if e["kind"] == "result"] or [next((e["text"] for e in reversed(ev) if e["kind"] == "text"), "")]
+    for i, reply in enumerate(replies, 1):   # a session file has no result line: its last text is the reply
         hits = plain_hits(reply)
         if hits:
             fails.append(f"C11 reply: reply {i} to the user says {hits}; plain words only (a grade is 'a single, weaker source'; "
@@ -1279,7 +1893,741 @@ def battery(lines, depth="standard", brief="", cited=None):
     if unread:
         fails.append(f"C21 battery: the ledger cites {len(unread)} page{'s' * (len(unread) != 1)} the run never opened "
                      f"({', '.join(unread[:3])}{' ...' if len(unread) > 3 else ''}): open the page behind a result before citing it, or drop its fact")
-    return fails, f"{total} searches in {len(done)} rounds {done}, {ops} with an operator or a domain filter"
+    return fails, f"{host}: {total} searches ({len(base)} base) in {len(done)} rounds {done}, {ops} round queries with an operator or a domain filter"
+
+
+TYPED_LIST = re.compile(r"one number per line|reply with (?:the |a |one )?(?:option )?numbers?\b|answer with (?:the )?numbers?|such as \d, ?\d", re.I)
+NOT_ANSWERED = re.compile(r'^\W*$|"accepted"\s*:\s*true\W*$|declin|dismiss|doesn.t want|no answer|cancel', re.I)
+
+
+def ask_check(ev, profile=None, popup=None):
+    """C22: questions go through the host's native popup tool (MUST-FIX 7: a ChatGPT run typed the setup questions out where
+    upstream used AskUserQuestion); a typed list is only the fallback where the host has no such tool, or after a popup that
+    came back empty. One line of the reply before the call says what skip does; the run then waits."""
+    fails = []
+    tools = next((e["names"] for e in ev if e["kind"] == "tools"), None)
+    if popup is None:   # not told: the session's own tool list, else assume the host has a question tool
+        popup = any(ASK_TOOL.search(n) for n in tools) if tools is not None else True
+    results = {e["id"]: e["text"] for e in ev if e["kind"] == "tool_result"}
+    first_s = next((i for i, x in enumerate(ev) if x["kind"] == "search"), len(ev))
+    empty_at = []
+    for i, e in enumerate(ev):
+        if e["kind"] != "ask":
+            continue
+        said = " ".join(x["text"] for x in ev[max(0, i - 4):i] if x["kind"] == "text")
+        if not re.search(r"\bskip\b", said, re.I):
+            fails.append(f"C22 ask: the question tool '{e['name']}' was called with no line of the reply before it saying what skip does "
+                         "('Two quick questions: answer in the popup, or skip and I'll use the recommended answers.')")
+        later = next((j for j in range(i + 1, len(ev)) if ev[j]["kind"] == "user"), len(ev))
+        body = results.get(e.get("id"))
+        if body is not None and NOT_ANSWERED.search(body.strip()) and not re.search(r"answered|selected|\w=\w|\"=\"", body):
+            empty_at.append(i)
+            retyped = any(x["kind"] == "text" and "?" in x["text"] and len(_content_words(" ".join(e["questions"])) & _content_words(x["text"])) >= 2 for x in ev[i + 1:later])
+            if not retyped:
+                fails.append(f"C22 ask: the question tool '{e['name']}' came back with no answer and the question was not asked again in the reply; "
+                             "a popup that closes empty is not an answer: type the question and wait")
+        moved = [x for x in ev[i + 1:later] if x["kind"] in ("search", "open", "shell")]
+        if moved:
+            fails.append(f"C22 ask: the run kept working after asking ({len(moved)} searches or page opens before the user's answer); "
+                         "end the turn and wait for the answer or 'skip'")
+    if popup:
+        for i, x in enumerate(ev[:first_s]):
+            if x["kind"] != "text" or "|" in x["text"]:
+                continue
+            numbered = len(re.findall(r"^\s*\d+[.)]\s+\S", x["text"], re.M))
+            typed = TYPED_LIST.search(x["text"]) or (numbered >= 3 and "?" in x["text"])
+            after_popup = any(y["kind"] == "ask" for y in ev[max(0, i - 6):i]) and bool(empty_at)
+            if typed and not any(y["kind"] == "ask" for y in ev[i + 1:i + 4]) and not after_popup:
+                fails.append("C22 ask: the questions were typed in the reply ('" + (TYPED_LIST.search(x["text"]) or re.search(r"\S.*", x["text"])).group(0)[:50]
+                             + "') where the host has a question tool; ask with AskUserQuestion (the structured question tool in ChatGPT, Codex, Grok), "
+                             "and type only where the host has none")
+                break
+    if profile:
+        req = next((x["text"] for x in ev if x["kind"] == "user"), "")
+        asked = any(x["kind"] == "ask" or (x["kind"] == "text" and "?" in x["text"] and re.search(r"saved|setup|offer", x["text"], re.I))
+                    for x in ev[:first_s])
+        diff = offer_conflict(profile, req)
+        if diff and not asked:
+            fails.append(f"C22 ask: the saved offer ('{profile[:50]}') conflicts with the request ({', '.join(diff[:4])}), and no question came before the first search")
+    return fails
+
+
+# ---------------------------------------------------------------- records (C23): claims, coverage, behavioral read -----
+def _load_json(path):
+    try:
+        return json.loads(pathlib.Path(path).read_text()), None
+    except (OSError, ValueError) as err:
+        return None, f"{pathlib.Path(path).name}: {err.__class__.__name__}: {str(err)[:80]}"
+
+
+def records_check(folder, depth="standard", brief=""):
+    """C23: the run's three records are complete and agree with each other before the run is called done.
+      claims.jsonl  every claim has every field of pcp.yaml records.claims, valid tag, grade and confidence, a unique id
+      coverage.json every field of records.coverage; hits_by_family and attempted cover all 12 source types; the counts equal
+                    what claims.jsonl holds; status is FULL only when S2-5 says so
+      read.json     six dimensions, each with every field of records.read; a band that matches its meaning; no read means no
+                    observations and tier low; observation ids exist; a tier needs its minimum observations
+    With the brief: its tier line, status and 'n of 12 source types' agree with the records."""
+    rec, d = R["records"], pathlib.Path(folder)
+    fam = [f["id"] for f in R["families"]]
+    fails = []
+    cp = d / rec["claims"]["file"]
+    claims = []
+    if not cp.exists():
+        fails.append(f"C23 records: {cp.name} is missing")
+    else:
+        for n, ln in enumerate(cp.read_text().splitlines(), 1):
+            if not ln.strip():
+                continue
+            try:
+                claims.append(json.loads(ln))
+            except ValueError:
+                fails.append(f"C23 records: {cp.name} line {n} is not JSON")
+        for c in claims:
+            gone = [k for k in rec["claims"]["fields"] if k not in c]
+            if gone:
+                fails.append(f"C23 records: claim {c.get('id', '?')} lacks {gone}")
+            for k, ok in (("tag", rec["claims"]["tag"]), ("grade", rec["claims"]["grade"]), ("confidence", rec["claims"]["confidence"]),
+                          ("family", fam)):
+                if k in c and c[k] not in ok:
+                    fails.append(f"C23 records: claim {c.get('id', '?')} has {k} '{c[k]}'; one of {ok}")
+        ids = [c.get("id") for c in claims]
+        if len(ids) != len(set(ids)):
+            fails.append("C23 records: claim ids repeat")
+        if not claims:
+            fails.append(f"C23 records: {cp.name} holds no claims")
+    if brief and claims:   # stage isolation (S4-12): the brief holds only what the record holds
+        have = {_page(c.get("url", "")) for c in claims if str(c.get("url", "")).startswith("http")} | {str(c.get("url", "")).lower() for c in claims}
+        for k, v in ledger_facts(brief).items():
+            if k[0] and k[0] not in have and not any(k[0] in h or h in k[0] for h in have if h):
+                fails.append(f"C23 records: ledger row [{v['n']}] cites {k[0]}, which claims.jsonl does not hold; the brief holds only what the records hold (S4-12)")
+    cv, err = _load_json(d / rec["coverage"]["file"])
+    if err:
+        fails.append(f"C23 records: {err} (the coverage record)")
+    else:
+        gone = [k for k in rec["coverage"]["fields"] if k not in cv]
+        if gone:
+            fails.append(f"C23 records: coverage lacks {gone}")
+        for k in ("hits_by_family", "c1c2_by_family"):
+            have = cv.get(k)
+            if not isinstance(have, dict) or sorted(have) != sorted(fam):
+                fails.append(f"C23 records: coverage.{k} must hold a count for each of the {len(fam)} source types {fam[0]}-{fam[-1]} "
+                             f"(got {sorted(have) if isinstance(have, dict) else have})")
+        att = cv.get("attempted")
+        if not isinstance(att, list) or cv.get("families_attempted") != len(att) or cv.get("families_total") != len(fam):
+            fails.append(f"C23 records: coverage.families_attempted ({cv.get('families_attempted')}) must be the length of coverage.attempted "
+                         f"({att}) and families_total {len(fam)}")
+        live = [c for c in claims if not c.get("exclusion_hit")]
+        if isinstance(cv.get("hits_by_family"), dict) and claims:
+            for f in fam:
+                got = sum(1 for c in live if c.get("family") == f)
+                if cv["hits_by_family"].get(f) != got:
+                    fails.append(f"C23 records: coverage.hits_by_family.{f} is {cv['hits_by_family'].get(f)}; claims.jsonl holds {got}")
+                    break
+        if isinstance(cv.get("c1c2_by_family"), dict) and claims:
+            for f in fam:
+                got = sum(1 for c in live if c.get("family") == f and c.get("confidence") in ("C1", "C2"))
+                if cv["c1c2_by_family"].get(f) != got:
+                    fails.append(f"C23 records: coverage.c1c2_by_family.{f} is {cv['c1c2_by_family'].get(f)}; claims.jsonl holds {got}")
+                    break
+        if claims:
+            if cv.get("excluded") != sum(1 for c in claims if c.get("exclusion_hit")):
+                fails.append(f"C23 records: coverage.excluded is {cv.get('excluded')}; claims.jsonl marks "
+                             f"{sum(1 for c in claims if c.get('exclusion_hit'))} as an exclusion hit")
+            need = R["research"]["full_threshold"][depth]
+            enough = sum(1 for f in fam if sum(1 for c in live if c.get("family") == f and c.get("confidence") in ("C1", "C2")) >= 1)
+            want = "FULL" if enough >= need else "LIMITED"
+            if cv.get("status") not in ("FULL", "LIMITED") or cv.get("status") != want:
+                fails.append(f"C23 records: coverage.status is '{cv.get('status')}'; {enough} source types hold a C1 or C2 claim, a {depth} run needs {need}: {want}")
+        if not isinstance(cv.get("rounds"), list) or not cv.get("rounds"):
+            fails.append("C23 records: coverage.rounds must list each round with the queries it sent")
+        else:
+            need_r = battery_floor(depth)[0]
+            have_r = [r.get("round") for r in cv["rounds"] if isinstance(r, dict) and r.get("queries")]
+            if [x for x in need_r if x not in have_r]:
+                fails.append(f"C23 records: coverage.rounds lacks rounds {[x for x in need_r if x not in have_r]}")
+            sent = sum(len(r.get("queries", [])) for r in cv["rounds"] if isinstance(r, dict))
+            bq = cv.get("base") if isinstance(cv.get("base"), dict) else {}
+            nb = sum(len(v) for v in bq.values() if isinstance(v, list))
+            lacking = [f["id"] for f in base_families(depth) if not bq.get(f["id"])]
+            if lacking:
+                fails.append(f"C23 records: coverage.base lacks the base-pass queries of {lacking}; each source type the depth enables is searched with its own template (S2-9)")
+            if cv.get("searches") != sent + nb:
+                fails.append(f"C23 records: coverage.searches is {cv.get('searches')}; its base lists {nb} queries and its rounds {sent}")
+        if brief:
+            m = re.search(r"(\d+)\s+of\s+(\d+)\s+source types", brief, re.I)
+            if m and cv.get("families_attempted") is not None and int(m.group(1)) != cv.get("families_attempted"):
+                fails.append(f"C23 records: the brief says {m.group(1)} of {m.group(2)} source types; coverage.families_attempted is {cv.get('families_attempted')}")
+            st = re.search(r"\b(FULL|LIMITED)\b", brief)
+            if st and cv.get("status") and st.group(1) != cv["status"]:
+                fails.append(f"C23 records: the brief says {st.group(1)}; coverage.status is {cv['status']}")
+    rd, err = _load_json(d / rec["read"]["file"])
+    if err:
+        fails.append(f"C23 records: {err} (the behavioral record)")
+    else:
+        rows = rd.get("dimensions") if isinstance(rd, dict) else rd
+        rows = rows if isinstance(rows, list) else []
+        dims = {x["id"]: x for x in R["rubric"]["dimensions"]}
+        have = [r.get("dimension") for r in rows if isinstance(r, dict)]
+        if sorted(have) != sorted(dims):
+            fails.append(f"C23 records: read.json must hold exactly the six dimensions {sorted(dims)} (got {sorted(h for h in have if h)})")
+        tiers = R["rubric"]["tiers"]
+        cids = {c.get("id") for c in claims}
+        got_tiers = []
+        for r in rows:
+            if not isinstance(r, dict):
+                continue
+            dim = r.get("dimension", "?")
+            gone = [k for k in rec["read"]["fields"] if k not in r]
+            if gone:
+                fails.append(f"C23 records: read.json {dim} lacks {gone}"); continue
+            band, tier, obs = r["band"], r["evidence_tier"], r["observation_ids"]
+            if band not in rec["read"]["bands"] or tier not in tiers:
+                fails.append(f"C23 records: read.json {dim} has band '{band}', tier '{tier}'; bands {rec['read']['bands']}, tiers {list(tiers)}"); continue
+            want = "No read" if band == "no read" else dims.get(dim, {}).get("meaning", {}).get(band)
+            if want and r["meeting_meaning"] != want:
+                fails.append(f"C23 records: read.json {dim} meeting_meaning is not the rubric's '{want[:40]}...' for band {band} (S3-3: word for word)")
+            if band == "no read" and (obs or tier != "low"):
+                fails.append(f"C23 records: read.json {dim} is no read, so tier low and no observation_ids")
+            if band != "no read" and len(obs) < tiers[tier]["min_observations"]:
+                fails.append(f"C23 records: read.json {dim} is tier {tier}, which needs {tiers[tier]['min_observations']} observations; it lists {len(obs)}")
+            if claims and [o for o in obs if o not in cids]:
+                fails.append(f"C23 records: read.json {dim} cites observation ids {[o for o in obs if o not in cids]} that claims.jsonl does not hold")
+            got_tiers.append(tier)
+        if len(got_tiers) == 6:
+            rank = {"low": 0, "medium": 1, "high": 2}
+            overall = max((t for t in rank if sum(1 for g in got_tiers if rank[g] >= rank[t]) >= 3), key=lambda t: rank[t], default="low")
+            m = re.search(r"Evidence tier:\**\s*(high|medium|low)", brief, re.I)
+            if m and m.group(1).lower() != overall:
+                fails.append(f"C23 records: the brief's Evidence tier is {m.group(1).lower()}; read.json gives {overall} (S3-2: the highest tier at least three dimensions reach)")
+    return fails
+
+
+# ---------------------------------------------------------------- kept facts (C24): cut wording, never facts ------
+def ledger_facts(md):
+    """The cited facts of a brief: one per ledger row, keyed by the page it cites (a file name for the user's own files)
+    and the row's date, with the number that cites it."""
+    out = {}
+    for m in SRC_ROW.finditer(md):
+        src = m.group(3)
+        u = re.search(r"\]\((https?://[^)\s]+)", src) or re.search(r"(https?://[^\s|)]+)", src)
+        key = (_page(u.group(1)) if u else re.sub(r"\s+", " ", re.sub(r"[\[\]*]", "", src)).strip().lower(), m.group(5))
+        out[key] = dict(n=int(m.group(1)), what=m.group(2))
+    return out
+
+
+def kept_check(draft_md, final_md, allow=()):
+    """C24: a fit pass cuts wording, never cited facts (the Codex run, Oct 16: 23 cited facts cut to 18 to fit 3 pages). Every
+    ledger row of the first complete draft is still a ledger row of the final brief, still cited in a sentence there, unless the
+    user is told why (--allow <page>: a dead link, an excluded topic). Returns the failures."""
+    a, b = ledger_facts(draft_md), ledger_facts(final_md)
+    ok = {_page(x) if x.startswith("http") else x.lower() for x in allow}
+    lost = [(k, v) for k, v in a.items() if k not in b and k[0] not in ok]
+    fails = []
+    if lost:
+        fails.append(f"C24 kept: {len(lost)} of the draft's {len(a)} cited facts are gone from the final brief ({len(b)} remain): "
+                     + "; ".join(f"[{v['n']}] {v['what'][:40]} ({k[0]})" for k, v in lost[:4])
+                     + (" ..." if len(lost) > 4 else "") + " -- cut wording, never facts (S4-4)")
+    secs = _sections(final_md)
+    cited = set()
+    for k in _body_ids(secs):
+        cited |= {int(n) for n in CITE.findall(secs[k])}
+    silent = [v["n"] for k, v in b.items() if k in a and v["n"] not in cited]
+    if silent:
+        fails.append(f"C24 kept: facts {silent} are still in the ledger but no sentence cites them any more; the fact was cut, not the wording")
+    return fails
+
+
+def effective_conf(c):
+    """The strength a claim may print: its own confidence, capped by the weakest of the caps in pcp.yaml grading.caps (a weak
+    domain, how it was found, its grade). Weak sources never read as strong, whatever the writer thought of them."""
+    g, ranks = R["grading"], ["C1", "C2", "C3", "C4"]
+    caps = [c.get("confidence") if c.get("confidence") in ranks else "C3"]
+    u = str(c.get("url", ""))
+    d = _domain(u) if u.startswith("http") else ""
+    if d and any(d == w or d.endswith("." + w) for w in R.get("source_quality", {}).get("weak", [])):
+        caps.append(g["caps"]["weak_domain"])
+    caps.append(g["caps"]["tag"].get(c.get("tag")))
+    caps.append(g["caps"]["grade"].get(c.get("grade")))
+    return max((x for x in caps if x in ranks), key=ranks.index)
+
+
+# ---------------------------------------------------------------- assemble (C26): the brief is built, never written -------
+# The model fills fields.json (text per field of pcp.yaml `forms`, claims cited as [c<id>]); this builds brief.md and script.md
+# from the forms table, claims.jsonl, coverage.json, read.json and the saved profile: the same structure every run.
+CLAIM_REF = re.compile(r"\[c(\d+)\]")
+MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+
+def _fmt_date(s, read_day=""):
+    """A claim's published date as the ledger prints it; an undated source prints 'seen <day it was read>'."""
+    m = re.match(r"(\d{4})-(\d{2})(?:-(\d{2}))?", str(s or ""))
+    if m:
+        mo = MON[int(m.group(2)) - 1]
+        return f"{mo} {int(m.group(3))}, {m.group(1)}" if m.group(3) else f"{mo} {m.group(1)}"
+    m = re.match(r"(\d{4})-(\d{2})-(\d{2})", str(read_day or ""))
+    return f"seen {MON[int(m.group(2)) - 1]} {int(m.group(3))}, {m.group(1)}" if m else "seen"
+
+
+def _answers(profile):
+    """The saved answers {Qn: value}: the first named profile of ~/.pcp/profile.yaml."""
+    pr = profile or {}
+    first = next(iter((pr.get("profiles") or {}).values()), {}) if isinstance(pr, dict) else {}
+    return {k: (v.get("value") if isinstance(v, dict) else v) for k, v in (first.get("answers") or {}).items()}
+
+
+def _label_of(qid, value):
+    q = next((x for x in R["calibration"]["questions"] if x["id"] == qid), {})
+    o = next((x for x in q.get("options", []) if x["value"] == value), None)
+    return re.sub(r"\s*\(Recommended\)", "", o["label"]) if o else str(value or "")
+
+
+def assemble(folder, profile=None, depth=None):
+    """Build brief.md and script.md in `folder` from fields.json + the three records + the profile. Returns (brief, script, problems).
+    Problems are missing fields, unknown claim ids and uncited text where a form demands a citation: the run fixes fields.json, never
+    the output."""
+    d, F = pathlib.Path(folder), R["forms"]
+    probs = []
+    fj, err = _load_json(d / "fields.json")
+    if err:
+        return "", "", [f"C26 assemble: {err}"]
+    claims = {}
+    for ln in (d / R["records"]["claims"]["file"]).read_text().splitlines():
+        if ln.strip():
+            c = json.loads(ln)
+            claims[c["id"]] = c
+    cov, _ = _load_json(d / R["records"]["coverage"]["file"])
+    cov = cov or {}
+    rd, _ = _load_json(d / R["records"]["read"]["file"])
+    rows = (rd.get("dimensions") if isinstance(rd, dict) else rd) or []
+    ans = _answers(profile)
+    depth = depth or ans.get("Q5") or "standard"
+    authority = {"principal": "high", "investor": "high"}.get(ans.get("Q1"), "medium")
+    order = []   # claim ids by first use in the page: the ledger's numbers
+    num = lambda cid: order.index(cid) + 1
+
+    def cite(text, key, where):
+        def sub(m):
+            cid = int(m.group(1))
+            if cid not in claims or claims[cid].get("exclusion_hit"):
+                probs.append(f"C26 assemble: {where} cites [c{cid}], which is not a usable claim in claims.jsonl")
+                return "[?]"
+            if cid not in order:
+                order.append(cid)
+            return f"[{num(cid)}]"
+        return CLAIM_REF.sub(sub, str(text or "").strip())
+
+    def field(src, f, where, optional=False):
+        v = (src or {}).get(f["key"])
+        if isinstance(v, list) and f.get("list"):
+            v = f["list"].join(str(x).strip().rstrip(".") for x in v if str(x).strip())
+        v = str(v or "").strip()
+        if not v:
+            if f.get("optional") or optional:
+                return None
+            if f.get("missing"):
+                return f["missing"]
+            probs.append(f"C26 assemble: {where} needs '{f['key']}'")
+            return ""
+        out = cite(v, f["key"], f"{where}.{f['key']}")
+        if f.get("cite") and not CLAIM_REF.search(v) and out != f.get("missing"):
+            probs.append(f"C26 assemble: {where}.{f['key']} cites no claim ([c<id>])")
+        return out
+
+    def bullets(block, spec_fields):
+        out = []
+        for f in spec_fields:
+            txt = "" if f.get("auto") else field(fj.get(block.lower()), f, block)
+            if txt is None:
+                continue
+            if f.get("italic"):
+                txt = f"*{txt}*"
+            line = f"- **{f['label']}** {txt}"
+            if f.get("auto"):   # P4: the ask and its fallback are B9's, word for word
+                src, key = f["auto"].split(".")
+                a = (fj.get(src.lower()) or {}).get("ask")
+                line = f"- **{f['label']}** {cite(a, key, src).rstrip('. ')}"
+            if f.get("join"):
+                j = f["join"]
+                fb = (fj.get(j["auto"].split(".")[0].lower()) or {}).get(j["key"]) if j.get("auto") else (fj.get(block.lower()) or {}).get(j["key"])
+                if fb:
+                    line += f"{j['sep']}**{j['label']}** {cite(fb, j['key'], block)}"
+            out.append(line)
+        return out
+
+    # ---- tier, conditions
+    rank = {"low": 0, "medium": 1, "high": 2}
+    tiers = [r.get("evidence_tier", "low") for r in rows if isinstance(r, dict)]
+    tier = max((t for t in rank if sum(1 for g in tiers if rank[g] >= rank[t]) >= 3), key=lambda t: rank[t], default="low")
+    # ---- the blocks, in the registry's order
+    B = {}
+    f1 = F["B1"]; b1 = fj.get("b1") or {}
+    B["B1"] = " ".join(f"**{f['label']}** {field(b1, f, 'B1')}" for f in f1["fields"])
+    f2 = F["B2"]; qs = fj.get("b2") or []
+    if not f2["count"][0] <= len(qs) <= f2["count"][1]:
+        probs.append(f"C26 assemble: B2 needs {f2['count'][0]} to {f2['count'][1]} questions (got {len(qs)})")
+    lines = []
+    for i, q in enumerate(qs, 1):
+        qf, df, af = f2["item"]
+        lines.append(f"{i}. {field(q, qf, f'B2.{i}')}")
+        lines.append(f"   - **{df['label']}** {str(q.get('decides', '')).strip().rstrip('.')}. **{af['label']}** {str(q.get('ask', '')).strip().rstrip('.')}.")
+    B["B2"] = "\n".join(lines)
+    B["B3"] = "\n".join(bullets("B3", F["B3"]["fields"]))
+    f4 = F["B4"]; b4 = fj.get("b4") or {}
+    qlines = []
+    for q in b4.get("quotes") or []:
+        qlines.append(f"- **{str(q.get('label', '')).strip().rstrip(':')}:** \"{str(q.get('quote', '')).strip().strip(chr(34))}\" {cite(q.get('cite', ''), 'cite', 'B4')}".rstrip())
+    if not qlines:
+        qlines = [f"- {field(b4, {'key': f4['themes_key'], 'cite': True, 'missing': f4['none']}, 'B4')}"]
+    li = cov.get("linkedin") or "not read"
+    B["B4"] = "\n".join(qlines) + "\n\n" + f4["linkedin"].format(status=li if li.startswith(("read", "not read")) else f"read from {li}")
+    f5 = F["B5"]; b5 = fj.get("b5") or []
+    t5 = [f"| {f5['header'][0]} | {f5['header'][1]} |", "|---|---|"]
+    for i, rf in enumerate(f5["rows"]):
+        r = b5[i] if i < len(b5) else {}
+        t5.append(f"| {field(r, {'key': 'observable', 'cite': True}, f'B5.{rf['key']}')} | {str(r.get('action', '')).strip()} |")
+    B["B5"] = "\n".join(t5)
+    f6 = F["B6"]; b6 = fj.get("b6") or {}
+    t6 = [f"| {f6['header'][0]} | {f6['header'][1]} |", "|---|---|"]
+    for dim in R["rubric"]["dimensions"]:
+        r = next((x for x in rows if isinstance(x, dict) and x.get("dimension") == dim["id"]), {})
+        if not r or r.get("band") == "no read":
+            t6.append(f"| {dim['shows']} | {f6['none']} |")
+        else:
+            t6.append(f"| {dim['shows']}: {field(b6, {'key': dim['id'], 'cite': True}, 'B6')} | {dim['meaning'][r['band']]} |")
+    B["B6"] = "\n".join(t6) + "\n\n" + f6["tier"].format(tier=tier)
+    B["B7"] = "\n".join(bullets("B7", F["B7"]["fields"]))
+    f8 = F["B8"]; b8 = fj.get("b8") or {}
+    cl = []
+    for i, it in enumerate((b8.get("against") or [])[:f8["max"]]):
+        a, rv = f8["item"]
+        cl.append(f"- **{a['label']}** {field(it, a, f'B8.{i + 1}')} **{rv['label']}** {str(it.get(rv['key'], '')).strip()}")
+    conf = str(b8.get(f8["confirm"]["key"]) or "").strip()
+    if conf:
+        cl.append(f"- **{f8['confirm']['label']}** {f8['confirm']['marker']} {cite(conf, 'confirm_first', 'B8')}")
+    if not cl:
+        cl = [f"- {f8['none']}"]
+    if depth == "deep":
+        h = f8["hypotheses"]; hy = b8.get("hypotheses") or []
+        cl += ["", f"### {h['head']}", f"| {h['header'][0]} | {h['header'][1]} |", "|---|---|"]
+        cl += [f"| {cite(x.get('hypothesis', ''), 'hypothesis', 'B8')} | {cite(x.get('test', ''), 'test', 'B8')} |" for x in hy[:h['max']]]
+    B["B8"] = "\n".join(cl)
+    f9 = F["B9"]; b9 = fj.get("b9") or {}
+    nl = []
+    for sec in f9["sections"]:
+        nl.append(f"### {sec['head']}")
+        for f in sec["fields"]:
+            txt = field(b9, f, "B9", optional=True)
+            if txt is None:
+                continue
+            line = f"- **{f['label']}** {txt.rstrip('. ') if f.get('join') else txt}"
+            if f.get("join") and b9.get(f["join"]["key"]):
+                line += f"{f['join']['sep']}**{f['join']['label']}** {cite(b9[f['join']['key']], f['join']['key'], 'B9')}"
+            nl.append(line)
+    B["B9"] = "\n".join(nl)
+    # ---- page 3
+    S = {}
+    S["P1"] = "\n".join(bullets("P1", F["P1"]["fields"]))
+    f2p = F["P2"]; p2 = fj.get("p2") or {}
+    bl = [f"- **{f2p['beats']['label']}** {cite(x, 'beats', 'P2')}" for x in (p2.get("beats") or [])]
+    ordr = p2.get("order") or {}
+    for lab in f2p["order"]:
+        i = ordr.get(lab.lower())
+        if isinstance(i, int) and 1 <= i <= len(qs):
+            bl.append(f"- **{lab}:** {field(qs[i - 1], {'key': 'q', 'cite': True}, 'P2')}")
+        else:
+            probs.append(f"C26 assemble: P2.order needs '{lab.lower()}': the number of the B2 question that goes there")
+    S["P2"] = "\n".join(bl)
+    f3 = F["P3"]; ob = fj.get("p3") or []
+    if len(ob) != f3["count"]:
+        probs.append(f"C26 assemble: P3 needs {f3['count']} objections (got {len(ob)})")
+    S["P3"] = "\n".join(f"- **\"{str(o.get('objection', '')).strip().strip(chr(34))}\":** *{field(o, f3['item'][1], 'P3')}*" for o in ob)
+    S["P4"] = "\n".join(bullets("P4", F["P4"]["fields"]))
+    S["P5"] = "\n".join(bullets("P5", F["P5"]["fields"])) if rank[tier] >= 1 else ""
+    S["P6"] = "\n".join(bullets("P6", F["P6"]["fields"])) if tier == "high" and authority == "high" else ""
+    f7 = F["P7"]; mv = (fj.get("p7") or {}).get(f7["key"]) or []
+    if not f7["count"][0] <= len(mv) <= f7["count"][1]:
+        probs.append(f"C26 assemble: P7 needs {f7['count'][0]} to {f7['count'][1]} moves (got {len(mv)})")
+    S["P7"] = "\n".join(f"- **{f7['label']}** {cite(m, 'moves', 'P7')}" for m in mv)
+    f8p = F["P8"]; p8 = fj.get("p8") or {}
+    dom = ans.get("Q2") or "general"
+    never = [f'"{x}"' for x in R["guardrails"]["never_say"]] + [f'"{x}"' for x in R["guardrails"]["forbidden_claims_by_domain"].get(dom, [])]
+    S["P8"] = f"- **{f8p['rule']['label']}** {str(p8.get('rule', '')).strip()}\n- **{f8p['never']['label']}** {f8p['never']['sep'].join(never)}"
+    S["P9"] = f"**{F['P9']['label']}** {field(fj.get('p9'), {'key': F['P9']['key'], 'cite': True}, 'P9')}"
+    # ---- the ledger, numbered by first use
+    for c in claims.values():
+        pass
+    facts = len(order)
+    status = cov.get("status", "LIMITED")
+    att, tot = cov.get("families_attempted", 0), cov.get("families_total", len(R["families"]))
+    f10 = F["B10"]
+    led = [f10["note"].format(cited=facts, status=status, attempted=att, total=tot, key=" · ".join(R["grading"]["strength"].values())), "",
+           "| " + " | ".join(f10["header"]) + " |", "|" + "---|" * len(f10["header"])]
+    for i, cid in enumerate(order, 1):
+        c = claims[cid]
+        url = str(c.get("url", ""))
+        tag = c.get("tag", "Direct")
+        if url.startswith("http"):
+            dom_ = _domain(url)
+            label = f"{dom_}, search result" if tag == "LinkedIn" and c.get("page", "") in ("", "search result") else dom_
+            src = f"[{label}]({url}) · {tag}"
+        else:
+            src = f"{url} · {tag}"
+        stren = R["grading"]["words"][effective_conf(c)]
+        led.append(f"| [{i}] | {c.get('says') or c.get('claim', '')} | {src} | {c.get('grade', 'Measured')} · {stren} | {_fmt_date(c.get('published'), c.get('retrieved_at'))} |")
+    nf = [f["name"] for f in R["families"] if not cov.get("hits_by_family", {}).get(f["id"])]
+    rr = [r for r in cov.get("rounds", []) if isinstance(r, dict) and r.get("queries")]
+    need = battery_floor(depth)[0]
+    so = (fj.get("still_open") or [])[:f10["still_open_max"]]
+    day = str(fj.get("prepared", ""))
+    run = (f"{day} · {depth} · {str(fj.get('meeting', '')).split(':')[0].lower()} · {_label_of('Q1', ans.get('Q1')).lower()} · {_label_of('Q2', ans.get('Q2')).lower()}"
+           f" · {_label_of('Q7', ans.get('Q7'))} · {status} · {round(facts / R['page_budget']['total_pages'], 2)} decision-useful facts per page"
+           f" · {cov.get('searches', 0)} searches ({sum(len(v) for v in (cov.get('base') or {}).values())} base) in {len(rr)} rounds")
+    grid = ["| | |", "|---|---|",
+            f"| **{f10['grid'][0]}** | {att} of {tot} source types in the base pass · rounds {len(rr)} of {len(need)}"
+            + (f" · Not found: {', '.join(nf)}" if nf else "") + f" · LinkedIn: {li if li.startswith(('read', 'not read')) else 'read from ' + li} |",
+            f"| **{f10['grid'][1]}** | " + " · ".join(f"{x['label']}: {x['question']}" for x in so) + " |",
+            f"| **{f10['grid'][2]}** | {', '.join(R['exclusions']['printed'])} |",
+            f"| **{f10['grid'][3]}** | {run} |"]
+    B["B10"] = "\n".join(led) + "\n\n" + "\n".join(grid)
+    # ---- the masthead and the pages
+    t, m = fj.get("target") or {}, F["masthead"]
+    city = f" | {t['city']}" if t.get("city") else ""
+    head = [f"# {t.get('name', '')}", m["identity"].format(org=t.get("org", ""), role_since=t.get("role_since", ""), city=city),
+            m["meta"].format(meeting=fj.get("meeting", ""), role=_label_of("Q1", ans.get("Q1")), depth=depth, attempted=att, total=tot,
+                             cited=facts, status=status, date=day)]
+    name = lambda s: fill_names(s)
+    ids = [b["id"] for b in R["brief"]["sections"]]
+    brief = "\n".join(head) + "\n\n" + "\n\n".join(f"## {b['id']} {fill_names(b['title'])}\n{B[b['id']]}" for b in R["brief"]["sections"]) + "\n"
+    sc = R["script"]
+    script = (f"# {fill_names(sc['title'])}\n*{sc['subtitle']} · {t.get('name', '')}, {t.get('org', '')} · Prepared {day}*\n\n"
+              + "\n\n".join(f"## {b['id']} {fill_names(b['title'])}\n{S[b['id']]}" for b in sc["blocks"] if S.get(b["id"]).strip()) + "\n")
+    # the page's [n] numbers came from the text above: any block assembled before a later one numbered them in this order
+    return brief, script, probs
+
+
+def fill_names(s):
+    return re.sub(r"\{(deliverable|profile|script|collection)\}", lambda m: R["names"][m.group(1)], str(s))
+
+
+# ---------------------------------------------------------------- grading on the page (C25) and the schema (C26) ---
+def ledger_cells(md):
+    """Every ledger row of a brief as its cells: n, says, source, grade cell, date."""
+    sec = _sections(md).get(LEDGER, "")
+    out = []
+    for ln in sec.splitlines():
+        m = re.match(r"^\|\s*\[(\d+)\]\s*\|(.*)\|\s*$", ln)
+        if m:
+            cells = [c.strip() for c in ln.strip().strip("|").split("|")]
+            if len(cells) >= 5:
+                out.append(dict(n=int(m.group(1)), says=cells[1], source=cells[2], grade=cells[3], date=cells[4]))
+    return out
+
+
+def grading_check(md):
+    """C25: the source grade is on the page in plain words (Daniel, Oct 16): every ledger row has its grade (Measured, Derived,
+    Inference, Not determined) AND how it was found (Direct, Search, LinkedIn, Yours) AND its strength in plain words
+    (Strong: primary, dated ... Inferred); a weak domain never reads Strong or Solid. Briefs prepared before grading.since are
+    exempt (the frozen targets)."""
+    g = R["grading"]
+    day = re.search(r"Prepared\s+([A-Z][a-z]{2} \d{1,2}, \d{4})", md)
+    if day and _day(day.group(1)) < dt.date.fromisoformat(str(g["since"])):
+        return []
+    fails, strengths = [], list(g["words"].values())
+    weak = R.get("source_quality", {}).get("weak", [])
+    sec = _sections(md).get(LEDGER, "")
+    if ledger_cells(md) and not all(v in sec for v in g["strength"].values()):
+        fails.append("C25 grading: the ledger's note line must key the strengths: " + " · ".join(g["strength"].values()))
+    for r in ledger_cells(md):
+        grade, _, strength = r["grade"].partition(" · ")
+        tag = r["source"].rsplit(" · ", 1)[-1].strip() if " · " in r["source"] else ""
+        if grade.strip() not in GRADES.split("|"):
+            fails.append(f"C25 grading: [{r['n']}] grade '{grade}' is not one of {GRADES}")
+        if tag not in g["tags"]:
+            fails.append(f"C25 grading: [{r['n']}] source '{r['source'][:40]}' lacks how it was found: ' · ' and one of {g['tags']}")
+        if strength.strip() not in strengths:
+            fails.append(f"C25 grading: [{r['n']}] has no source strength; the grade cell reads 'Measured · <one of {strengths}>'")
+        u = re.search(r"\]\((https?://[^)\s]+)", r["source"])
+        ranks = ["C1", "C2", "C3", "C4"]
+        inv = {v: k for k, v in g["words"].items()}
+        caps = [g["caps"]["tag"].get(tag), g["caps"]["grade"].get(grade.strip())]
+        is_weak = bool(u) and any(_domain(u.group(1)) == w or _domain(u.group(1)).endswith("." + w) for w in weak)
+        if is_weak:
+            caps.append(g["caps"]["weak_domain"])
+        cap = max((x for x in caps if x in ranks), key=ranks.index, default="C1")
+        if strength.strip() in inv and ranks.index(inv[strength.strip()]) < ranks.index(cap):
+            why = "a weak domain" if is_weak and cap == g["caps"]["weak_domain"] else f"tag {tag}, grade {grade.strip()}"
+            fails.append(f"C25 grading: [{r['n']}] reads '{strength.strip()}' but {why} caps it at '{g['words'][cap]}'; a weak source never reads as strong")
+        if u and "linkedin.com" in u.group(1) and tag != "LinkedIn":
+            fails.append(f"C25 grading: [{r['n']}] cites linkedin.com but is tagged '{tag}'")
+        if not u and tag != "Yours":
+            fails.append(f"C25 grading: [{r['n']}] has no link, so it is the user's own: tag Yours (got '{tag}')")
+    return fails
+
+
+def _labels(spec):
+    """(all labels, required labels) a form allows on its block."""
+    allow, need = set(), set()
+    def add(f, req=True):
+        if f.get("label"):
+            allow.add(f["label"])
+            if req and not (f.get("optional") or f.get("missing") is None and False):
+                need.add(f["label"])
+    form = spec.get("form")
+    if form in ("bullets", "labels_para"):
+        for f in spec["fields"]:
+            add(f, not f.get("optional"))
+            if f.get("join"):
+                allow.add(f["join"]["label"])
+    elif form == "questions":
+        for f in spec["item"]:
+            if f.get("label"):
+                allow.add(f["label"]); need.add(f["label"])
+    elif form == "case_against":
+        for f in spec["item"]:
+            allow.add(f["label"])
+        allow.add(spec["confirm"]["label"])
+    elif form == "angle":
+        for s in spec["sections"]:
+            for f in s["fields"]:
+                allow.add(f["label"])
+                if f.get("join"):
+                    allow.add(f["join"]["label"])
+    elif form == "question_order":
+        allow |= {spec["beats"]["label"]} | {x + ":" for x in spec["order"]}
+        need |= {x + ":" for x in spec["order"]}
+    elif form == "repeat":
+        allow.add(spec["label"]); need.add(spec["label"])
+    elif form == "guardrails":
+        allow |= {spec["rule"]["label"], spec["never"]["label"]}; need |= {spec["rule"]["label"], spec["never"]["label"]}
+    elif form == "line":
+        allow.add(spec["label"]); need.add(spec["label"])
+    elif form == "quotes":
+        allow.add("LinkedIn:")
+    return allow, need
+
+
+LABEL = re.compile(r"\*\*([^*\n]+?)\*\*")
+
+
+def _subtitle_ok(line):
+    """The script's second line opens with the registry's subtitle, or with a retired one for a script prepared before that day."""
+    if line.startswith("*" + R["script"]["subtitle"]):
+        return True
+    m = re.search(r"Prepared ([A-Z][a-z]{2} \d{1,2}, \d{4})", line)
+    return any(line.startswith("*" + k) and m and _day(m.group(1)) < dt.date.fromisoformat(str(until))
+               for k, until in R["script"].get("subtitle_retired", {}).items())
+
+
+def schema_check(brief_md, script_md="", depth=None, tier=None, authority=None):
+    """C26: the brief and the script have exactly the registry's structure -- the masthead, every block's heading and title in
+    order, only the labels its form allows with the required ones present, its tables' headers, B9's subheads, the ledger's
+    header and label grid, page 3's heading and subtitle. The model never writes these files (eval.py assemble does); a
+    brief that deviates was not assembled from the schema."""
+    F, fails = R["forms"], []
+    lines = brief_md.splitlines()
+    if not lines or not re.match(r"^# \S", lines[0]):
+        fails.append("C26 schema: the brief must open with '# Full Name'")
+    elif len(lines) < 3 or not re.match(r"^\*\*[^*]+\*\* \| ", lines[1]):
+        fails.append("C26 schema: line 2 must be the identity line '**Organization** | Role, since year[ | City]'")
+    else:
+        pat = re.escape(F["masthead"]["meta"])
+        for key in re.findall(r"\\\{(\w+)\\\}", pat):
+            pat = pat.replace(r"\{" + key + r"\}", r"(?P<" + key + r">.+?)")
+        if not re.match("^" + pat + "$", lines[2]):
+            fails.append("C26 schema: line 3 must be the meta line '" + F["masthead"]["meta"] + "'")
+    secs = list(H2.finditer(brief_md))
+    want = [(b["id"], fill_names(b["title"])) for b in R["brief"]["sections"]]
+    got = [(re.match(r"([BP]\d+)\s+(.*)", m.group(1)).groups() if re.match(r"([BP]\d+)\s", m.group(1)) else (m.group(1), "")) for m in secs]
+    if [g[0] for g in got] != [w[0] for w in want]:
+        fails.append(f"C26 schema: the brief's blocks are {[g[0] for g in got]}; the schema's are {[w[0] for w in want]}, in that order")
+    for gid, gt in got:
+        wt = dict(want).get(gid)
+        if wt and gt.strip() != wt:
+            fails.append(f"C26 schema: block {gid} is titled '{gt.strip()}'; the schema's title is '{wt}'")
+    bodies = _sections(brief_md)
+    for b in R["brief"]["sections"]:
+        body, spec = bodies.get(b["id"], ""), F[b["id"]]
+        allow, need = _labels(spec)
+        used = {m.group(1).strip() for m in LABEL.finditer(body)}
+        if spec["form"] == "questions":
+            used = {x.strip() for x in re.findall(r"^\s+- \*\*([^*]+)\*\*", body, re.M)} | {x.strip() for x in re.findall(r"\. \*\*([^*]+)\*\*", body)}
+        if spec["form"] in ("quotes", "profile_table", "ledger", "table"):
+            used = {u for u in used if u in ("LinkedIn:", "Evidence tier:")} if spec["form"] != "quotes" else {u for u in used if u == "LinkedIn:"}
+        stray = sorted(u for u in used if allow and u not in allow and spec["form"] not in ("quotes", "profile_table", "ledger", "table"))
+        if stray:
+            fails.append(f"C26 schema: {b['id']} prints {stray}, which its form does not have (allowed: {sorted(allow)})")
+        lacking = sorted(n for n in need if n not in used and not (b["id"] == "B8"))
+        if lacking and spec["form"] not in ("angle",):
+            fails.append(f"C26 schema: {b['id']} lacks {lacking}")
+        if spec["form"] == "table" and f"| {spec['header'][0]} | {spec['header'][1]} |" not in body:
+            fails.append(f"C26 schema: {b['id']}'s table header must be '| {spec['header'][0]} | {spec['header'][1]} |'")
+        if spec["form"] == "profile_table":
+            if f"| {spec['header'][0]} | {spec['header'][1]} |" not in body:
+                fails.append(f"C26 schema: B6's table header must be '| {spec['header'][0]} | {spec['header'][1]} |'")
+            lab = [d["shows"] for d in R["rubric"]["dimensions"]]
+            rows = [ln for ln in body.splitlines() if ln.startswith("|") and not ln.startswith(("| What", "|---"))]
+            if [re.split(r"[:|]", r.strip("| "))[0].strip() for r in rows] != lab:
+                fails.append(f"C26 schema: B6 must have the six rows {lab}, in that order")
+            if not re.search(r"\*\*Evidence tier:\*\* (?:high|medium|low): it sets how far page 3 goes", body):
+                fails.append("C26 schema: B6 must end with the tier line '" + spec["tier"] + "'")
+        if spec["form"] == "angle":
+            heads = re.findall(r"^### (.+)$", body, re.M)
+            if heads != [s["head"] for s in spec["sections"]]:
+                fails.append(f"C26 schema: B9's subheads must be {[s['head'] for s in spec['sections']]} (got {heads})")
+        if spec["form"] == "questions":
+            n = len(re.findall(r"^\d+\. ", body, re.M))
+            if not spec["count"][0] <= n <= spec["count"][1]:
+                fails.append(f"C26 schema: B2 has {n} questions; the schema allows {spec['count'][0]} to {spec['count'][1]}")
+        if spec["form"] == "ledger":
+            if "| " + " | ".join(spec["header"]) + " |" not in body:
+                fails.append("C26 schema: B10's table header must be '| " + " | ".join(spec["header"]) + " |'")
+            grid = [re.match(r"\| \*\*([^*]+)\*\*", ln).group(1) for ln in body.splitlines() if re.match(r"\| \*\*([^*]+)\*\* \|", ln)]
+            if grid != spec["grid"]:
+                fails.append(f"C26 schema: B10's label grid must be {spec['grid']} (got {grid})")
+    if script_md:
+        sl = script_md.splitlines()
+        title = fill_names(R["script"]["title"])
+        if not sl or sl[0].strip() != f"# {title}":
+            fails.append(f"C26 schema: the script must open with '# {title}'")
+        elif len(sl) < 2 or not (_subtitle_ok(sl[1]) and sl[1].rstrip().endswith("*")):
+            fails.append("C26 schema: the script's second line must be '*" + R["script"]["subtitle"] + " · Full Name, Organization · Prepared Mon D, YYYY*'")
+        ps = [(re.match(r"(P\d+)", m.group(1)).group(1) if re.match(r"P\d+", m.group(1)) else m.group(1)) for m in H2.finditer(script_md)]
+        order = [b["id"] for b in R["script"]["blocks"]]
+        if [p for p in ps if p in order] != [o for o in order if o in ps] or set(ps) - set(order):
+            fails.append(f"C26 schema: the script's sections {ps} must be a subset of {order}, in that order")
+        for opt, cond in (("P5", tier in (None, "medium", "high")), ("P6", True)):
+            pass
+        sb = _sections(script_md)
+        for b in R["script"]["blocks"]:
+            if b["id"] not in sb:
+                continue
+            allow, need = _labels(F[b["id"]])
+            used = {m.group(1).strip() for m in LABEL.finditer(sb[b["id"]])}
+            if F[b["id"]]["form"] == "objections":
+                continue
+            stray = sorted(u for u in used if allow and u not in allow)
+            if stray:
+                fails.append(f"C26 schema: {b['id']} prints {stray}, which its form does not have")
+            lacking = sorted(n for n in need if n not in used)
+            if lacking and F[b["id"]]["form"] != "bullets":
+                fails.append(f"C26 schema: {b['id']} lacks {lacking}")
+    return fails
+
+
+def assembled_matches(folder, profile=None, depth=None):
+    """C26: brief.md and script.md in the folder are byte-for-byte what `assemble` builds from fields.json and the records: not
+    hand-written, not hand-edited."""
+    d = pathlib.Path(folder)
+    brief, script, probs = assemble(d, profile, depth)
+    fails = list(probs)
+    for name, want in (("brief.md", brief), ("script.md", script)):
+        have = (d / name).read_text() if (d / name).exists() else None
+        if have is None:
+            fails.append(f"C26 schema: {name} is missing; run eval.py assemble {folder}")
+        elif have != want:
+            fails.append(f"C26 schema: {name} differs from what eval.py assemble builds from fields.json; change fields.json and assemble again, never the file")
+    return fails
 
 
 # ---------------------------------------------------------------- chat (S4-10) ----------------------------------
@@ -1377,7 +2725,7 @@ def improve(debriefs):
 
 
 CHECKS = ["swap", "quotes", "custom-q", "sections", "budgets", "never-say", "outcome", "exclusions", "plain", "gaps", "conditional", "layout",
-          "linkedin", "cites", "quality", "battery"]
+          "linkedin", "cites", "quality", "battery", "grading", "schema"]
 
 
 def main():
@@ -1395,11 +2743,27 @@ def main():
     ct = sub.add_parser("cites"); ct.add_argument("brief"); ct.add_argument("--fetch", action="store_true"); ct.add_argument("--claims")
     lk = sub.add_parser("links"); lk.add_argument("pdf", metavar="brief.md|OUT.pdf")
     rc = sub.add_parser("render"); rc.add_argument("pdf")
-    bt = sub.add_parser("battery"); bt.add_argument("transcripts", nargs="+", help="the run's stream-json transcript(s), in order")
+    bt = sub.add_parser("battery", aliases=["history"], help="C21 + C22 from the run's own history, any host: " + HOST_FILES)
+    bt.add_argument("transcripts", nargs="*", help="the run's history file(s), in order: Claude Code .jsonl, a Codex rollout .jsonl, a ChatGPT or Claude app conversations.json")
+    bt.add_argument("--latest", action="store_true", help="read this host's newest history file for the current session")
     bt.add_argument("--depth", default="standard", choices=["fast", "standard", "deep"])
     bt.add_argument("--brief", help="brief.md or the PDF: its Run row counts must match the transcript")
+    bt.add_argument("--kind", default="person", choices=["person", "company", "deal"], help="the target kind (profile target.kind): company and deal runs drop person-only source types")
+    bt.add_argument("--scope", default="professional", choices=["professional", "social", "none"], help="the social scope (profile socmint.scope): none sends no public-social query")
+    bt.add_argument("--no-popup", action="store_true", help="the host has no native question tool: a typed question list is then the fallback, not a failure")
+    bt.add_argument("--profile", help="the saved profile (~/.pcp/profile.yaml): a saved offer that conflicts with the request needs a question first")
+    rcd = sub.add_parser("records", help="C23: claims.jsonl, coverage.json and read.json are complete and agree, before the run is called done")
+    rcd.add_argument("folder"); rcd.add_argument("--depth", default="standard", choices=["fast", "standard", "deep"]); rcd.add_argument("--brief")
+    kp = sub.add_parser("kept", help="C24: the final brief holds every cited fact of the first complete draft (cut wording, never facts)")
+    kp.add_argument("draft"); kp.add_argument("final"); kp.add_argument("--allow", action="append", default=[], metavar="PAGE",
+                    help="a page whose fact was dropped for a reason the user is told (dead link, excluded topic)")
+    oc = sub.add_parser("offer-conflict", help="C22: does the request name a different business than the saved offer?")
+    oc.add_argument("--saved", required=True); oc.add_argument("--request", required=True)
     ch = sub.add_parser("chat"); ch.add_argument("reply"); ch.add_argument("--target-nouns", default="")
     ch.add_argument("--experience"); ch.add_argument("--authority", choices=["high", "medium"])
+    asm = sub.add_parser("assemble", help="C26: build brief.md and script.md from fields.json, the records and the profile (the model never writes them)")
+    asm.add_argument("folder"); asm.add_argument("--profile", default=str(pathlib.Path.home() / ".pcp/profile.yaml"))
+    asm.add_argument("--depth", choices=["fast", "standard", "deep"]); asm.add_argument("--check", action="store_true", help="fail unless brief.md and script.md are exactly what assemble builds")
     sub.add_parser("concordance")
     st = sub.add_parser("self-test"); st.add_argument("--require-pdf", action="store_true", help="fail, not skip, when no PDF can be rendered and read")
     r = sub.add_parser("ratchet"); r.add_argument("--record", action="store_true")
@@ -1458,15 +2822,56 @@ def main():
         f = render_check(a.pdf) + text_colors(a.pdf)
         print("\n".join(f) or "render: nothing clipped, logo whole, no blank band, text in the three colours; 0 failures")
         sys.exit(1 if f else 0)
-    if a.cmd == "battery":
+    if a.cmd in ("battery", "history"):
         text, cited = "", None
         if a.brief:
             pdf = a.brief.lower().endswith(".pdf")
             text = "\n".join(pdf_pages(a.brief) or []) if pdf else pathlib.Path(a.brief).read_text()
             cited = pdf_links(a.brief) if pdf else None
-        f, summary = battery([ln for t in a.transcripts for ln in open(t)], a.depth, text, cited)
-        print(f"battery: {summary}", *[" - " + x for x in f], f"{len(f)} failures", sep="\n")
+        files = list(a.transcripts)
+        if a.latest or not files:
+            found = find_history()
+            if not found:
+                sys.exit("history: no history file found for this session. Pass it: " + HOST_FILES)
+            files = [str(found)]
+        saved = ""
+        if a.profile and pathlib.Path(a.profile).exists():
+            import yaml
+            pr = yaml.safe_load(pathlib.Path(a.profile).read_text()) or {}
+            saved = str(((pr.get("profiles") or {}).get(next(iter(pr.get("profiles") or {}), ""), {}).get("answers", {}).get("Q8", {}) or {}).get("value", ""))
+        f, summary = battery([ln for t in files for ln in open(t)], a.depth, text, cited, saved, False if a.no_popup else None, a.kind, a.scope)
+        print(f"history: {summary}", *[" - " + x for x in f], f"{len(f)} failures", sep="\n")
         sys.exit(1 if f else 0)
+    if a.cmd == "assemble":
+        prof = None
+        if pathlib.Path(a.profile).exists():
+            import yaml
+            prof = yaml.safe_load(pathlib.Path(a.profile).read_text())
+        if a.check:
+            f = assembled_matches(a.folder, prof, a.depth)
+            print(f"assemble --check {a.folder}: {len(f)} failures", *[" - " + x for x in f], sep="\n")
+            sys.exit(1 if f else 0)
+        brief, script, probs = assemble(a.folder, prof, a.depth)
+        if probs:
+            print(f"assemble {a.folder}: {len(probs)} problems; fix fields.json, then run again", *[" - " + x for x in probs], sep="\n")
+            sys.exit(1)
+        pathlib.Path(a.folder, "brief.md").write_text(brief); pathlib.Path(a.folder, "script.md").write_text(script)
+        f = schema_check(brief, script) + grading_check(brief)
+        print(f"assembled {a.folder}/brief.md and script.md; schema and grading: {len(f)} failures", *[" - " + x for x in f], sep="\n")
+        sys.exit(1 if f else 0)
+    if a.cmd == "records":
+        f = records_check(a.folder, a.depth, pathlib.Path(a.brief).read_text() if a.brief else "")
+        print(f"records {a.folder}: {len(f)} failures", *[" - " + x for x in f], sep="\n")
+        sys.exit(1 if f else 0)
+    if a.cmd == "kept":
+        f = kept_check(pathlib.Path(a.draft).read_text(), pathlib.Path(a.final).read_text(), a.allow)
+        print(f"kept: draft {len(ledger_facts(pathlib.Path(a.draft).read_text()))} cited facts, final {len(ledger_facts(pathlib.Path(a.final).read_text()))}; {len(f)} failures",
+              *[" - " + x for x in f], sep="\n")
+        sys.exit(1 if f else 0)
+    if a.cmd == "offer-conflict":
+        diff = offer_conflict(a.saved, a.request)
+        print("conflict: ask before collection" if diff else "no conflict", ", ".join(diff))
+        sys.exit(1 if diff else 0)
     if a.cmd == "ratchet":
         sys.exit(ratchet(a.record))
     if a.cmd == "improve":

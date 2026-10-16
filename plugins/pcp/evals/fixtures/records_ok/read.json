@@ -1,0 +1,56 @@
+[
+ {
+  "dimension": "dominance",
+  "band": "high",
+  "evidence_tier": "high",
+  "observation_ids": [
+   3,
+   4,
+   7
+  ],
+  "meeting_meaning": "Lead with the outcome in one sentence; they decide fast and dislike preamble."
+ },
+ {
+  "dimension": "status_sensitivity",
+  "band": "mid",
+  "evidence_tier": "high",
+  "observation_ids": [
+   1,
+   2,
+   3
+  ],
+  "meeting_meaning": "Acknowledge one specific achievement, then move on."
+ },
+ {
+  "dimension": "information_appetite",
+  "band": "mid",
+  "evidence_tier": "high",
+  "observation_ids": [
+   2,
+   5,
+   8
+  ],
+  "meeting_meaning": "Headline, two proof points, a source on request."
+ },
+ {
+  "dimension": "risk_tolerance",
+  "band": "no read",
+  "evidence_tier": "low",
+  "observation_ids": [],
+  "meeting_meaning": "No read"
+ },
+ {
+  "dimension": "ego_vulnerability",
+  "band": "no read",
+  "evidence_tier": "low",
+  "observation_ids": [],
+  "meeting_meaning": "No read"
+ },
+ {
+  "dimension": "competitive_drive",
+  "band": "no read",
+  "evidence_tier": "low",
+  "observation_ids": [],
+  "meeting_meaning": "No read"
+ }
+]

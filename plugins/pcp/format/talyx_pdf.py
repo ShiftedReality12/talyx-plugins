@@ -62,6 +62,31 @@ BRIEF_LADDER = [
 ]
 
 
+# the registry (pcp.yaml page_budget) declares the ladders, the 10 pt body floor and the brief's secondary text sizes; the numbers above
+# are the defaults for a copy with no pcp.json beside it (the standalone talyx-pdf skill). eval.py self-test fails if they differ.
+SZ = dict(footer=7.5, band=7.8, name=20, preline=9.5, meta=9.5, sec_head=9.5, sub=9.5, decides=9.5, th=9.5, ledger_note=9.5, ledger=9.5, grade=9.5)
+
+
+def _registry():
+    for d in (HERE.parent, HERE.parent.parent):
+        f = d / "pcp.json"
+        if f.exists():
+            try:
+                return json.loads(f.read_text()).get("page_budget") or {}
+            except ValueError:
+                return {}
+    return {}
+
+
+_PB = _registry()
+if _PB.get("ladder"):
+    LADDER = [dict(r, mh=tuple(r["mh"]), page=tuple(r["page"])) for r in _PB["ladder"]]
+if _PB.get("brief_ladder"):
+    BRIEF_LADDER = [dict(r) for r in _PB["brief_ladder"]]
+SZ.update(_PB.get("text_sizes_pt") or {})
+BODY_PT_FLOOR = _PB.get("body_pt_floor", 10.0)
+
+
 # ---------------------------------------------------------------- markdown -> html --------------------------
 def typo(t):
     t = re.sub(r'(^|[\s(\[*])"', "\\1\u201c", t); t = t.replace('"', "\u201d")
@@ -395,30 +420,30 @@ def brief_css(rung, footer):
     return f"""
 @font-face {{ font-family:'Archivo'; font-weight:100 900; src:url(data:font/woff2;base64,{archivo}) format('woff2'); }}
 @page {{ size: Letter; margin: 0.42in 0 0.62in 0;
-  @bottom-left {{ content: "{html.escape(footer)}"; font-family:'Archivo'; font-size:7.2pt; color:{MIDNIGHT}; padding-left:0.55in; }}
-  @bottom-right {{ content: "page " counter(page) " of " counter(pages); font-family:'Archivo'; font-size:7.2pt; color:{MIDNIGHT}; padding-right:0.55in; }} }}
+  @bottom-left {{ content: "{html.escape(footer)}"; font-family:'Archivo'; font-size:{SZ['footer']}pt; color:{MIDNIGHT}; padding-left:0.55in; }}
+  @bottom-right {{ content: "page " counter(page) " of " counter(pages); font-family:'Archivo'; font-size:{SZ['footer']}pt; color:{MIDNIGHT}; padding-right:0.55in; }} }}
 @page :first {{ margin-top:0.30in; }}   /* the logo stamp starts page 1 inside the printable area: a negative margin clipped its top */
 html {{ -webkit-print-color-adjust:exact; }}
 body {{ font-family:'Archivo', sans-serif; color:{MIDNIGHT}; margin:0; font-size:{b}pt; line-height:{lh}; }}
 .page-content {{ padding:0 0.55in; }}
 .stamp {{ display:flex; justify-content:flex-end; margin:0 -0.05in 3pt 0; }} .stamp img {{ width:90px; height:auto; }}
 .band {{ display:flex; align-items:center; height:18pt; border-bottom:1pt solid {HAIR}; margin-bottom:9pt; }}
-.cls {{ font-size:7.8pt; font-weight:600; letter-spacing:0.16em; color:{MIDNIGHT}; }}
-h1.name {{ font-size:14.2pt; font-weight:700; margin:0 0 2pt; }}
-.part-0 > .sec.pre p:first-child {{ font-size:9pt; font-weight:700; color:{MIDNIGHT}; margin:0 0 4pt; }}
-.part-0 > .sec.pre p + p {{ font-size:7.5pt; color:{MIDNIGHT}; line-height:1.4; margin:0 0 7pt; }}
+.cls {{ font-size:{SZ['band']}pt; font-weight:600; letter-spacing:0.16em; color:{MIDNIGHT}; }}
+h1.name {{ font-size:{SZ['name']}pt; font-weight:700; margin:0 0 2pt; }}
+.part-0 > .sec.pre p:first-child {{ font-size:{SZ['preline']}pt; font-weight:700; color:{MIDNIGHT}; margin:0 0 4pt; }}
+.part-0 > .sec.pre p + p {{ font-size:{SZ['meta']}pt; color:{MIDNIGHT}; line-height:1.4; margin:0 0 7pt; }}
 .sec.pre p strong {{ font-weight:700; }}
-h1.h, .sec-head {{ display:block; font-size:7.8pt; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:{MIDNIGHT};
+h1.h, .sec-head {{ display:block; font-size:{SZ['sec_head']}pt; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:{MIDNIGHT};
   border-bottom:1pt solid {HAIR}; padding-bottom:3pt; margin:calc({sg}pt + var(--fill, 0px)) 0 5pt; break-after:avoid; }}
 /* one heading rhythm: a block's last line carries no bottom margin, so every head sits {sg}pt below the text above it */
 .sec-body > :last-child, .sec-body > :last-child > li:last-child {{ margin-bottom:0; }}
-h1.h {{ margin-top:0; }} .part-1 > .sec.pre p {{ font-size:7.5pt; color:{MIDNIGHT}; margin:-2pt 0 5pt; }}
+h1.h {{ margin-top:0; }} .part-1 > .sec.pre p {{ font-size:{SZ['meta']}pt; color:{MIDNIGHT}; margin:-2pt 0 5pt; }}
 p {{ margin:0 0 {pg}pt; }} p.lbl {{ margin:0 0 {pg}pt; }}
 ul, ol {{ margin:0 0 {pg}pt; padding-left:11pt; }} li {{ margin:0 0 calc(3pt + var(--fill, 0px) / 4); }} li > ul, li > ol {{ margin:1pt 0 0; }}
 strong {{ font-weight:700; }} em {{ font-style:italic; }}
 a {{ color:{MIDNIGHT}; text-decoration:underline; text-decoration-thickness:0.5px; text-underline-offset:1.5px; }}
 .cite {{ color:{MIDNIGHT}; font-size:0.8em; font-weight:500; }}
-.sub {{ font-size:8.8pt; font-weight:700; margin:2pt 0 3pt; }} .sec-b9 .sub {{ margin-top:calc(7pt + var(--fill, 0px) / 2); }} .sec-b9 .sub:first-child {{ margin-top:0; }}
+.sub {{ font-size:{SZ['sub']}pt; font-weight:700; margin:2pt 0 3pt; }} .sec-b9 .sub {{ margin-top:calc(7pt + var(--fill, 0px) / 2); }} .sec-b9 .sub:first-child {{ margin-top:0; }}
 .two {{ display:grid; grid-template-columns:1fr 1fr; column-gap:0.28in; align-items:start; break-inside:avoid; }}
 @media screen {{ body {{ width:8.5in; }} }}   /* BALANCE measures at the printed width */
 /* the schema's page 2 opens on Who decides | Strongest case against: B1-B6 are page 1, even when page 1 has room */
@@ -427,23 +452,23 @@ a {{ color:{MIDNIGHT}; text-decoration:underline; text-decoration-thickness:0.5p
 .sec-b1 .sec-body {{ background:{MIDNIGHT}; color:{WHITE}; font-size:{b}pt; line-height:1.4; padding:8pt 11pt; border-radius:6pt; margin-top:2pt; }}
 .sec-b1 p {{ margin:0; }} .sec-b1 strong, .sec-b1 a, .sec-b1 .cite {{ color:{WHITE}; }}
 .sec-b2 ol {{ padding-left:15pt; }} .sec-b2 ol > li {{ font-size:{b + 0.9}pt; font-weight:600; }}
-.sec-b2 li > ul {{ list-style:none; padding-left:0; }} .sec-b2 li li {{ font-size:7.8pt; font-weight:400; color:{MIDNIGHT}; margin:0; }}
+.sec-b2 li > ul {{ list-style:none; padding-left:0; }} .sec-b2 li li {{ font-size:{SZ['decides']}pt; font-weight:400; color:{MIDNIGHT}; margin:0; }}
 .sec-b2 li li strong {{ color:{MIDNIGHT}; }}
 table {{ border-collapse:collapse; width:100%; margin:0 0 {pg}pt; break-inside:avoid; }} tr {{ break-inside:avoid; }}
 table.src {{ break-inside:auto; }}
-th {{ text-align:left; font-size:7.4pt; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:{MIDNIGHT};
+th {{ text-align:left; font-size:{SZ['th']}pt; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:{MIDNIGHT};
   padding:0 6pt 3pt 0; border-bottom:1pt solid {HAIR}; }}
 td {{ vertical-align:top; padding:calc({cp}pt + var(--fill, 0px) / 4) 6pt calc({cp}pt + var(--fill, 0px) / 4) 0; border-bottom:0.6pt solid {HAIR}; text-wrap:pretty; }}
 .sec-b5 td:first-child {{ width:var(--c1, 48%); }} .sec-b6 td:first-child {{ width:var(--c1, 55%); }} .sec-b8 td:first-child {{ width:var(--c1, 50%); }}
 .sec-b6 td {{ padding-top:calc({max(cp - 0.6, 0.8)}pt + var(--fill, 0px) / 4); padding-bottom:calc({max(cp - 0.6, 0.8)}pt + var(--fill, 0px) / 4); }}
 .sec-b6 p.noread {{ margin:2pt 0 {pg}pt; }}
 /* the ledger block (B10) is one scale: its note line small, its table and its label grid one size, one grid */
-.sec-b10 .sec-body > p:first-child {{ font-size:7.5pt; color:{MIDNIGHT}; margin:0 0 3pt; }}
-.sec-b10 table td {{ font-size:8pt; line-height:1.3; padding:calc(1.6pt + var(--fill, 0px) / 4) 8pt calc(1.6pt + var(--fill, 0px) / 4) 0; }}
-table.src td {{ white-space:nowrap; }} table.src td:nth-child(1) {{ width:4%; }} table.src td:nth-child(2) {{ white-space:normal; width:auto; }}
-table.src td:nth-child(3) {{ width:20%; }} table.src td:nth-child(4), table.src td:nth-child(5) {{ width:11%; }}
+.sec-b10 .sec-body > p:first-child {{ font-size:{SZ['ledger_note']}pt; color:{MIDNIGHT}; margin:0 0 3pt; }}
+.sec-b10 table td {{ font-size:{SZ['ledger']}pt; line-height:1.3; padding:calc(0.9pt + var(--fill, 0px) / 4) 8pt calc(0.9pt + var(--fill, 0px) / 4) 0; }}
+table.src td {{ white-space:nowrap; }} table.src td:nth-child(2) {{ white-space:normal; }}
+table.src td:nth-child(1) {{ width:4%; }} table.src td:nth-child(2) {{ width:36%; }} table.src td:nth-child(3) {{ width:24%; }} table.src td:nth-child(4) {{ width:18%; }} table.src td:nth-child(5) {{ width:14%; }}
 table.src td:first-child .cite {{ font-size:1em; color:{MIDNIGHT}; font-variant-numeric:tabular-nums; }}
-table.src td.grade {{ font-size:7pt; font-weight:500; letter-spacing:0.05em; text-transform:uppercase; color:{MIDNIGHT}; }}
+table.src td.grade {{ font-size:{SZ['grade']}pt; font-weight:500; letter-spacing:0.05em; text-transform:uppercase; color:{MIDNIGHT}; }}
 table.src td.g-derived, table.src td.g-inference, table.src td.g-not {{ font-weight:700; }}
 table.grid {{ margin-top:6pt; }} table.grid td:first-child {{ width:1.35in; white-space:nowrap; font-weight:700; }}
 .sec-b10 ul.open {{ margin:0; padding-left:9pt; }} .sec-b10 ul.open li {{ margin:0; }}

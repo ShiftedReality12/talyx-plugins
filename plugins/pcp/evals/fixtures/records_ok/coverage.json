@@ -1,0 +1,144 @@
+{
+ "base": {
+  "F1": [
+   "\"Jane Doe\" \"Alder Grey Capital\" managing partner"
+  ],
+  "F2": [
+   "\"Jane Doe\" Alder Grey career OR joined OR appointed OR promoted"
+  ],
+  "F3": [
+   "\"Alder Grey Capital\" news OR announces OR partnership OR acquisition OR raises 2026"
+  ],
+  "F4": [
+   "aldergrey.example about OR mission"
+  ],
+  "F5": [
+   "\"Jane Doe\" interview OR podcast OR panel OR quoted OR keynote"
+  ],
+  "F6": [
+   "\"Jane Doe\" site:x.com OR site:substack.com OR site:bsky.app"
+  ],
+  "F7": [
+   "\"Jane Doe\" board OR trustee OR advisory OR member OR association OR alumni"
+  ],
+  "F8": [
+   "\"Jane Doe\" author OR paper OR patent OR whitepaper OR book"
+  ],
+  "F10": [
+   "\"Jane Doe\" OR \"Alder Grey Capital\" conference OR summit OR webinar 2026"
+  ],
+  "F12": [
+   "\"Alder Grey Capital\" lawsuit OR layoffs OR departure OR decline OR criticism"
+  ]
+ },
+ "rounds": [
+  {
+   "round": 1,
+   "name": "identity lock",
+   "queries": [
+    "\"Jane Doe\" \"Alder Grey Capital\" identity lock 0",
+    "\"Jane Doe\" \"Alder Grey Capital\" identity lock 1",
+    "\"Jane Doe\" \"Alder Grey Capital\" identity lock 2",
+    "\"Jane Doe\" \"Alder Grey Capital\" identity lock 3"
+   ],
+   "ignored_operators": []
+  },
+  {
+   "round": 2,
+   "name": "role and history",
+   "queries": [
+    "\"Jane Doe\" \"Alder Grey Capital\" role and history 0",
+    "\"Jane Doe\" \"Alder Grey Capital\" role and history 1",
+    "\"Jane Doe\" \"Alder Grey Capital\" role and history 2",
+    "\"Jane Doe\" \"Alder Grey Capital\" role and history 3"
+   ],
+   "ignored_operators": []
+  },
+  {
+   "round": 3,
+   "name": "last 90 days",
+   "queries": [
+    "\"Jane Doe\" \"Alder Grey Capital\" last 90 days 0",
+    "\"Jane Doe\" \"Alder Grey Capital\" last 90 days 1",
+    "\"Jane Doe\" \"Alder Grey Capital\" last 90 days 2",
+    "\"Jane Doe\" \"Alder Grey Capital\" last 90 days 3"
+   ],
+   "ignored_operators": []
+  },
+  {
+   "round": 4,
+   "name": "their own words",
+   "queries": [
+    "\"Jane Doe\" \"Alder Grey Capital\" their own words 0",
+    "\"Jane Doe\" \"Alder Grey Capital\" their own words 1",
+    "\"Jane Doe\" \"Alder Grey Capital\" their own words 2",
+    "\"Jane Doe\" \"Alder Grey Capital\" their own words 3"
+   ],
+   "ignored_operators": []
+  },
+  {
+   "round": 5,
+   "name": "gaps and counter-evidence",
+   "queries": [
+    "\"Jane Doe\" \"Alder Grey Capital\" gaps and counter-evidence 0",
+    "\"Jane Doe\" \"Alder Grey Capital\" gaps and counter-evidence 1",
+    "\"Jane Doe\" \"Alder Grey Capital\" gaps and counter-evidence 2",
+    "\"Jane Doe\" \"Alder Grey Capital\" gaps and counter-evidence 3"
+   ],
+   "ignored_operators": []
+  }
+ ],
+ "searches": 30,
+ "attempted": [
+  "F1",
+  "F2",
+  "F3",
+  "F4",
+  "F5",
+  "F6",
+  "F9",
+  "F10",
+  "F11",
+  "F12"
+ ],
+ "families_attempted": 10,
+ "families_total": 12,
+ "hits_by_family": {
+  "F1": 1,
+  "F2": 1,
+  "F3": 2,
+  "F4": 1,
+  "F5": 2,
+  "F6": 1,
+  "F7": 0,
+  "F8": 0,
+  "F9": 1,
+  "F10": 1,
+  "F11": 1,
+  "F12": 1
+ },
+ "c1c2_by_family": {
+  "F1": 1,
+  "F2": 1,
+  "F3": 2,
+  "F4": 1,
+  "F5": 2,
+  "F6": 0,
+  "F7": 0,
+  "F8": 0,
+  "F9": 1,
+  "F10": 1,
+  "F11": 0,
+  "F12": 1
+ },
+ "failed_urls": [
+  {
+   "url": "https://example.org/blocked",
+   "status": 403
+  }
+ ],
+ "excluded": 0,
+ "dropped": 0,
+ "linkedin": "read from your file",
+ "status": "FULL"
+}

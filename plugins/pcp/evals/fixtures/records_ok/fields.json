@@ -1,0 +1,173 @@
+{
+ "target": {
+  "name": "Jane Doe",
+  "org": "Alder Grey Capital",
+  "role_since": "Managing Partner, since 2021",
+  "city": "Chicago"
+ },
+ "meeting": "First intro: earn a second meeting",
+ "prepared": "Oct 16, 2026",
+ "b1": {
+  "take": "Jane Doe leads Alder Grey Capital [c1] and is raising a second vehicle [c5].",
+  "evidence": "the firm manages family capital [c2].",
+  "action": "open on the second close [c8].",
+  "avoid": "a fee pitch [c4]."
+ },
+ "b2": [
+  {
+   "q": "What changed after the second close [c8]?",
+   "decides": "pace",
+   "ask": "Jane Doe"
+  },
+  {
+   "q": "How does Alder Grey decide on a new custodian [c9]?",
+   "decides": "process",
+   "ask": "Jane Doe"
+  },
+  {
+   "q": "Who else weighs in on the second vehicle's references [c10]?",
+   "decides": "the gate",
+   "ask": "Jane Doe"
+  },
+  {
+   "q": "What would make a fourth reference easy [c5]?",
+   "decides": "the ask",
+   "ask": "Jane Doe"
+  },
+  {
+   "q": "How did the close date move [c11]?",
+   "decides": "timing",
+   "ask": "Jane Doe"
+  }
+ ],
+ "b3": {
+  "role": "Managing Partner of Alder Grey Capital since 2021 [c1].",
+  "organization": "a firm that manages family capital for three generations [c2].",
+  "changed": [
+   "a second vehicle is in the market this year [c5]"
+  ]
+ },
+ "b4": {
+  "quotes": [
+   {
+    "label": "On patience, 2025 letter",
+    "quote": "We buy patience",
+    "cite": "[c3]"
+   },
+   {
+    "label": "On fees, a 2026 panel",
+    "quote": "Nobody wins a fee war",
+    "cite": "[c4]"
+   }
+  ]
+ },
+ "b5": [
+  {
+   "observable": "The second vehicle needs three references [c10]",
+   "action": "Warm introductions land in weeks."
+  },
+  {
+   "observable": "Your offer is custodian onboarding [c12]",
+   "action": "Introduce the custodian."
+  },
+  {
+   "observable": "The close date moved once [c11]",
+   "action": "Offer a slot after it."
+  }
+ ],
+ "b6": {
+  "dominance": "sets agendas on panels [c7]",
+  "status_sensitivity": "leads with the firm's record [c1]",
+  "information_appetite": "cites fund figures [c2] [c5]"
+ },
+ "b7": {
+  "decision_maker": "the investment committee signs off on new custodians [c9].",
+  "gate": "Not determined"
+ },
+ "b8": {
+  "against": [
+   {
+    "against": "the close date has moved once before this year [c11].",
+    "reverses_if": "it holds."
+   }
+  ],
+  "confirm_first": "her agenda-setting is one panel's view [c7]; ask whether it holds in private."
+ },
+ "b9": {
+  "frame": "how Alder Grey chooses a custodian; not a pitch.",
+  "lands": "the second close [c8].",
+  "repels": "a fee-led pitch [c4].",
+  "bring": "the introduction to the custodian [c12].",
+  "ask": "a 30-minute follow-up [c12].",
+  "fallback": "a 15-minute call.",
+  "stop_if": "she says the custodian is settled.",
+  "meeting_two": "a working session on custodian onboarding [c12].",
+  "meeting_three": "a pilot with one family office.",
+  "capture": "who else signs off."
+ },
+ "still_open": [
+  {
+   "label": "The gate",
+   "question": "What must be true before the committee says yes?"
+  }
+ ],
+ "p1": {
+  "hook": "Congratulations on the second close [c8].",
+  "credibility": "We onboard custodians for family offices [c12].",
+  "insight": "Three references are the usual gate [c10].",
+  "rule": "ask one question, then stop."
+ },
+ "p2": {
+  "beats": [
+   "open on the second close [c8]",
+   "ask the gate question [c9]"
+  ],
+  "order": {
+   "story": 1,
+   "process": 2,
+   "gate": 3,
+   "history": 5,
+   "commitment": 4
+  }
+ },
+ "p3": [
+  {
+   "objection": "We are covered.",
+   "answer": "Then a second reference costs nothing [c6]."
+  },
+  {
+   "objection": "No time.",
+   "answer": "Thirty minutes, nothing more [c12]."
+  },
+  {
+   "objection": "We build, we do not buy.",
+   "answer": "A replaceable tool, not a dependency [c9]."
+  }
+ ],
+ "p4": {
+  "restate": "ask what would make it an easy yes, then say it back.",
+  "deadline": "the close date [c11].",
+  "followup": "send the introduction within a day."
+ },
+ "p5": {
+  "fast": "match her pace; propose once [c7].",
+  "data": "bring the fund figures [c5].",
+  "people": "no read; ask who else weighs in.",
+  "ideas": "pair the upside with the safeguard [c2]."
+ },
+ "p6": {
+  "social_proof": "three peers already use the custodian [c12]."
+ },
+ "p7": {
+  "moves": [
+   "ask about the second close [c8]",
+   "return to the three references [c10]"
+  ]
+ },
+ "p8": {
+  "rule": "in the US, promise no returns; claim only what the record shows."
+ },
+ "p9": {
+  "next_step": "send the custodian introduction this week [c12]."
+ }
+}
