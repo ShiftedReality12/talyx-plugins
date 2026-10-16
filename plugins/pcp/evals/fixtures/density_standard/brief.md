@@ -55,50 +55,50 @@ Meeting: First intro: earn a second meeting | Prepared for: Founder / principal 
 - **Relationship holder:** Not determined
 
 ## B8 Strongest case against
-- **Against:** Microsoft's own Autopilot covers recurring work and follow-ups [6]. **Reverses if:** his team names an executive-prep gap it leaves open.
-- **Against:** April's buyouts of about 7% of US staff [10] point to cost scrutiny. **Reverses if:** you can count the executive hours saved.
+- **Against:** Autopilot already covers recurring work [6]. **Reverses if:** his team names a prep gap.
+- **Against:** April's buyouts [10] signal cost scrutiny. **Reverses if:** you count the hours saved.
 
 ## B9 Meeting angle
 ### This meeting
-- **Frame:** how his executives prepare; not a pitch.
-- **Lands:** "independent of all" [9]: you are replaceable.
+- **Frame:** how his executives prepare; no pitch.
+- **Lands:** "independent of all" [9]: be replaceable.
 - **Repels:** spend-led pitches [5].
-- **What to bring:** a one-page example brief [17].
-- **The ask:** 30 minutes with him or his owner [17] · **Fallback:** 15 minutes with Jared Spataro [7].
-- **Stop if:** he says Copilot covers meeting prep.
+- **What to bring:** a one-page example [17].
+- **The ask:** 30 minutes with him or his owner [17] · **Fallback:** 15 minutes with Spataro [7].
+- **Stop if:** he says Copilot covers it.
 ### Meeting two
-- **Meeting two:** a session with the Copilot owner on seats past 30 million [3].
+- **Meeting two:** a session on seats past 30 million [3].
 - **Meeting three:** a pilot with one executive team.
 ### After the meeting
 - **Capture:** who owns it; what Copilot leaves out.
 
 ## B10 Evidence ledger
-18 facts cited; status LIMITED at 8 of 12 source types. Strength: Strong: primary, dated · Solid: reputable secondary · Weak: single source · Inferred: no source states it. Dates are the sources' own; 'seen' marks the day an undated source was read.
+18 facts cited; status LIMITED at 8 of 12 source types. Strength: Strong: primary, dated · Solid: reputable secondary · Weak: single source · Inferred: no source states it. Dates: the source's own; 'seen' = the day it was read.
 
 | # | What it says | Source | Grade | Date |
 |---|---|---|---|---|
 | [1] | Chairman and CEO of Microsoft | [news.microsoft.com](https://news.microsoft.com/source/exec/satya-nadella/) · Direct | Measured · Strong | seen Oct 16, 2026 |
-| [2] | Three domains: coding, security, work | [stratechery.com](https://stratechery.com/2026/an-interview-with-microsoft-ceo-satya-nadella-about-finding-core-competencies/) · Direct | Measured · Solid | Jun 4, 2026 |
-| [3] | Copilot passed 30 million paid seats | [microsoft.com](https://www.microsoft.com/en-us/investor/earnings/fy-2026-q4/press-release-webcast) · Direct | Measured · Strong | Jul 29, 2026 |
-| [4] | 30 million users, 450 million workers | [thefabulous.co](https://www.thefabulous.co/pod/all-in/satya-nadella-on-ai-risk-pricing-and-copilot-growth/) · Direct | Measured · Weak | Sep 15, 2026 |
+| [2] | Focus: coding, security, work | [stratechery.com](https://stratechery.com/2026/an-interview-with-microsoft-ceo-satya-nadella-about-finding-core-competencies/) · Direct | Measured · Solid | Jun 4, 2026 |
+| [3] | Copilot passed 30M paid seats | [microsoft.com](https://www.microsoft.com/en-us/investor/earnings/fy-2026-q4/press-release-webcast) · Direct | Measured · Strong | Jul 29, 2026 |
+| [4] | 30M users, 450M workers | [thefabulous.co](https://www.thefabulous.co/pod/all-in/satya-nadella-on-ai-risk-pricing-and-copilot-growth/) · Direct | Measured · Weak | Sep 15, 2026 |
 | [5] | Quote: CapEx talk is "a bug" | [thefabulous.co](https://www.thefabulous.co/pod/all-in/satya-nadella-on-ai-risk-pricing-and-copilot-growth/) · Direct | Measured · Weak | Sep 15, 2026 |
-| [6] | Autopilot works on recurring tasks | [blogs.microsoft.com](https://blogs.microsoft.com/blog/2026/09/25/introducing-the-new-copilot-with-home-code-and-autopilot/) · Direct | Measured · Strong | Sep 25, 2026 |
-| [7] | Spataro wrote the Copilot launch post | [blogs.microsoft.com](https://blogs.microsoft.com/blog/2026/09/25/introducing-the-new-copilot-with-home-code-and-autopilot/) · Direct | Measured · Strong | Sep 25, 2026 |
-| [8] | Quote: "long-running Foundry agents" | [latent.space](https://www.latent.space/p/satya-2026) · Direct | Measured · Solid | Jun 3, 2026 |
+| [6] | Autopilot: recurring tasks | [blogs.microsoft.com](https://blogs.microsoft.com/blog/2026/09/25/introducing-the-new-copilot-with-home-code-and-autopilot/) · Direct | Measured · Strong | Sep 25, 2026 |
+| [7] | Spataro wrote the launch post | [blogs.microsoft.com](https://blogs.microsoft.com/blog/2026/09/25/introducing-the-new-copilot-with-home-code-and-autopilot/) · Direct | Measured · Strong | Sep 25, 2026 |
+| [8] | Quote: "Foundry agents" | [latent.space](https://www.latent.space/p/satya-2026) · Direct | Measured · Solid | Jun 3, 2026 |
 | [9] | Quote: "independent of all" | [thefabulous.co](https://www.thefabulous.co/pod/all-in/satya-nadella-on-ai-risk-pricing-and-copilot-growth/) · Direct | Measured · Weak | Sep 15, 2026 |
-| [10] | Buyouts offered to about 7% of US staff | [news.bloomberglaw.com](https://news.bloomberglaw.com/daily-labor-report/microsoft-offers-buyouts-to-about-7-of-us-workers-1) · Direct | Measured · Solid | Apr 23, 2026 |
+| [10] | Buyouts: about 7% of staff | [news.bloomberglaw.com](https://news.bloomberglaw.com/daily-labor-report/microsoft-offers-buyouts-to-about-7-of-us-workers-1) · Direct | Measured · Solid | Apr 23, 2026 |
 | [11] | Named CEO in February 2014 | [news.microsoft.com](https://news.microsoft.com/en-hk/2014/02/04/20140205/) · Direct | Measured · Strong | Feb 4, 2014 |
-| [12] | Led Cloud and Enterprise group | [news.microsoft.com](https://news.microsoft.com/en-hk/2014/02/04/20140205/) · Direct | Measured · Strong | Feb 4, 2014 |
-| [13] | Mission: empower every person and org | [microsoft.com](https://www.microsoft.com/en-us/about) · Direct | Measured · Strong | seen Oct 16, 2026 |
-| [14] | New Copilot: Home, Code, Autopilot | [blogs.microsoft.com](https://blogs.microsoft.com/blog/2026/09/25/introducing-the-new-copilot-with-home-code-and-autopilot/) · Direct | Measured · Strong | Sep 25, 2026 |
-| [15] | Azure up 43%, over $100 billion | [microsoft.com](https://www.microsoft.com/en-us/investor/earnings/fy-2026-q4/press-release-webcast) · Direct | Measured · Strong | Jul 29, 2026 |
+| [12] | Led Cloud and Enterprise | [news.microsoft.com](https://news.microsoft.com/en-hk/2014/02/04/20140205/) · Direct | Measured · Strong | Feb 4, 2014 |
+| [13] | Mission: empower every person | [microsoft.com](https://www.microsoft.com/en-us/about) · Direct | Measured · Strong | seen Oct 16, 2026 |
+| [14] | New Copilot with Autopilot | [blogs.microsoft.com](https://blogs.microsoft.com/blog/2026/09/25/introducing-the-new-copilot-with-home-code-and-autopilot/) · Direct | Measured · Strong | Sep 25, 2026 |
+| [15] | Azure up 43%, over $100B | [microsoft.com](https://www.microsoft.com/en-us/investor/earnings/fy-2026-q4/press-release-webcast) · Direct | Measured · Strong | Jul 29, 2026 |
 | [16] | Quote: "We're a toolmaker." | [thefabulous.co](https://www.thefabulous.co/pod/all-in/satya-nadella-on-ai-risk-pricing-and-copilot-growth/) · Direct | Measured · Weak | Sep 15, 2026 |
-| [17] | Talyx offer: meeting prep for executives | your saved setup · Yours | Measured · Weak | seen Oct 16, 2026 |
-| [18] | Q1 FY27 results Oct 28, after close | [news.microsoft.com](https://news.microsoft.com/source/2026/10/07/microsoft-announces-quarterly-earnings-release-date-69/) · Direct | Measured · Strong | Oct 7, 2026 |
+| [17] | Talyx offer: meeting prep | your saved setup · Yours | Measured · Weak | seen Oct 16, 2026 |
+| [18] | Q1 results Oct 28, after close | [news.microsoft.com](https://news.microsoft.com/source/2026/10/07/microsoft-announces-quarterly-earnings-release-date-69/) · Direct | Measured · Strong | Oct 7, 2026 |
 
 | | |
 |---|---|
 | **Coverage** | 8 of 12 source types in the base pass · rounds 5 of 5 · Not found: public social, affiliations, publications, registers · LinkedIn: not read: no matching profile |
-| **Still open** | Decision maker: Who owns executive meeting prep at Microsoft? · The gate: What must a tool prove before executives adopt it? · Relationship holder: Who does he trust to vet outside tools? · How they take disagreement: How would you like pushback raised? |
+| **Still open** | Decision maker: Who owns executive meeting prep? · The gate: What must a tool prove first? · Relationship holder: Who vets outside tools? · How they take disagreement: How should pushback be raised? |
 | **Left out on purpose** | health, family, politics, litigation, personal finances |
 | **Run** | Oct 16, 2026 · standard · first intro · founder / principal · general professional · US · LIMITED · 6.0 decision-useful facts per page · 30 searches (10 base) in 5 rounds |

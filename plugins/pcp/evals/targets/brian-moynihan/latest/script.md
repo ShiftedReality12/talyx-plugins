@@ -2,28 +2,28 @@
 *Facts select the moves; read the room, never the record · Brian Moynihan, Bank of America · Prepared Oct 14, 2026*
 
 ## P1 Open
-- **Hook:** *On Wednesday's call you said about 130 AI projects each carry a payback [4]. I'd like two minutes on a payback case for advisor meeting preparation.*
-- **Credibility:** Talyx builds AI meeting-prep and knowledge tools for executive teams [14].
-- **Insight:** Erica drew nearly 700 million interactions in 2025 [19]; payback for advisors comes from time saved per client meeting.
-- **Rule:** let him finish each answer; echo his words before the next question.
+- **Hook:** *On Wednesday's call you said about 130 AI projects each carry a payback [4]. May I take two minutes on a payback case for advisor preparation?*
+- **Credibility:** Talyx builds AI meeting-prep tools for executive teams [14].
+- **Insight:** Erica drew nearly 700 million interactions in 2025 [19]; advisor payback comes from time saved per meeting.
+- **Rule:** let him finish; echo his words before the next question.
 
 ## P2 Question order
-- **Story:** Which of your roughly 130 AI projects paid back fastest, and why? [4]
-- **Process:** You judge AI on a business case [6]; who signs that case off?
-- **Gate:** Dean Athanasia and Jim DeMare oversee the eight business lines [5]; who else should weigh in?
-- **History:** Erica passed 3.2 billion interactions [7]; what did the bank learn rolling it out?
+- **Story:** Which of your 130 AI projects paid back fastest? [4]
+- **Process:** You judge AI on a business case [6]; who signs it off?
+- **Gate:** Dean Athanasia and Jim DeMare oversee eight business lines [5]; who else weighs in?
+- **History:** Erica passed 3.2 billion interactions [7]; what did rollout teach?
 - **Commitment:** You expect AI to matter more from 2026 [3]; who owns advisor preparation?
 
 ## P3 Objections: name it, then answer
-- **"We build our own AI.":** *Erica reached 3.2 billion interactions that way [7]. I'm asking only whether advisor preparation passes your payback test.*
-- **"AI is inflationary right now.":** *You said it is inflationary in the short term [17]; that's why I'd bring a payback number first.*
-- **"Talk to Dean or Jim.":** *Gladly; they oversee the eight business lines [5]. Could you introduce me with one sentence on why?*
+- **"We build our own AI.":** *Erica reached 3.2 billion interactions that way [7]. I ask only whether advisor preparation passes your payback test.*
+- **"AI is inflationary right now.":** *You called it inflationary in the short term [17]; so I'd bring a payback number first.*
+- **"Talk to Dean or Jim.":** *Gladly; they oversee eight business lines [5]. Could you introduce me with one sentence on why?*
 
 ## P4 Close
-- **Restate:** ask what would make a second meeting an easy yes, then say it back in his words.
+- **Restate:** ask what makes a second meeting an easy yes; say it back in his words.
 - **Real deadline:** none found in the record; use the date he gives.
-- **The ask:** 30 minutes with Dean Athanasia or Jim DeMare [5] · **Fallback:** 30 minutes with whoever he names as owner of advisor preparation.
-- **Follow-up:** send the one-page payback case within one business day [14].
+- **The ask:** 30 minutes with Dean Athanasia or Jim DeMare [5] · **Fallback:** 30 minutes with the preparation owner he names.
+- **Follow-up:** send the one-page payback case in one business day [14].
 
 ## P5 Read the room (watch, do not assume)
 - **Fast, wants the answer:** give the outcome in one sentence, then one number [4].

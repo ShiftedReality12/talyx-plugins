@@ -26,7 +26,7 @@
 ## P4 Close
 - **Restate:** ask what would make 30 more minutes an easy yes, then say it back in his words.
 - **Real deadline:** his October 28 results [18] are the next fixed point; offer a slot after it.
-- **The ask:** 30 minutes with him or his owner [17] · **Fallback:** 15 minutes with Jared Spataro [7].
+- **The ask:** 30 minutes with him or his owner [17] · **Fallback:** 15 minutes with Spataro [7].
 - **Follow-up:** send the one-page example within one day.
 
 ## P5 Read the room (watch, do not assume)

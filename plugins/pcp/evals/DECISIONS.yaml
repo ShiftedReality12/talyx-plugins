@@ -9,6 +9,25 @@
 # An entry names who decided and where it is recorded. A session may add an `open` entry; only Daniel's word (or the cited meeting or
 # instruction) makes one `approved`. Never edit baseline-2.1.0.json to make parity pass.
 version: 1
+# Pins: values fixed by Daniel. `parity` fails on any run where one differs, whatever else is approved here.
+pins:
+  - path: page_budget.text_floor_pt
+    equals: 10.0
+    why: "Daniel, Oct 16: body text is 10 pt, not 9.5; Ben, Oct 13 (commit 2ff8d0a): 10 pt body on every rung"
+  - path: page_budget.body_pt_floor
+    equals: 10.0
+    why: "2.1.0 declared 10 pt (page_budget.body_pt_floor); Ben, Oct 13"
+  - path: page_budget.text_sizes_pt
+    min: 10
+    except: [footer, band]
+    why: "everything a reader reads is at 10 pt or more; only the footer (7.5 pt, as in 2.1) and the classification band stay small"
+  - path: page_budget.brief_ladder
+    each_min: {key: body_pt, min: 10}
+    why: "Ben, Oct 13: 10 pt body on every rung of the brief style"
+  - path: page_budget.ladder
+    each_min: {key: body_pt, min: 10}
+    why: "2.1.0's ladder bottoms at 10 pt"
+
 decisions:
   # ---- the approved schema (Ben's nine blocks and the evidence ledger, page 3's nine sections) replaced B1-B9 / P1-P7
   - covers: ["brief.sections.B*", "script.blocks.P*", "script.title", "checks.C1.*", "checks.C2.*", "checks.C3.*", "checks.C4.*", "checks.C5.*", "checks.C7.*", "checks.C8.*", "checks.C10.*", "eval.definition"]
@@ -78,7 +97,7 @@ decisions:
     status: approved
     by: Daniel
     date: 2026-10-16
-    source: "D3: 9.5 pt and up for everything a reader reads (page_budget.text_sizes_pt)"
+    source: "D3 (corrected Oct 16: 10 pt, not 9.5) for everything a reader reads (page_budget.text_sizes_pt)"
     summary: "C10 adds exactly 3 pages with the ledger last on page 2 and the script on page 3."
   # ---- OPEN: changes with no recorded decision (reworded text, nothing weakened that I can see); Daniel to approve or revert
   - covers: ["calibration.questions.Q2.options", "calibration.questions.Q7.options", "calibration.rules.CAL-1.*"]
@@ -161,7 +180,19 @@ decisions:
     summary: "schema section families changed from none to 166381a76529"
   - covers: ["lock:forms@63254c8f93ce"]
     status: approved
-    by: "Daniel (Oct 16: D3 density and 9.5 pt, parameterize layout/sizes, assembled brief, grading design delegated, no-drift guard)"
+    by: "Daniel (Oct 16: D3 density and 10 pt, parameterize layout/sizes, assembled brief, grading design delegated, no-drift guard)"
     date: 2026-10-16
     source: "RESTORE-REPORT.md 'Schema locks'; Daniel's messages of Oct 16 1:55-2:15 PM"
     summary: "schema section forms changed from fcbfb88c38af to 63254c8f93ce"
+  - covers: ["lock:forms@7b8076224bb9"]
+    status: approved
+    by: "Daniel (Oct 16 correction: body text is 10 pt; refit by cutting words)"
+    date: 2026-10-16
+    source: "Daniel's message of Oct 16 (after the report); Ben Oct 13, commit 2ff8d0a; RESTORE-REPORT.md 'Schema locks'"
+    summary: "schema section forms changed from 63254c8f93ce to 7b8076224bb9"
+  - covers: ["lock:page_budget@f0a5af7b2740"]
+    status: approved
+    by: "Daniel (Oct 16 correction: body text is 10 pt; refit by cutting words)"
+    date: 2026-10-16
+    source: "Daniel's message of Oct 16 (after the report); Ben Oct 13, commit 2ff8d0a; RESTORE-REPORT.md 'Schema locks'"
+    summary: "schema section page_budget changed from 956961a9eef8 to f0a5af7b2740"

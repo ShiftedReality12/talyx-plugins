@@ -234,7 +234,7 @@ as shown. Labels print exactly as the forms table in pcp.yaml says.
 
 Run `python3 eval.py checks brief.md script.md --target-nouns "<Full Name>,<surname>,<Organization>,<their key programmes>" --experience <{qs['Q9']['id']}: {', '.join(o['value'] for o in qs['Q9']['options'])}> --authority <caller.authority_level: high, medium>`
 and `python3 eval.py duf brief.md script.md`; rewrite until both are clean. Before the first fit pass, copy the draft to
-`brief.draft.md`; after the last, run `python3 eval.py kept brief.draft.md brief.md` (C24: cut wording, never cited facts).
+`brief.draft.md` (and the script to `script.draft.md`); after the last, run `python3 eval.py kept brief.draft.md brief.md --draft-script script.draft.md --final-script script.md` (C24: cut wording, never cited facts).
 Then run `python3 eval.py battery --latest --depth <depth> --brief brief.md --profile ~/.pcp/profile.yaml`: it reads this
 session's own history on Claude Code, Codex, and from the ChatGPT or Claude app export (`python3 eval.py battery conversations.json ...`),
 so no host is "unavailable". Fix what it reports: open a cited page you never opened or drop its fact, correct the Run row,

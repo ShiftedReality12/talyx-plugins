@@ -100,17 +100,22 @@
    "footer": 7.5,
    "band": 7.8,
    "name": 20,
-   "preline": 9.5,
-   "meta": 9.5,
-   "sec_head": 9.5,
-   "sub": 9.5,
-   "decides": 9.5,
-   "th": 9.5,
-   "ledger_note": 9.5,
-   "ledger": 9.5,
-   "grade": 9.5
+   "preline": 10,
+   "meta": 10,
+   "sec_head": 10,
+   "sub": 10,
+   "decides": 10,
+   "th": 10,
+   "ledger_note": 10,
+   "ledger": 10,
+   "grade": 10
   },
-  "text_floor_pt": 9.5,
+  "text_floor_pt": 10.0,
+  "text_floor_exempt_selectors": [
+   "@bottom",
+   ".cls",
+   ".cite"
+  ],
   "text_floor_exempt": [
    "footer",
    "band"

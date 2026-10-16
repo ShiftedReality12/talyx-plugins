@@ -88,43 +88,43 @@
  "b8": {
   "against": [
    {
-    "against": "Microsoft's own Autopilot covers recurring work and follow-ups [c6].",
-    "reverses_if": "his team names an executive-prep gap it leaves open."
+    "against": "Autopilot already covers recurring work [c6].",
+    "reverses_if": "his team names a prep gap."
    },
    {
-    "against": "April's buyouts of about 7% of US staff [c10] point to cost scrutiny.",
-    "reverses_if": "you can count the executive hours saved."
+    "against": "April's buyouts [c10] signal cost scrutiny.",
+    "reverses_if": "you count the hours saved."
    }
   ]
  },
  "b9": {
-  "frame": "how his executives prepare; not a pitch.",
-  "lands": "\"independent of all\" [c9]: you are replaceable.",
+  "frame": "how his executives prepare; no pitch.",
+  "lands": "\"independent of all\" [c9]: be replaceable.",
   "repels": "spend-led pitches [c5].",
-  "bring": "a one-page example brief [c17].",
+  "bring": "a one-page example [c17].",
   "ask": "30 minutes with him or his owner [c17]",
-  "fallback": "15 minutes with Jared Spataro [c7].",
-  "stop_if": "he says Copilot covers meeting prep.",
-  "meeting_two": "a session with the Copilot owner on seats past 30 million [c3].",
+  "fallback": "15 minutes with Spataro [c7].",
+  "stop_if": "he says Copilot covers it.",
+  "meeting_two": "a session on seats past 30 million [c3].",
   "meeting_three": "a pilot with one executive team.",
   "capture": "who owns it; what Copilot leaves out."
  },
  "still_open": [
   {
    "label": "Decision maker",
-   "question": "Who owns executive meeting prep at Microsoft?"
+   "question": "Who owns executive meeting prep?"
   },
   {
    "label": "The gate",
-   "question": "What must a tool prove before executives adopt it?"
+   "question": "What must a tool prove first?"
   },
   {
    "label": "Relationship holder",
-   "question": "Who does he trust to vet outside tools?"
+   "question": "Who vets outside tools?"
   },
   {
    "label": "How they take disagreement",
-   "question": "How would you like pushback raised?"
+   "question": "How should pushback be raised?"
   }
  ],
  "p1": {

@@ -169,7 +169,7 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
     prepared = re.search(r"Prepared\s+([A-Z][a-z]{2} \d{1,2}, \d{4})", brief_md)
     dens = R["page_budget"]["density"]
     if prepared and _day(prepared.group(1)) < dt.date.fromisoformat(str(dens["since"])):
-        budgets = budgets | dens["legacy_words"]   # a brief written before the 9.5 pt density keeps its day's budgets (the frozen targets)
+        budgets = budgets | dens["legacy_words"]   # a brief written before the 10 pt density refit keeps its day's budgets (the frozen targets)
 
     def want(name):
         return which in ("all", name)
@@ -774,7 +774,17 @@ def self_test(require_pdf=False):
         for rel in ("format/talyx_pdf.py", "format/layout.json", "render_skill.py", "skills/pre-call-prep/assets/intake-template.csv"):
             (root / rel).parent.mkdir(parents=True, exist_ok=True)
             (root / rel).write_text((HERE / rel).read_text())
+        (root / "format/assets").mkdir()
+        for asset in (HERE / "format/assets").iterdir():   # the renderer reads its font and logo when it builds a page's CSS
+            (root / "format/assets" / asset.name).write_bytes(asset.read_bytes())
         base_css, base_rs = (root / "format/talyx_pdf.py").read_text(), (root / "render_skill.py").read_text()
+        lay0 = (root / "format/layout.json").read_text()
+        (root / "format/layout.json").write_text(lay0.replace('"ledger": 10', '"ledger": 9.5'))
+        f = hardcoded_check(root)
+        (root / "format/layout.json").write_text(lay0)
+        print("tripped: C27 sizes by a ledger set to 9.5 pt (the floor is 10)" if any("below the 10.0 pt floor" in x for x in f)
+              else f"FAIL C27 sizes must trip on 9.5 pt text (got {f})")
+        ok = ok and any("below the 10.0 pt floor" in x for x in f)
         for case, rel, new_text, want in (
                 ("a CSS number in the renderer", "format/talyx_pdf.py", base_css.replace("{L['page_content__padding']}", "0.55in", 1), "talyx_pdf.py's CSS"),
                 ("a colour in the renderer", "format/talyx_pdf.py", base_css + '\nX = "#123456"\n', "holds a colour"),
@@ -805,7 +815,10 @@ def self_test(require_pdf=False):
             ("a grade field dropped from the claims", lambda r: r["records"]["claims"]["fields"].remove("tag"), "schema section 'records'"),
             ("a ledger form label changed", lambda r: r["forms"]["B1"]["fields"][0].update(label="Summary."), "schema section 'forms'"),
             ("a strength cap loosened (weak domain C3 to C1)", lambda r: r["grading"]["caps"].update(weak_domain="C1"), "schema section 'grading'"),
-            ("a layout size changed", lambda r: r["page_budget"]["text_sizes_pt"].update(ledger=8), "schema section 'page_budget'")):
+            ("a layout size changed", lambda r: r["page_budget"]["text_sizes_pt"].update(ledger=8), "schema section 'page_budget'"),
+            ("the ledger set to 9.5 pt (Daniel's pin: 10 pt)", lambda r: r["page_budget"]["text_sizes_pt"].update(ledger=9.5), "below the pinned minimum"),
+            ("the text floor lowered to 9.5 pt", lambda r: r["page_budget"].update(text_floor_pt=9.5), "Daniel pinned it at 10.0"),
+            ("a brief rung's body set to 9 pt (Ben, Oct 13)", lambda r: r["page_budget"]["brief_ladder"][0].update(body_pt=9.0), "entries with body_pt below 10")):
         f, _ = parity(reg=mutated(fn))
         if any(want in x for x in f):
             print(f"tripped: C28 by {case}")
@@ -1022,7 +1035,7 @@ def self_test(require_pdf=False):
             print("FAIL assemble must report a missing required field"); ok = False
     gcases = {"a weak domain read Strong": (lambda b: re.sub(r"(\[thefabulous\.co\]\(https://thefabulous\.co/12\)[^|]*\| )[^|]+\|", "\\1Measured · Strong |", b), "weak"),
               "an Inference row read Strong": (lambda b: re.sub(r"(Sets agendas on panels \|[^|]*\| )[^|]+\|", "\\1Inference · Strong |", b), "caps"),
-              "a Search row read Solid": (lambda b: re.sub(r"(Fact 6 about Alder Grey Capital \|[^|]*\| )[^|]+\|", "\\1Derived · Solid |", b).replace("career profile", "career profile"), "caps"),
+              "a Search row read Solid": (lambda b: re.sub(r"(Fact 6 about Alder Grey \|[^|]*\| )[^|]+\|", "\\1Derived · Solid |", b), "caps"),
               "the strength key left out": (lambda b: re.sub(r"Strength: [^.]*\.", "", b), "key the strengths"),
               "a row with no tag": (lambda b: b.replace("(https://example.org/1) · Direct", "(https://example.org/1)"), "how it was found"),
               "a row with no strength": (lambda b: b.replace("Measured · Strong", "Measured", 1), "no source strength")}
@@ -1047,7 +1060,17 @@ def self_test(require_pdf=False):
     shorter = c12.replace("Introduction to the custodian offered", "Custodian introduction offered").replace("Sets agendas on panels", "Sets panel agendas")
     for case, final, allow, trips in (("a cited fact cut to fit the page", cut, (), True),
                                       ("the same fact cut, named as a dead link", cut, ("https://example.org/12",), False),
-                                      ("shorter wording, every fact kept", shorter, (), False)):
+                                      ("shorter wording, every fact kept", shorter, (), False),
+                                      ("one of three facts from the same page and day cut", None, (), True)):
+        if final is None:   # rows 3 and 4 cite one page on one day: dropping one of them must still be seen
+            same = c12.replace("https://example.org/4", "https://example.org/3")
+            final = re.sub(r"^\| \[4\].*\n", "", same, flags=re.M).replace(" [4]", "")
+            f = kept_check(same, final, allow)
+            if bool(f) != trips:
+                print(f"FAIL C24 on {case}: expected a failure, got {f}"); ok = False
+            else:
+                print(f"tripped: C24 on {case}")
+            continue
         f = kept_check(c12, final, allow)
         if bool(f) != trips:
             print(f"FAIL C24 on {case}: expected {'a failure' if trips else 'a pass'}, got {f}"); ok = False
@@ -1122,7 +1145,7 @@ def pdf_self_test(fx):
         print("passes: B9 subheads lettered A, B, C by position when the brief letters only the first")
     else:
         print("FAIL B9 subheads must be lettered A, B, C by position:", heads); ok = False
-    # ---- D3 density proof: 18 cited facts, 9.5 pt and up, assembled from fields.json, rendered headless to the 3 pages the schema allows
+    # ---- D3 density proof: 18 cited facts, 10 pt and up, assembled from fields.json, rendered headless to the 3 pages the schema allows
     dd = fx / "density_standard"
     with tempfile.TemporaryDirectory() as tmp2:
         import yaml as _y
@@ -2103,9 +2126,9 @@ def records_check(folder, depth="standard", brief=""):
             fails.append(f"C23 records: {cp.name} holds no claims")
     if brief and claims:   # stage isolation (S4-12): the brief holds only what the record holds
         have = {_page(c.get("url", "")) for c in claims if str(c.get("url", "")).startswith("http")} | {str(c.get("url", "")).lower() for c in claims}
-        for k, v in ledger_facts(brief).items():
+        for k, rows in ledger_facts(brief).items():
             if k[0] and k[0] not in have and not any(k[0] in h or h in k[0] for h in have if h):
-                fails.append(f"C23 records: ledger row [{v['n']}] cites {k[0]}, which claims.jsonl does not hold; the brief holds only what the records hold (S4-12)")
+                fails.append(f"C23 records: ledger row [{rows[0]['n']}] cites {k[0]}, which claims.jsonl does not hold; the brief holds only what the records hold (S4-12)")
     cv, err = _load_json(d / rec["coverage"]["file"])
     if err:
         fails.append(f"C23 records: {err} (the coverage record)")
@@ -2210,34 +2233,46 @@ def records_check(folder, depth="standard", brief=""):
 
 # ---------------------------------------------------------------- kept facts (C24): cut wording, never facts ------
 def ledger_facts(md):
-    """The cited facts of a brief: one per ledger row, keyed by the page it cites (a file name for the user's own files)
-    and the row's date, with the number that cites it."""
+    """The cited facts of a brief: one per ledger row, grouped by the page it cites (a file name for the user's own files) and the row's
+    date. Rows from one page and day are counted, not merged: three facts from one podcast are three facts."""
     out = {}
     for m in SRC_ROW.finditer(md):
         src = m.group(3)
         u = re.search(r"\]\((https?://[^)\s]+)", src) or re.search(r"(https?://[^\s|)]+)", src)
-        key = (_page(u.group(1)) if u else re.sub(r"\s+", " ", re.sub(r"[\[\]*]", "", src)).strip().lower(), m.group(5))
-        out[key] = dict(n=int(m.group(1)), what=m.group(2))
+        key = (_page(u.group(1)) if u else re.sub(r"\s+", " ", re.sub(r"[\[\]*]", "", src.split(" · ")[0])).strip().lower(), m.group(5))
+        out.setdefault(key, []).append(dict(n=int(m.group(1)), what=m.group(2)))
     return out
 
 
-def kept_check(draft_md, final_md, allow=()):
-    """C24: a fit pass cuts wording, never cited facts (the Codex run, Oct 16: 23 cited facts cut to 18 to fit 3 pages). Every
-    ledger row of the first complete draft is still a ledger row of the final brief, still cited in a sentence there, unless the
-    user is told why (--allow <page>: a dead link, an excluded topic). Returns the failures."""
+def count_facts(md):
+    return sum(len(v) for v in ledger_facts(md).values())
+
+
+def kept_check(draft_md, final_md, allow=(), draft_script="", final_script=""):
+    """C24: a fit pass cuts wording, never cited facts (the Codex run, Oct 16: 23 cited facts cut to 18 to fit 3 pages). Every ledger row of the
+    first complete draft is still a ledger row of the final brief (counted per page and date), and still cited in a sentence there, unless
+    the user is told why (--allow <page>: a dead link, an excluded topic). Returns the failures."""
     a, b = ledger_facts(draft_md), ledger_facts(final_md)
     ok = {_page(x) if x.startswith("http") else x.lower() for x in allow}
-    lost = [(k, v) for k, v in a.items() if k not in b and k[0] not in ok]
+    lost = []
+    for k, rows in a.items():
+        if k[0] in ok:
+            continue
+        gone = len(rows) - len(b.get(k, []))
+        if gone > 0:
+            lost += [(k, r) for r in rows[len(rows) - gone:]]
     fails = []
     if lost:
-        fails.append(f"C24 kept: {len(lost)} of the draft's {len(a)} cited facts are gone from the final brief ({len(b)} remain): "
+        fails.append(f"C24 kept: {len(lost)} of the draft's {count_facts(draft_md)} cited facts are gone from the final brief ({count_facts(final_md)} remain): "
                      + "; ".join(f"[{v['n']}] {v['what'][:40]} ({k[0]})" for k, v in lost[:4])
                      + (" ..." if len(lost) > 4 else "") + " -- cut wording, never facts (S4-4)")
-    secs = _sections(final_md)
-    cited = set()
-    for k in _body_ids(secs):
-        cited |= {int(n) for n in CITE.findall(secs[k])}
-    silent = [v["n"] for k, v in b.items() if k in a and v["n"] not in cited]
+    def cited_in(brief, script):
+        secs, cited = _sections(brief + "\n" + script), set()
+        for k in _body_ids(secs):
+            cited |= {int(n) for n in CITE.findall(secs[k])}
+        return cited
+    before, cited = cited_in(draft_md, draft_script), cited_in(final_md, final_script)   # the script cites facts too (P1 Credibility, P9 Next step)
+    silent = [r["n"] for k, rows in b.items() for r in rows if k in a and r["n"] in before and r["n"] not in cited]
     if silent:
         fails.append(f"C24 kept: facts {silent} are still in the ledger but no sentence cites them any more; the fact was cut, not the wording")
     return fails
@@ -2801,6 +2836,33 @@ def _py_strings(path, skip=()):
     return out
 
 
+def size_floor_check(root=None):
+    """C27 (sizes): every text size the brief style prints is at the floor (pcp.yaml page_budget.text_floor_pt: 10 pt, Ben Oct 13: 10 pt body on
+    every rung) or above, apart from the footer, the classification band and [n] marks. Reads the CSS the renderer builds for each rung,
+    so a value that slips below the floor in pcp.yaml, layout.json or the renderer is caught before a page is drawn."""
+    import importlib.util
+    here = pathlib.Path(root or HERE)
+    pb = json.loads((here / "format/layout.json").read_text())["page_budget"]
+    spec = importlib.util.spec_from_file_location("tp_sizes", here / "format/talyx_pdf.py")
+    tp = importlib.util.module_from_spec(spec); sys.dont_write_bytecode = True; spec.loader.exec_module(tp)
+    floor, exempt, fails = pb["text_floor_pt"], pb["text_floor_exempt_selectors"], []
+    for r in tp.BRIEF_LADDER + tp.LADDER:
+        if r["body_pt"] < floor:
+            fails.append(f"C27 sizes: rung {r['name']} body is {r['body_pt']} pt; the floor is {floor} pt")
+    low = {}
+    for rung in tp.BRIEF_LADDER:
+        css = tp.brief_css(rung, "f")
+        for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", css):
+            sel = m.group(1).strip()
+            if any(x in sel for x in exempt):
+                continue
+            for fm in re.finditer(r"(?<![\w-])font-size:\s*([\d.]+)pt", m.group(2)):
+                if float(fm.group(1)) < floor - 1e-6:
+                    low[(sel[:50], float(fm.group(1)))] = rung["name"]
+    fails += [f"C27 sizes: '{s}' is {v} pt, below the {floor} pt floor" for (s, v) in sorted(low)]
+    return fails
+
+
 def hardcoded_check(root=None):
     """C27: the page, the setup and the wording come from pcp.yaml, not from the scripts. Fails when
       - talyx_pdf.py holds a CSS number, a colour or a ladder of its own (every one is in layout.json, written from pcp.yaml),
@@ -2844,6 +2906,7 @@ def hardcoded_check(root=None):
             for name in re.findall(r"\{(\w+)\}", q):
                 if name not in ph:
                     fails.append(f"C27 hardcoded: round {r['round']} uses {{{name}}}, which pcp.yaml placeholders does not declare")
+    fails += size_floor_check(here)
     csv = here / "skills/pre-call-prep/assets/intake-template.csv"
     if csv.exists():
         cols = csv.read_text().splitlines()[0].split(",")
@@ -2939,6 +3002,28 @@ def parity(root=None, strict=False, update_lock=False, approve=None, reg=None):
                 open_ids.append(pid)
                 if strict:
                     fails.append(f"C28 parity: {pid} was {kind} from the 2.1.0 baseline; its decision is still open (--strict)")
+    # pins: values Daniel has fixed, checked on every run, whatever else is approved (a pin changes only by editing DECISIONS.yaml itself)
+    def at(path, reg_):
+        o = reg_
+        for k in path.split("."):
+            o = o[int(k)] if isinstance(o, list) else o[k]
+        return o
+    for pin in dec.get("pins", []):
+        try:
+            v = at(pin["path"], reg or R)
+        except (KeyError, IndexError, ValueError, TypeError):
+            fails.append(f"C28 parity: pinned value {pin['path']} is gone"); continue
+        if "equals" in pin and v != pin["equals"]:
+            fails.append(f"C28 parity: {pin['path']} is {v}; Daniel pinned it at {pin['equals']} ({pin.get('why', '')})")
+        if "min" in pin:
+            vals = v.items() if isinstance(v, dict) else [(None, x) for x in (v if isinstance(v, list) else [v])]
+            low = [(k, x) for k, x in vals if k not in pin.get("except", []) and isinstance(x, (int, float)) and x < pin["min"]]
+            if low:
+                fails.append(f"C28 parity: {pin['path']} holds {low}, below the pinned minimum {pin['min']} ({pin.get('why', '')})")
+        if "each_min" in pin:   # every item of a list: its key at least min
+            low = [x for x in at(pin["path"], reg or R) if x[pin["each_min"]["key"]] < pin["each_min"]["min"]]
+            if low:
+                fails.append(f"C28 parity: {pin['path']} has {len(low)} entries with {pin['each_min']['key']} below {pin['each_min']['min']} ({pin.get('why', '')})")
     lock_path = root / "evals/schema.lock.json"
     import hashlib
     now = schema_lock(reg)
@@ -3099,7 +3184,8 @@ def main():
     rcd = sub.add_parser("records", help="C23: claims.jsonl, coverage.json and read.json are complete and agree, before the run is called done")
     rcd.add_argument("folder"); rcd.add_argument("--depth", default="standard", choices=["fast", "standard", "deep"]); rcd.add_argument("--brief")
     kp = sub.add_parser("kept", help="C24: the final brief holds every cited fact of the first complete draft (cut wording, never facts)")
-    kp.add_argument("draft"); kp.add_argument("final"); kp.add_argument("--allow", action="append", default=[], metavar="PAGE",
+    kp.add_argument("draft"); kp.add_argument("final"); kp.add_argument("--draft-script", default=""); kp.add_argument("--final-script", default="")
+    kp.add_argument("--allow", action="append", default=[], metavar="PAGE",
                     help="a page whose fact was dropped for a reason the user is told (dead link, excluded topic)")
     oc = sub.add_parser("offer-conflict", help="C22: does the request name a different business than the saved offer?")
     oc.add_argument("--saved", required=True); oc.add_argument("--request", required=True)
@@ -3231,8 +3317,9 @@ def main():
         print(f"records {a.folder}: {len(f)} failures", *[" - " + x for x in f], sep="\n")
         sys.exit(1 if f else 0)
     if a.cmd == "kept":
-        f = kept_check(pathlib.Path(a.draft).read_text(), pathlib.Path(a.final).read_text(), a.allow)
-        print(f"kept: draft {len(ledger_facts(pathlib.Path(a.draft).read_text()))} cited facts, final {len(ledger_facts(pathlib.Path(a.final).read_text()))}; {len(f)} failures",
+        rd = lambda x: pathlib.Path(x).read_text() if x else ""
+        f = kept_check(rd(a.draft), rd(a.final), a.allow, rd(a.draft_script), rd(a.final_script))
+        print(f"kept: draft {count_facts(pathlib.Path(a.draft).read_text())} cited facts, final {count_facts(pathlib.Path(a.final).read_text())}; {len(f)} failures",
               *[" - " + x for x in f], sep="\n")
         sys.exit(1 if f else 0)
     if a.cmd == "offer-conflict":
