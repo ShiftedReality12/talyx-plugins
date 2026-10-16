@@ -55,7 +55,7 @@ Unmarked facts are measured. 12 facts cited; status FULL at 10 of 12 source type
 | [3] | Letter: "We buy patience" | [example.org](https://example.org/3) | Measured | Sep 12, 2026 |
 | [4] | Avoids fee-led pitches | [example.org](https://example.org/4) | Measured | Sep 12, 2026 |
 | [5] | Raising a second vehicle this year | [example.org](https://example.org/5) | Measured | Sep 12, 2026 |
-| [6] | Fact 6 about Alder Grey Capital | [linkedin.com](https://www.linkedin.com/in/jane-doe-example) | Derived | seen Sep 20, 2026 |
+| [6] | Fact 6 about Alder Grey Capital | [linkedin.com, search result](https://www.linkedin.com/in/jane-doe-example) | Derived | seen Sep 20, 2026 |
 | [7] | Sets agendas on panels | [example.org](https://example.org/7) | Inference | Sep 12, 2026 |
 | [8] | Second close announced | [example.org](https://example.org/8) | Measured | Sep 12, 2026 |
 | [9] | Investment committee signs off on custodians | [example.org](https://example.org/9) | Measured | Sep 12, 2026 |

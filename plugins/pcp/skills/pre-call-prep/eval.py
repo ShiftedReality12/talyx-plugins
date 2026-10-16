@@ -274,8 +274,13 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
         elif f"LinkedIn: {b4.group(1)}" not in cov:
             fails.append(f"C16 linkedin: Coverage does not say 'LinkedIn: {b4.group(1)}' as B4 does")
         elif b4.group(1) == li["read"]["search"]:   # AID-63: the profile's search result is a ledger row, cited to its URL
-            if not any("linkedin.com/in/" in m.group(3).lower() for m in SRC_ROW.finditer(grid)):
+            rows = [m for m in SRC_ROW.finditer(grid) if "linkedin.com" in m.group(3).lower()]
+            if not any("linkedin.com/in/" in m.group(3).lower() for m in rows):
                 fails.append(f"C16 linkedin: {li['read']['search']}, yet no ledger row cites the linkedin.com/in profile it showed")
+            bare = [m.group(1) for m in rows if "search result" not in m.group(3).lower()]
+            if bare:   # R11b (Oct 15) cited a LinkedIn post as [linkedin.com](...), as if the page had been read
+                fails.append(f"C16 linkedin: ledger rows {bare} cite linkedin.com without 'search result'; "
+                             "every LinkedIn row (profile, post or article) is cited [linkedin.com, search result](its URL)")
         elif b4.group(1) == li["read"]["file"]:   # the saved profile is the user's file: cited by its name, tagged Yours
             profile = [m.group(1) for m in SRC_ROW.finditer(grid) if "linkedin.com/in/" in m.group(3).lower()]
             if profile:
@@ -550,6 +555,9 @@ def self_test(require_pdf=False):
         ("C14 on '(Unconfirmed)'", "C14", c12.replace("the introduction to the custodian [12]", "the custodian (Unconfirmed) [12]")),
         ("C16 on 'read from your file' while a ledger row cites a LinkedIn profile page", "C16",
          (fx / "linkedin_search.md").read_text().replace("read from search results", "read from your file")),
+        ("C16 on a LinkedIn row cited as linkedin.com, not as its search result", "C16",
+         (fx / "linkedin_search.md").read_text().replace("Fact 6 about Alder Grey Capital | [linkedin.com, search result]",
+                                                        "Fact 6 about Alder Grey Capital | [linkedin.com]")),
         ("C16 on 'read from search results' with no ledger row citing the profile", "C16",
          c12.replace("read from your file", "read from search results")),
         ("C16 on the reason 'file not given' in a run from Oct 15 (AID-63: search reads LinkedIn now)", "C16",
