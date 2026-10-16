@@ -9,7 +9,7 @@ description: >
   before a meeting, talking points, or shares an intake list. Do not use for general research unrelated
   to a meeting, or for notes on a meeting that has already happened.
 ---
-<!-- GENERATED from pcp.yaml (sha256:1f5bd15dff8e) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:fe2fd1c394f7) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
@@ -28,7 +28,7 @@ given in the message stand in for the saved setup file.
 ## How PCP thinks (never in the output)
 
 - Work the intelligence cycle: direction (setup and the meeting objective) -> collection -> processing (each fact gets a source, tag, grade and date; excluded topics are dropped) -> analysis -> the Intelligence Brief -> feedback (the debrief).
-- Collection is open sources found by targeted web search in rounds, each refined from the last (osint), the person's public social footprint, LinkedIn only as its public search results show it (never a browser session), and the user's own files and answers (a LinkedIn profile they save is one).
+- Collection is public-source OSINT (and SOCMINT for the person's public social footprint): first each source type's own query (the base pass), then open sources found by targeted web search in rounds, each refined from the last (osint), the person's public social footprint, LinkedIn only as its public search results show it (never a browser session), and the user's own files and answers (a LinkedIn profile they save is one).
 - Behavioral profile is human-source analysis from public evidence: each row is a cited observation and the caller's move. It never labels the person's character.
 - Keep what was read apart from what was inferred (the grade). Check the one assumption the Take rests on (Strongest case against). On deep runs, weigh competing explanations of what they want.
 
@@ -123,8 +123,8 @@ and `linkedin` when set) and continue.
   _Fails when:_ Remove all C1/C2 claims from one family below threshold -- status flips to LIMITED.
 - **S2-6** Run the counter-evidence family last: search for what would contradict the strategic read.  
   _Fails when:_ With depth standard or deep, coverage must show family F12 attempted.
-- **S2-7** LinkedIn is read the way the rest of the record is: by targeted web search in rounds (osint; references/osint-search.md), from the result text the host's search tool returns. Never request a linkedin.com URL, sign in, or open or drive a browser session (osint.never). With social scope none, or when the user says not to, run no LinkedIn query: 'not read: scope none' or 'not read: you declined'. A LinkedIn result is used only once it passes the identity lock (osint.identity_lock); when none passes: 'not read: no matching profile'. Its facts are graded as osint.grading says: tag LinkedIn, C3, cited [linkedin.com, search result](the URL the result lists) -- a profile, post or article alike, since none is opened -- dated 'seen <today>', and 'per their LinkedIn' in a sentence that rests on it alone. Optional (under review): when the user gives the person's LinkedIn profile saved as a PDF or copied text, read it as their file (tag Yours, cited by the file name; 'read from your file'); the run never waits for one. Every run states LinkedIn's status, the same in two places, B4's last line and the Coverage row: '**LinkedIn:** read from search results' or 'read from your file', or '**LinkedIn:** not read: <reason>', the reason one of linkedin.reasons word for word; not read: no fact is tagged LinkedIn. An unread LinkedIn is stated in Coverage only, never as a Still open question.  
-  _Fails when:_ A run on a public executive requests no linkedin.com URL and calls no browser tool (its transcript shows search calls only, for LinkedIn); the profile's search result is a ledger row cited to linkedin.com/in, and B4 and Coverage read 'LinkedIn: read from search results'. A LinkedIn post cited as [linkedin.com](...) fails C16. The identity-lock example reads 'not read: no matching profile'. A brief that says 'read in your browser' fails C16 (fixtures linkedin_search.md, linkedin_browser.md, linkedin_declined.md, linkedin_missing.md, linkedin_declined_with_row.md).
+- **S2-7** LinkedIn is read the way the rest of the record is: by targeted web search in rounds (osint; references/osint-search.md), from the result text the host's search tool returns. Never sign in, and never open or drive a browser session (osint.never). A LinkedIn address the user gives (the intake's LinkedIn URL column, or in their message) is read once with the host's plain page fetch: it is theirs, so no identity lock; a login wall or a refusal is a failed URL (coverage.failed_urls) and the run goes on from search results. A profile the user saves (PDF or copied text) is read as their file. Any other linkedin.com page is never requested. With social scope none, or when the user says not to, run no LinkedIn query: 'not read: scope none' or 'not read: you declined'. A LinkedIn search result is used only once it passes the identity lock (osint.identity_lock); when none passes: 'not read: no matching profile'. Its facts are graded as osint.grading says: tag LinkedIn, C3, cited [linkedin.com, search result](the URL the result lists) -- a profile, post or article alike, since none is opened -- dated 'seen <today>', and 'per their LinkedIn' in a sentence that rests on it alone. When the user gives the person's LinkedIn profile saved as a PDF or copied text, read it as their file (tag Yours, cited by the file name; 'read from your file'); a given link read in full is tag LinkedIn, cited [linkedin.com: the link you gave](the address), status 'read from the link you gave'; the run never waits for either. Every run states LinkedIn's status, the same in two places, B4's last line and the Coverage row: '**LinkedIn:** read from search results' or 'read from your file', or '**LinkedIn:** not read: <reason>', the reason one of linkedin.reasons word for word; not read: no fact is tagged LinkedIn. An unread LinkedIn is stated in Coverage only, never as a Still open question.  
+  _Fails when:_ A run on a public executive requests no linkedin.com URL the user did not give and calls no browser tool (its transcript shows search calls only, for LinkedIn); the profile's search result is a ledger row cited to linkedin.com/in, and B4 and Coverage read 'LinkedIn: read from search results'. A LinkedIn post cited as [linkedin.com](...) fails C16. The identity-lock example reads 'not read: no matching profile'. A brief that says 'read in your browser' fails C16 (fixtures linkedin_search.md, linkedin_browser.md, linkedin_declined.md, linkedin_missing.md, linkedin_declined_with_row.md).
 - **S2-8** Source quality: prefer the primary source (the organisation, filings, the person's own words). Never cite a source_quality.exclude domain (people-search and unreachable sites); a source_quality.weak domain is at most C3 and never the only support for a fact on page 1. Cite a fact only where the ledger row says it: hypotheticals (Reverses if, Stop if) carry no citation. Before render, check every link: dead links are replaced or the fact is dropped; blocked links (the site refuses bots) are kept.  
   _Fails when:_ A brief citing mexc.com as C2 fails C18; a Reverses if line citing the intake row fails C17; the link check reports blocked separately from dead.
 - **S2-9** Research is two passes, both mandatory. (1) The base pass -- the collection the original plug-in always ran: for every source type the depth enables (Standard and Deep 12, Fast 5), send its query template from the source-types table with its placeholders filled, and extract what its Extract column says, one claim per fact (S2-2). The target kind and social scope filter the types as the table does (a company or deal drops the person-only types and queries on {org}; scope none sends no F6 query; scope social adds X, Bluesky and Substack). F1 goes first and settles who the person is (two people match: stop and ask, S1-2); F11 is the user's own notes and needs no search; F12, the counter-evidence, goes last (S2-6). Count each source type's hits and its C1/C2 claims (S2-4, S2-5). (2) The search rounds on top (osint): refinement of the base pass, never a replacement for it -- round 1 (the identity lock, its LinkedIn query among them) to round 5, in order, each round at least the battery's queries, most with an advanced operator or the tool's domain filter, and from round 1 on they carry what the base pass and the rounds before found. Send each round's queries together, in one step, and no other search until the next round. Keep each round's line, 'Round N (name): <query> | <query> | ...', in your reasoning and in coverage.rounds only, never in the reply (S2-10). Coverage reports both passes: n of 12 source types in the base pass, and the Run row ends 'N searches (B base) in M rounds'. Neither pass replaces reading: open the page behind every result you cite (LinkedIn aside) -- before you write the ledger, check each row's link against the pages you opened, and open the rest or drop their facts -- and the fact floor (S4-11) still holds.  
@@ -246,7 +246,7 @@ Enabled per profile: `depth` filters the column, `target.kind` filters `kinds`, 
 to `linkedin.com/posts, linkedin.com/pulse, youtube.com, podcasts` (professional) or the wider list (social) or none.
 FULL status needs >= 1 C1/C2 claim in {'fast': 4, 'standard': 8, 'deep': 10} families (by depth).
 
-| Id | Family | Depth | Social | Query template | Extract |
+| Id | Family | Depth | SOCMINT | Query template | Extract |
 |---|---|---|---|---|---|
 | F1 | identity | fast/standard/deep | no | `"{name}" "{org}" {title}` | current role + start date, prior roles, education, credentials, boards, awards |
 | F2 | career timeline | standard/deep | no | `"{name}" {org} career OR joined OR appointed OR promoted` | dated moves; the last 24 months first |
@@ -260,6 +260,29 @@ FULL status needs >= 1 C1/C2 claim in {'fast': 4, 'standard': 8, 'deep': 10} fam
 | F10 | events | standard/deep | no | `"{name}" OR "{org}" conference OR summit OR webinar {year}` | upcoming and recent appearances; a live hook for the opener |
 | F11 | shared context | standard/deep | no | `known_context only (no search)` | shared people, prior touches, mutual affiliations, the user's notes, files and answers -- all tagged Yours |
 | F12 | counter-evidence | standard/deep | no | `"{org}" lawsuit OR layoffs OR departure OR decline OR criticism -- filtered by exclusions` | what contradicts the strategic read; feeds the hypotheses; litigation stays excluded from the page |
+
+Placeholders in the query templates and rounds: `{name}` = the intake's Full Name; `{org}` = the intake's Organisation; `{title}` = the intake's Title/Role, else the role F1 finds; `{org_website}` = the intake's Organisation Website, else the organisation's own site found by F1; `{org_domain}` = org_website's host without www., e.g. microsoft.com; `{year}` = the current year, four digits; `{date_90_days_ago}` = today minus 90 days, YYYY-MM-DD; `{carry}` = a name, firm, programme, topic or gap the base pass or an earlier round found (the slots written in braces with a description, e.g. {a prior firm from round 1}).
+
+Intake columns (assets/intake-template.csv) and what each sets:
+
+| Column | Sets |
+|---|---|
+| Full Name | {name} |
+| Organisation | {org} |
+| Title/Role | {title} |
+| Meeting Date | meeting.date: the date P4's real deadline and the last-90-days window count from |
+| Meeting Objective | meeting.objective |
+| Relationship | known_context (F11, tag Yours) |
+| Relationship Length | known_context (F11, tag Yours) |
+| LinkedIn URL | linkedin.given: read once with the page fetch (S2-7); a failure goes to coverage.failed_urls |
+| Organisation Website | {org_website} |
+| Additional URL 1 | a page the user wants read: fetch it, one claim per fact, tag Direct |
+| Additional URL 2 | a page the user wants read: fetch it, one claim per fact, tag Direct |
+| Additional URL 3 | a page the user wants read: fetch it, one claim per fact, tag Direct |
+| Known Priorities | known_context (F11, tag Yours) |
+| Icebreaker Notes | known_context (F11, tag Yours) |
+| Specific Ask | meeting.win_definition: B9's ask starts from it |
+| Notes | known_context (F11, tag Yours) |
 
 Registers by domain: wealth: FINRA BrokerCheck, SEC IAPD, SEC EDGAR; pe: SEC EDGAR Form D / ADV, Companies House (UK); saas: Companies House (UK), SEC EDGAR.
 
@@ -289,7 +312,7 @@ The rounds are mandatory (S2-9) and come on top of the base pass: every round wh
 - Write each query as listed, operators included; where the search tool has a domain or recency setting, use it for site: and the date window.
 - Apply the ignored-operator rule whenever the results show an operator was dropped.
 
-**Never.** Use only the result text the host's search tool returns for linkedin.com: never request a linkedin.com URL (profiles, posts or Pulse articles; an article republished elsewhere is opened there), never sign in anywhere, never open or drive a browser session (no computer use, no browser extension), and quote snippets minimally. The search provider's terms govern the query. Collect on the professional role only: the exclusions apply to every round, and a result that touches them by accident stays out of the brief.
+**Never.** Use only the result text the host's search tool returns for linkedin.com, and the one address the user gives (read once, no sign-in): never request any other linkedin.com URL (profiles, posts or Pulse articles; an article republished elsewhere is opened there), never sign in anywhere, never open or drive a browser session (no computer use, no browser extension), and quote snippets minimally. The search provider's terms govern the query. Collect on the professional role only: the exclusions apply to every round, and a result that touches them by accident stays out of the brief.
 
 **Identity lock.** A LinkedIn result is a lead, not an identity. Use it only when (a) its headline or current role names the person and gives the organisation as their current position (not past experience or a post), and one other detail agrees with the organisation as found elsewhere (its city or region, or its web domain); or (b) a second independent source (the organisation's own site, a filing, a news article) ties that profile or that exact role to the person. A generic title (Owner, President, Founder) counts only with the organisation. A detail that contradicts (another city, another firm) rejects it. A profile URL seen only as a link on another page, with no result of its own, is a lead for the domain-filtered search, not a second profile. When two or more profiles pass, or one falls short only for want of the second detail, search each one's exact address once outside LinkedIn, in the next round's batch ('"linkedin.com/in/<slug>" -site:linkedin.com'), and use only a profile that an independent page (the organisation's site, a filing, a news article; never LinkedIn or a people-search site) presents as the person's own account, by that exact address or a post under it. None or several so tied: use none. A page that calls a profile fake rejects it; posts under a profile's own address are not independent. Never pick by guess. Example: Intake 'Mark Brown, Precision Metal Fab'. The firm's own site says Odessa, TX; the only LinkedIn result reads 'Mark Brown - Owner - Precision Metal Fab | Greater Cleveland'. The location contradicts, so nothing from it is used: '**LinkedIn:** not read: no matching profile'.
 
@@ -302,13 +325,13 @@ The rounds are mandatory (S2-9) and come on top of the base pass: every round wh
 |---|---|---|---|---|---|
 | 1 | identity lock | F1, F9 | one person, one current role, one profile, or a stop | `site:linkedin.com/in "{name}" "{org}"`<br>`site:{org_domain} "{name}"`<br>`"{name}" "{org}" {title}`<br>`"{name}" {title} -"{org}" (namesakes: the same name at another firm or city)`<br>`"{name}" "{org}" site:{a register for the domain, e.g. sec.gov, brokercheck.finra.org}` | Two or more people could be the one you're meeting: stop and ask (S1-2). The organisation's own site and one other source tie the person to it: identity locked. Nothing ties them: continue on the organisation and say so in Coverage. |
 | 2 | role and history | F2, F7 | dated moves, boards, how they got here | `"{name}" (intitle:bio OR inurl:bio OR inurl:leadership OR inurl:speakers OR inurl:team)`<br>`"{name}" appointed OR joined OR named OR promoted "{org}"`<br>`site:linkedin.com/in "{name}" "{a prior firm from round 1}"`<br>`"{name}" board OR trustee OR advisory`<br>`"{name}" "{a prior firm or school from round 1}"` | Each prior firm and board found here becomes a term in rounds 3 and 4. |
-| 3 | last 90 days | F3, F4, F10 | what changed for them and the organisation in the last 90 days | `"{name}" OR "{org}" announces OR appointed OR launches after:{date_90_days_ago}`<br>`site:{org_domain} (inurl:news OR inurl:press OR inurl:about OR inurl:mission) "{name}"`<br>`"{org}" results OR funding OR acquisition OR partnership after:{date_90_days_ago}`<br>`"{name}" conference OR summit OR keynote {this year}`<br>`"{org}" "{a programme, deal or firm from round 2}" after:{date_90_days_ago}` | A dated event here is the opener's hook and B3's Recent wins line. |
+| 3 | last 90 days | F3, F4, F10 | what changed for them and the organisation in the last 90 days | `"{name}" OR "{org}" announces OR appointed OR launches after:{date_90_days_ago}`<br>`site:{org_domain} (inurl:news OR inurl:press OR inurl:about OR inurl:mission) "{name}"`<br>`"{org}" results OR funding OR acquisition OR partnership after:{date_90_days_ago}`<br>`"{name}" conference OR summit OR keynote {year}`<br>`"{org}" "{a programme, deal or firm from round 2}" after:{date_90_days_ago}` | A dated event here is the opener's hook and B3's Recent wins line. |
 | 4 | their own words | F5, F6, F8 | quotes with a date and a link | `"{name}" interview OR podcast OR keynote OR panel`<br>`filetype:pdf "{name}" "{org}"`<br>`"{name}" site:youtube.com OR site:linkedin.com/pulse OR site:linkedin.com/posts`<br>`"{name}" "{a topic from rounds 2-3}"`<br>`intitle:"{name}" transcript OR remarks OR letter`<br>`"{name}" site:x.com OR site:bsky.app OR site:substack.com (only when socmint.scope is social)` | Their recurring words feed In their words and the Behavioral profile. |
 | 5 | gaps and counter-evidence | F12, F11 | only what is still Not determined, and what contradicts the read | `"{name}" OR "{org}" decides OR approves OR budget OR committee`<br>`"{org}" layoffs OR departure OR decline OR criticism (the exclusions still apply)`<br>`"{org}" "{a gap still Not determined: who decides, the gate, the timing}"`<br>`site:{org_domain} "{the gap term}" (the organisation in its own words on the open gap)`<br>`"{org}" "{the claim the Take rests on}" -"{name}" (who disagrees with the read)` | What is still open after this round becomes a Still open question in the room. |
 
 The round plan with its reasons: `references/osint-search.md`.
 
-**LinkedIn status (S2-7), in B4's last line and the Coverage row:** `LinkedIn: read from search results` or `LinkedIn: read from your file`, or
+**LinkedIn status (S2-7), in B4's last line and the Coverage row:** `LinkedIn: read from search results` or `LinkedIn: read from your file` or `LinkedIn: read from the link you gave`, or
 `LinkedIn: not read: <reason>` with one of these reasons, word for word: you declined; scope none; no matching profile.
 
 ## Behavioral profile (six dimensions)
@@ -372,6 +395,7 @@ Beats by meeting format:
 | P9 | Next step | 25 | always | One line: **Next step:** the one action and its date. |
 
 Never say: "Does that make sense?"; "Is this helpful?"; "No pressure"; "You'd know better than me"; "Just checking in".
+Forbidden claims by domain (P8 quotes the saved domain's): wealth: "guaranteed", "outperform", "beat the market"; pe: "guaranteed return", "no downside"; saas: "unlimited", "zero risk".
 
 ## fields.json: what you fill (S4-13)
 

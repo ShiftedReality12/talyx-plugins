@@ -22,6 +22,7 @@ generated_files:
   - commands/pcp.md
   - INVENTORY.md
   - pcp.json
+  - format/layout.json
 render_header: "<!-- GENERATED from pcp.yaml (sha256:{sha}) by render_skill.py -- edit pcp.yaml, never this file -->"
 
 # ------------------------------------------------------------------------------------------------
@@ -59,7 +60,7 @@ plain_words:
   internal: '\b(?:Ben|Benjamin|Danny|Daniel)\b|Notes by Gemini|\bmeeting notes\b|\bAID-\d+\b|\bR\d{1,2}b?\b|\((?:[A-Z][a-z]+,? )?(?:Sep|Oct|Nov|Dec) \d{1,2}(?:\)|:)'
 concepts:   # internal: how PCP thinks; none of these words reach the user
   - "Work the intelligence cycle: direction (setup and the meeting objective) -> collection -> processing (each fact gets a source, tag, grade and date; excluded topics are dropped) -> analysis -> the {deliverable} -> feedback (the debrief)."
-  - "Collection is open sources found by targeted web search in rounds, each refined from the last (osint), the person's public social footprint, LinkedIn only as its public search results show it (never a browser session), and the user's own files and answers (a LinkedIn profile they save is one)."
+  - "Collection is public-source OSINT (and SOCMINT for the person's public social footprint): first each source type's own query (the base pass), then open sources found by targeted web search in rounds, each refined from the last (osint), the person's public social footprint, LinkedIn only as its public search results show it (never a browser session), and the user's own files and answers (a LinkedIn profile they save is one)."
   - "{profile} is human-source analysis from public evidence: each row is a cited observation and the caller's move. It never labels the person's character."
   - "Keep what was read apart from what was inferred (the grade). Check the one assumption the Take rests on (Strongest case against). On deep runs, weigh competing explanations of what they want."
 
@@ -249,7 +250,7 @@ stages:
       - {id: S2-4, text: "Coverage is a required output: families_attempted/families_total and hits per family. A run without coverage is not a run.", test: "Disable WebFetch -- coverage must show 0/N attempted and status LIMITED, never FULL.", basis: never truncate silently}
       - {id: S2-5, text: "Status FULL requires >= 1 C1/C2 claim in >= research.full_threshold[depth] families; else LIMITED, stamped in the masthead.", test: "Remove all C1/C2 claims from one family below threshold -- status flips to LIMITED.", basis: "original plugin FULL/LIMITED, made numeric"}
       - {id: S2-6, text: "Run the counter-evidence family last: search for what would contradict the strategic read.", test: "With depth standard or deep, coverage must show family F12 attempted.", basis: analysis of competing hypotheses}
-      - {id: S2-7, text: "LinkedIn is read the way the rest of the record is: by targeted web search in rounds (osint; references/osint-search.md), from the result text the host's search tool returns. Never request a linkedin.com URL, sign in, or open or drive a browser session (osint.never). With social scope none, or when the user says not to, run no LinkedIn query: 'not read: scope none' or 'not read: you declined'. A LinkedIn result is used only once it passes the identity lock (osint.identity_lock); when none passes: 'not read: no matching profile'. Its facts are graded as osint.grading says: tag LinkedIn, C3, cited [linkedin.com, search result](the URL the result lists) -- a profile, post or article alike, since none is opened -- dated 'seen <today>', and 'per their LinkedIn' in a sentence that rests on it alone. Optional (under review): when the user gives the person's LinkedIn profile saved as a PDF or copied text, read it as their file (tag Yours, cited by the file name; 'read from your file'); the run never waits for one. Every run states LinkedIn's status, the same in two places, B4's last line and the Coverage row: '**LinkedIn:** read from search results' or 'read from your file', or '**LinkedIn:** not read: <reason>', the reason one of linkedin.reasons word for word; not read: no fact is tagged LinkedIn. An unread LinkedIn is stated in Coverage only, never as a Still open question.", test: "A run on a public executive requests no linkedin.com URL and calls no browser tool (its transcript shows search calls only, for LinkedIn); the profile's search result is a ledger row cited to linkedin.com/in, and B4 and Coverage read 'LinkedIn: read from search results'. A LinkedIn post cited as [linkedin.com](...) fails C16. The identity-lock example reads 'not read: no matching profile'. A brief that says 'read in your browser' fails C16 (fixtures linkedin_search.md, linkedin_browser.md, linkedin_declined.md, linkedin_missing.md, linkedin_declined_with_row.md).", basis: "Oct 14 Ben/Danny meeting, AID-63: replace the browser opt-in (b5f1b88: the user's signed-in browser, which LinkedIn's terms bar for automated tools) with multi-round targeted search, public search results only. OSINT review Oct 15: platform terms, identity lock, grading, the round plan. AID-62 (a saved profile PDF) stays optional until Daniel decides; before Oct 15 the run asked for it and waited (28a2350)."}
+      - {id: S2-7, text: "LinkedIn is read the way the rest of the record is: by targeted web search in rounds (osint; references/osint-search.md), from the result text the host's search tool returns. Never sign in, and never open or drive a browser session (osint.never). A LinkedIn address the user gives (the intake's LinkedIn URL column, or in their message) is read once with the host's plain page fetch: it is theirs, so no identity lock; a login wall or a refusal is a failed URL (coverage.failed_urls) and the run goes on from search results. A profile the user saves (PDF or copied text) is read as their file. Any other linkedin.com page is never requested. With social scope none, or when the user says not to, run no LinkedIn query: 'not read: scope none' or 'not read: you declined'. A LinkedIn search result is used only once it passes the identity lock (osint.identity_lock); when none passes: 'not read: no matching profile'. Its facts are graded as osint.grading says: tag LinkedIn, C3, cited [linkedin.com, search result](the URL the result lists) -- a profile, post or article alike, since none is opened -- dated 'seen <today>', and 'per their LinkedIn' in a sentence that rests on it alone. When the user gives the person's LinkedIn profile saved as a PDF or copied text, read it as their file (tag Yours, cited by the file name; 'read from your file'); a given link read in full is tag LinkedIn, cited [linkedin.com: the link you gave](the address), status 'read from the link you gave'; the run never waits for either. Every run states LinkedIn's status, the same in two places, B4's last line and the Coverage row: '**LinkedIn:** read from search results' or 'read from your file', or '**LinkedIn:** not read: <reason>', the reason one of linkedin.reasons word for word; not read: no fact is tagged LinkedIn. An unread LinkedIn is stated in Coverage only, never as a Still open question.", test: "A run on a public executive requests no linkedin.com URL the user did not give and calls no browser tool (its transcript shows search calls only, for LinkedIn); the profile's search result is a ledger row cited to linkedin.com/in, and B4 and Coverage read 'LinkedIn: read from search results'. A LinkedIn post cited as [linkedin.com](...) fails C16. The identity-lock example reads 'not read: no matching profile'. A brief that says 'read in your browser' fails C16 (fixtures linkedin_search.md, linkedin_browser.md, linkedin_declined.md, linkedin_missing.md, linkedin_declined_with_row.md).", basis: "Oct 14 Ben/Danny meeting, AID-63: replace the browser opt-in (b5f1b88: the user's signed-in browser, which LinkedIn's terms bar for automated tools) with multi-round targeted search, public search results only. OSINT review Oct 15: platform terms, identity lock, grading, the round plan. AID-62 (a saved profile PDF) stays optional until Daniel decides; before Oct 15 the run asked for it and waited (28a2350)."}
       - {id: S2-8, text: "Source quality: prefer the primary source (the organisation, filings, the person's own words). Never cite a source_quality.exclude domain (people-search and unreachable sites); a source_quality.weak domain is at most C3 and never the only support for a fact on page 1. Cite a fact only where the ledger row says it: hypotheticals (Reverses if, Stop if) carry no citation. Before render, check every link: dead links are replaced or the fact is dropped; blocked links (the site refuses bots) are kept.", test: "A brief citing mexc.com as C2 fails C18; a Reverses if line citing the intake row fails C17; the link check reports blocked separately from dead.", basis: "Live test runs Oct 13 (R1 weak sources, R2 citations on hypotheticals)"}
       - {id: S2-9, text: "Research is two passes, both mandatory. (1) The base pass -- the collection the original plug-in always ran: for every source type the depth enables (Standard and Deep 12, Fast 5), send its query template from the source-types table with its placeholders filled, and extract what its Extract column says, one claim per fact (S2-2). The target kind and social scope filter the types as the table does (a company or deal drops the person-only types and queries on {org}; scope none sends no F6 query; scope social adds X, Bluesky and Substack). F1 goes first and settles who the person is (two people match: stop and ask, S1-2); F11 is the user's own notes and needs no search; F12, the counter-evidence, goes last (S2-6). Count each source type's hits and its C1/C2 claims (S2-4, S2-5). (2) The search rounds on top (osint): refinement of the base pass, never a replacement for it -- round 1 (the identity lock, its LinkedIn query among them) to round 5, in order, each round at least the battery's queries, most with an advanced operator or the tool's domain filter, and from round 1 on they carry what the base pass and the rounds before found. Send each round's queries together, in one step, and no other search until the next round. Keep each round's line, 'Round N (name): <query> | <query> | ...', in your reasoning and in coverage.rounds only, never in the reply (S2-10). Coverage reports both passes: n of 12 source types in the base pass, and the Run row ends 'N searches (B base) in M rounds'. Neither pass replaces reading: open the page behind every result you cite (LinkedIn aside) -- before you write the ledger, check each row's link against the pages you opened, and open the rest or drop their facts -- and the fact floor (S4-11) still holds.", test: "eval.py battery <the run's history> --depth <depth> (C21) fails a run that sends no base pass (fewer searches before its rounds than the depth's source types with a query template, or a source type whose template terms no search carries), skips a round its depth enables, splits a round over several steps, sends fewer than the battery's queries in a round or too few with operators, sends round 1's LinkedIn query as typed site: where the tool has a domain filter, prints a round line, a query list or any other text in the reply between its first and last search (S2-10), prints a Run row whose counts differ from the history, or cites a page it never requested (LinkedIn aside; a page that refused the fetch was requested). eval.py checks --battery fails a Run row from Oct 16 on that does not give the base count.", basis: "Daniel, Oct 16 (MUST-FIX 9): the five rounds were meant to come in addition to the original collection, not replace it; rc2 folded the 12 source types into 5 rounds and displaced each type's query template and extract. Oct 15 runs R10 and R10b fail the rounds alone; R11b passed them but cited 5 results from snippets; Ben, Oct 14 (01:05:03): 'a battery of advanced search operators or chain linking advanced search operators ... four or five rounds of Google dorks'"}
       - {id: S2-10, text: "Quiet research: at most one short status line per stage in the reply (at most 30 words, e.g. 'Researching <name>, <organization> for <objective>. The results go in the brief.' then 'Writing the brief.'), and nothing between: no round line, no query list, no source or progress note, no list of what was found. Search queries live in coverage.json's rounds and in your reasoning, and the Run row counts them ('N searches in M rounds'); they never appear in chat, whatever the host. A question (S1-4) or a stop for a wrong-person match is the only other text. A search call showing as a tool row in the host is the host's, not a message.", test: "eval.py battery <the run's history> (C21) fails a reply that holds a 'Round N' line or any list of queries, a message between the first and the last search, a status of over 30 words or more than five of them; a Codex run that printed all ten rounds, and a ChatGPT run that printed 'Round 1 (identity): query | query', fail it.", basis: "Daniel, Oct 16 (Codex and ChatGPT host tests): must NOT print every round; one short status per stage, the results in the brief. The round line is audit scaffolding for C21, which reads it from the reasoning or counts each step's batch"}
@@ -334,7 +335,7 @@ families:
   - {id: F11, name: shared context,      weight: 0.8, socmint: false, depth: [standard, deep],       kinds: [person, company, deal], query: known_context only (no search), extract: "shared people, prior touches, mutual affiliations, the user's notes, files and answers -- all tagged Yours"}
   - {id: F12, name: counter-evidence,    weight: 0.7, socmint: false, depth: [standard, deep],       kinds: [person, company, deal], query: '"{org}" lawsuit OR layoffs OR departure OR decline OR criticism -- filtered by exclusions', extract: "what contradicts the strategic read; feeds the hypotheses; litigation stays excluded from the page"}
 linkedin:   # S2-7, C16. AID-63 (Oct 15): LinkedIn as its public search results show it (osint), never a browser session; AID-62: a profile PDF the user saves stays optional until Daniel decides
-  read: {search: read from search results, file: read from your file}
+  read: {search: read from search results, file: read from your file, link: read from the link you gave}
   not_read: not read   # spec Q9 ("not checked" or "not read"?) is open: 3.0.0's wording stays until Daniel decides
   reasons: [you declined, scope none, no matching profile]
   retired: {file not given: 2026-10-15}   # a brief run before this day keeps it (the 5 frozen targets, Oct 14, read LinkedIn only from a saved file); 'read in your browser', 'page blocked' and 'no browser here' are retired outright: no frozen run used them
@@ -356,7 +357,7 @@ osint:   # AID-63 (Oct 14 meeting, Oct 15): the record, LinkedIn included, by ta
       rules:
         - "Write each query as listed, operators included; where the search tool has a domain or recency setting, use it for site: and the date window."
         - "Apply the ignored-operator rule whenever the results show an operator was dropped."
-  never: "Use only the result text the host's search tool returns for linkedin.com: never request a linkedin.com URL (profiles, posts or Pulse articles; an article republished elsewhere is opened there), never sign in anywhere, never open or drive a browser session (no computer use, no browser extension), and quote snippets minimally. The search provider's terms govern the query. Collect on the professional role only: the exclusions apply to every round, and a result that touches them by accident stays out of the brief."
+  never: "Use only the result text the host's search tool returns for linkedin.com, and the one address the user gives (read once, no sign-in): never request any other linkedin.com URL (profiles, posts or Pulse articles; an article republished elsewhere is opened there), never sign in anywhere, never open or drive a browser session (no computer use, no browser extension), and quote snippets minimally. The search provider's terms govern the query. Collect on the professional role only: the exclusions apply to every round, and a result that touches them by accident stays out of the brief."
   identity_lock: "A LinkedIn result is a lead, not an identity. Use it only when (a) its headline or current role names the person and gives the organisation as their current position (not past experience or a post), and one other detail agrees with the organisation as found elsewhere (its city or region, or its web domain); or (b) a second independent source (the organisation's own site, a filing, a news article) ties that profile or that exact role to the person. A generic title (Owner, President, Founder) counts only with the organisation. A detail that contradicts (another city, another firm) rejects it. A profile URL seen only as a link on another page, with no result of its own, is a lead for the domain-filtered search, not a second profile. When two or more profiles pass, or one falls short only for want of the second detail, search each one's exact address once outside LinkedIn, in the next round's batch ('\"linkedin.com/in/<slug>\" -site:linkedin.com'), and use only a profile that an independent page (the organisation's site, a filing, a news article; never LinkedIn or a people-search site) presents as the person's own account, by that exact address or a post under it. None or several so tied: use none. A page that calls a profile fake rejects it; posts under a profile's own address are not independent. Never pick by guess."
   # Oct 16, OST-C3 (adopted, option B): R12 saw two results reading 'Satya Nadella - Chairman and CEO at Microsoft' (/in/satyanadella, /in/satya-nadella-3145136) and used none; R13's CEO profile lacked the second detail. A tie is settled only by an independent page presenting the exact address as the person's own; slug shape and same-account posts never break it.
   example: "Intake 'Mark Brown, Precision Metal Fab'. The firm's own site says Odessa, TX; the only LinkedIn result reads 'Mark Brown - Owner - Precision Metal Fab | Greater Cleveland'. The location contradicts, so nothing from it is used: '**LinkedIn:** not read: no matching profile'."
@@ -367,7 +368,7 @@ osint:   # AID-63 (Oct 14 meeting, Oct 15): the record, LinkedIn included, by ta
   rounds:
     - {round: 1, name: identity lock, types: [F1, F9], goal: "one person, one current role, one profile, or a stop", queries: ['site:linkedin.com/in "{name}" "{org}"', 'site:{org_domain} "{name}"', '"{name}" "{org}" {title}', '"{name}" {title} -"{org}" (namesakes: the same name at another firm or city)', '"{name}" "{org}" site:{a register for the domain, e.g. sec.gov, brokercheck.finra.org}'], next: "Two or more people could be the one you're meeting: stop and ask (S1-2). The organisation's own site and one other source tie the person to it: identity locked. Nothing ties them: continue on the organisation and say so in Coverage."}
     - {round: 2, name: role and history, types: [F2, F7], goal: "dated moves, boards, how they got here", queries: ['"{name}" (intitle:bio OR inurl:bio OR inurl:leadership OR inurl:speakers OR inurl:team)', '"{name}" appointed OR joined OR named OR promoted "{org}"', 'site:linkedin.com/in "{name}" "{a prior firm from round 1}"', '"{name}" board OR trustee OR advisory', '"{name}" "{a prior firm or school from round 1}"'], next: "Each prior firm and board found here becomes a term in rounds 3 and 4."}
-    - {round: 3, name: last 90 days, types: [F3, F4, F10], goal: "what changed for them and the organisation in the last 90 days", queries: ['"{name}" OR "{org}" announces OR appointed OR launches after:{date_90_days_ago}', 'site:{org_domain} (inurl:news OR inurl:press OR inurl:about OR inurl:mission) "{name}"', '"{org}" results OR funding OR acquisition OR partnership after:{date_90_days_ago}', '"{name}" conference OR summit OR keynote {this year}', '"{org}" "{a programme, deal or firm from round 2}" after:{date_90_days_ago}'], next: "A dated event here is the opener's hook and B3's Recent wins line."}
+    - {round: 3, name: last 90 days, types: [F3, F4, F10], goal: "what changed for them and the organisation in the last 90 days", queries: ['"{name}" OR "{org}" announces OR appointed OR launches after:{date_90_days_ago}', 'site:{org_domain} (inurl:news OR inurl:press OR inurl:about OR inurl:mission) "{name}"', '"{org}" results OR funding OR acquisition OR partnership after:{date_90_days_ago}', '"{name}" conference OR summit OR keynote {year}', '"{org}" "{a programme, deal or firm from round 2}" after:{date_90_days_ago}'], next: "A dated event here is the opener's hook and B3's Recent wins line."}
     - {round: 4, name: their own words, types: [F5, F6, F8], goal: "quotes with a date and a link", queries: ['"{name}" interview OR podcast OR keynote OR panel', 'filetype:pdf "{name}" "{org}"', '"{name}" site:youtube.com OR site:linkedin.com/pulse OR site:linkedin.com/posts', '"{name}" "{a topic from rounds 2-3}"', 'intitle:"{name}" transcript OR remarks OR letter', '"{name}" site:x.com OR site:bsky.app OR site:substack.com (only when socmint.scope is social)'], next: "Their recurring words feed In their words and the {profile}."}
     - {round: 5, name: gaps and counter-evidence, types: [F12, F11], goal: "only what is still Not determined, and what contradicts the read", queries: ['"{name}" OR "{org}" decides OR approves OR budget OR committee', '"{org}" layoffs OR departure OR decline OR criticism (the exclusions still apply)', '"{org}" "{a gap still Not determined: who decides, the gate, the timing}"', 'site:{org_domain} "{the gap term}" (the organisation in its own words on the open gap)', '"{org}" "{the claim the Take rests on}" -"{name}" (who disagrees with the read)'], next: "What is still open after this round becomes a Still open question in the room."}
 source_quality:   # C18 (eval.py checks/cites). Weak: never C1/C2. Exclude: never cited. Prefer primary sources.
@@ -385,6 +386,32 @@ research:
     social:       [linkedin.com/posts, linkedin.com/pulse, youtube.com, podcasts, x.com, bsky.app, substack.com, medium.com]
     none:         []
 
+placeholders:   # every {placeholder} in a query template or a round (R7); eval.py hardcoded fails any that is not declared here
+  name: "the intake's Full Name"
+  org: "the intake's Organisation"
+  title: "the intake's Title/Role, else the role F1 finds"
+  org_website: "the intake's Organisation Website, else the organisation's own site found by F1"
+  org_domain: "org_website's host without www., e.g. microsoft.com"
+  year: "the current year, four digits"
+  date_90_days_ago: "today minus 90 days, YYYY-MM-DD"
+  carry: "a name, firm, programme, topic or gap the base pass or an earlier round found (the slots written in braces with a description, e.g. {a prior firm from round 1})"
+intake_columns:   # the 16 columns of assets/intake-template.csv and what each one sets (R11); eval.py hardcoded fails a column with no mapping
+  Full Name: "{name}"
+  Organisation: "{org}"
+  Title/Role: "{title}"
+  Meeting Date: "meeting.date: the date P4's real deadline and the last-90-days window count from"
+  Meeting Objective: "meeting.objective"
+  Relationship: "known_context (F11, tag Yours)"
+  Relationship Length: "known_context (F11, tag Yours)"
+  LinkedIn URL: "linkedin.given: read once with the page fetch (S2-7); a failure goes to coverage.failed_urls"
+  Organisation Website: "{org_website}"
+  Additional URL 1: "a page the user wants read: fetch it, one claim per fact, tag Direct"
+  Additional URL 2: "a page the user wants read: fetch it, one claim per fact, tag Direct"
+  Additional URL 3: "a page the user wants read: fetch it, one claim per fact, tag Direct"
+  Known Priorities: "known_context (F11, tag Yours)"
+  Icebreaker Notes: "known_context (F11, tag Yours)"
+  Specific Ask: "meeting.win_definition: B9's ask starts from it"
+  Notes: "known_context (F11, tag Yours)"
 exclusions:
   printed: [health, family, politics, litigation, personal finances]   # B10's Left out on purpose row names the topics, never the facts
   base: [health, family matters outside the public professional record, political giving, litigation as a talking point, home address, personal finances]
@@ -451,6 +478,210 @@ rubric:
     requires_disconfirming_claim: true
 
 # ------------------------------------------------------------------------------------------------
+# LAYOUT -- every number of the page. format/layout.json is written from this table, page_budget, balance and colors by
+# render_skill.py; format/talyx_pdf.py reads it and holds no literal (eval.py hardcoded). Keys read selector__property.
+# ------------------------------------------------------------------------------------------------
+colors:   # Ben, Oct 14: three colours so the page reads when printed -- Midnight, black, white; the hairline is for rules only, never text
+  midnight: "#0F2744"
+  ink: "#000000"
+  white: "#FFFFFF"
+  hair: "#E8EAED"
+balance:  # the in-page script that balances columns and spreads the spare height (px_per_in: CSS pixels per inch)
+  col_split: [40, 60, 1]
+  table_split: [30, 70, 2]
+  page_in: 11
+  margin_top_in: 0.42
+  margin_bottom_in: 0.62
+  first_top_in: 0.3
+  spare_in: 0.2
+  px_per_in: 96
+  spread_max_px: 160
+  spread_steps: 12
+  enlarge_pt: 2
+  enlarge_step_pt: 0.25
+  open_leading: [1.5, 1.45, 1.4, 1.35]
+layout:
+  font_face__font-weight: "100"
+  font_face__font-weight_2: "900"
+  bottom_left__font-size: "7.5pt"
+  bottom_left__padding-left: "0.5in"
+  bottom_right__font-size: "7.5pt"
+  bottom_right__padding-right: "0.5in"
+  page_content__padding: "0.5in"
+  mh_alt_logo__top: "0.05in"
+  mh_alt_logo__right: "-0.35in"
+  mh_alt_logo__width: "88px"
+  mh_alt_titles__padding-right: "1.2in"
+  mh_alt_title__font-size: "22pt"
+  mh_alt_title__font-weight: "800"
+  mh_alt_title__letter-spacing: "-0.02em"
+  mh_alt_title__line-height: "1.02"
+  mh_alt_role__font-size: "10.5pt"
+  mh_alt_role__font-weight: "500"
+  mh_alt_role__margin-top: "5px"
+  sec_head__line-height: "1.0"
+  sec_head__padding-bottom: "3px"
+  sec_head__expr: 6
+  sec_head__expr_2: 3
+  sec_num__font-size: "9.5pt"
+  sec_num__font-weight: "700"
+  sec_title__font-size: "12.5pt"
+  sec_title__font-weight: "700"
+  sec_title__letter-spacing: "-0.01em"
+  sub__font-weight: "700"
+  sub__margin: "2pt"
+  p__max-width: "6.6in"
+  blockquote__expr: 0.5
+  blockquote__padding: "1pt"
+  blockquote__padding_2: "1pt"
+  blockquote__padding_3: "16px"
+  blockquote__padding_4: "2.5px"
+  blockquote__border-left: "2.5px"
+  blockquote__max-width: "6.6in"
+  ul_ol__padding-left: "16px"
+  ul_ol__max-width: "6.6in"
+  ol_li_marker__font-weight: "700"
+  li__expr: 3
+  li__expr_2: 1
+  li_ul_li_ol__expr: 4
+  li_ul_li_ol__expr_2: 1
+  li_ul_li_ol__expr_3: 2
+  li_ul_li_ol__expr_4: 2
+  li_ul_li_ol__padding-left: "16px"
+  li_li__expr: 4
+  li_li__expr_2: 1
+  p_lbl__padding-left: "16px"
+  p_lbl__text-indent: "-16px"
+  p_lbl__expr: 2
+  p_lbl__expr_2: 2
+  hang__padding-left: "16px"
+  hang__text-indent: "-16px"
+  hang_num__width: "16px"
+  p_lbl_strong_first_child_em__margin-left: "-0.12em"
+  num__font-weight: "700"
+  p_lbl_strong_first_child_li_strong_first__font-weight: "600"
+  strong__font-weight: "600"
+  em__font-weight: "400"
+  a__text-decoration-thickness: "0.5px"
+  a__text-underline-offset: "1.5px"
+  cite__font-size: "0.8em"
+  cite__font-weight: "500"
+  th__expr: 1.5
+  th__font-weight: "500"
+  th__letter-spacing: "0.04em"
+  th__padding: "14px"
+  th__border-bottom: "1.25px"
+  td__expr: 0.5
+  td__padding: "14px"
+  td__border-bottom: "0.5px"
+  tbody_tr_last_child_td__border-bottom: "1.25px"
+  sec_ref_td__font-size: "8pt"
+  sec_ref_td__line-height: "1.15"
+  sec_ref_td__padding: "1.5px"
+  sec_ref_td__padding_2: "9px"
+  sec_ref_td__padding_3: "1.5px"
+  sec_ref_th__font-size: "7pt"
+  sec_ref_th__padding: "1px"
+  sec_ref_th__padding_2: "9px"
+  sec_ref_th__padding_3: "2px"
+  sec_ref_table__margin-bottom: "6pt"
+  table_grid_td__expr: 1
+  table_grid_td__expr_2: 1
+  table_grid_td__padding: "10px"
+  table_grid_td__expr_3: 1
+  table_grid_td__expr_4: 1
+  table_grid_td_first_child__width: "1.2in"
+  table_grid_td_first_child__font-weight: "700"
+  table_grid_tbody_tr_last_child_td__border-bottom: "0.5px"
+  font_face__font-weight_3: "100"
+  font_face__font-weight_4: "900"
+  page__margin: "0.42in"
+  page__margin_2: "0.62in"
+  bottom_left__padding-left_2: "0.55in"
+  bottom_right__padding-right_2: "0.55in"
+  page_first__margin-top: "0.30in"
+  page_content__padding_2: "0.55in"
+  stamp__margin: "-0.05in"
+  stamp__margin_2: "3pt"
+  stamp_img__width: "90px"
+  band__height: "18pt"
+  band__border-bottom: "1pt"
+  band__margin-bottom: "9pt"
+  cls__font-weight: "600"
+  cls__letter-spacing: "0.16em"
+  h1_name__font-weight: "700"
+  h1_name__margin: "2pt"
+  part_0_sec_pre_p_first_child__font-weight: "700"
+  part_0_sec_pre_p_first_child__margin: "4pt"
+  part_0_sec_pre_p_p__line-height: "1.4"
+  part_0_sec_pre_p_p__margin: "7pt"
+  sec_pre_p_strong__font-weight: "700"
+  h1_h_sec_head__font-weight: "700"
+  h1_h_sec_head__letter-spacing: "0.18em"
+  h1_h_sec_head__border-bottom: "1pt"
+  h1_h_sec_head__padding-bottom: "3pt"
+  h1_h_sec_head__margin: "5pt"
+  part_1_sec_pre_p__margin: "-2pt"
+  part_1_sec_pre_p__margin_2: "5pt"
+  ul_ol__padding-left_2: "11pt"
+  li__margin: "3pt"
+  li__margin_2: "0px"
+  li_ul_li_ol__margin: "1pt"
+  strong__font-weight_2: "700"
+  a__text-decoration-thickness_2: "0.5px"
+  a__text-underline-offset_2: "1.5px"
+  cite__font-size_2: "0.8em"
+  cite__font-weight_2: "500"
+  sub__font-weight_2: "700"
+  sub__margin_2: "2pt"
+  sub__margin_3: "3pt"
+  sec_b9_sub__margin-top: "7pt"
+  sec_b9_sub__margin-top_2: "0px"
+  two__grid-template-columns: "1fr"
+  two__grid-template-columns_2: "1fr"
+  two__column-gap: "0.28in"
+  body__width: "8.5in"
+  sec_b1_sec_body__line-height: "1.4"
+  sec_b1_sec_body__padding: "8pt"
+  sec_b1_sec_body__padding_2: "11pt"
+  sec_b1_sec_body__border-radius: "6pt"
+  sec_b1_sec_body__margin-top: "2pt"
+  sec_b2_ol__padding-left: "15pt"
+  sec_b2_ol_li__expr: 0.9
+  sec_b2_ol_li__font-weight: "600"
+  sec_b2_li_li__font-weight: "400"
+  th__font-weight_2: "700"
+  th__letter-spacing_2: "0.08em"
+  th__padding_2: "6pt"
+  th__padding_3: "3pt"
+  th__border-bottom_2: "1pt"
+  td__padding_2: "6pt"
+  td__border-bottom_2: "0.6pt"
+  sec_b6_td__expr: 0.6
+  sec_b6_td__expr_2: 0.8
+  sec_b6_td__expr_3: 0.6
+  sec_b6_td__expr_4: 0.8
+  sec_b6_p_noread__margin: "2pt"
+  sec_b10_sec_body_p_first_child__margin: "3pt"
+  sec_b10_table_td__line-height: "1.3"
+  sec_b10_table_td__padding: "0.9pt"
+  sec_b10_table_td__padding_2: "0px"
+  sec_b10_table_td__padding_3: "8pt"
+  sec_b10_table_td__padding_4: "0.9pt"
+  sec_b10_table_td__padding_5: "0px"
+  table_src_td_first_child_cite__font-size: "1em"
+  table_src_td_grade__font-weight: "500"
+  table_src_td_grade__letter-spacing: "0.05em"
+  table_src_td_g_derived_table_src_td_g_in__font-weight: "700"
+  table_grid__margin-top: "6pt"
+  table_grid_td_first_child__width_2: "1.35in"
+  table_grid_td_first_child__font-weight_2: "700"
+  sec_b10_ul_open__padding-left: "9pt"
+  sec_p9__margin-top: "12pt"
+  sec_p9__margin-top_2: "0px"
+  part_1_two__column-gap: "0.28in"
+
+# ------------------------------------------------------------------------------------------------
 # 4. PAGE BUDGET -- ONE 3-page PDF: the brief on pages 1-2, the script on page 3. The renderer owns the
 #    type sizes (format/talyx_pdf.py --style brief) and FAILS if its tightest rung still overflows.
 # ------------------------------------------------------------------------------------------------
@@ -462,14 +693,14 @@ page_budget:
   # numbers as defaults; eval.py self-test fails if they differ). Brief body type is 10 pt on every rung (Oct 13: "Keep 10 pt, not 9 pt").
   body_pt_floor: 10.0
   ladder:        # --style house
-    - {name: loose,   body_pt: 11.0, lh: 1.42, para: 6, sec: 12, mh: [0.15, 0.22], cell: 3,   page: [0.55, 0.6]}
-    - {name: normal,  body_pt: 10.5, lh: 1.36, para: 5, sec: 10, mh: [0.15, 0.22], cell: 3,   page: [0.55, 0.6]}
-    - {name: tight,   body_pt: 10.0, lh: 1.30, para: 4, sec: 8,  mh: [0.15, 0.22], cell: 3,   page: [0.55, 0.6]}
-    - {name: compact, body_pt: 10.0, lh: 1.24, para: 3, sec: 6,  mh: [0.05, 0.14], cell: 1.5, page: [0.45, 0.55]}
+    - {name: loose,   body_pt: 11.0, line_height: 1.42, para_gap_pt: 6, sec_gap_pt: 12, mh: [0.15, 0.22], cell: 3,   page: [0.55, 0.6]}
+    - {name: normal,  body_pt: 10.5, line_height: 1.36, para_gap_pt: 5, sec_gap_pt: 10, mh: [0.15, 0.22], cell: 3,   page: [0.55, 0.6]}
+    - {name: tight,   body_pt: 10.0, line_height: 1.30, para_gap_pt: 4, sec_gap_pt: 8,  mh: [0.15, 0.22], cell: 3,   page: [0.55, 0.6]}
+    - {name: compact, body_pt: 10.0, line_height: 1.24, para_gap_pt: 3, sec_gap_pt: 6,  mh: [0.05, 0.14], cell: 1.5, page: [0.45, 0.55]}
   brief_ladder:  # --style brief
-    - {name: normal,  body_pt: 10.0, lh: 1.30, para: 3, sec: 10, cell: 2.4}
-    - {name: tight,   body_pt: 10.0, lh: 1.24, para: 2, sec: 8,  cell: 1.8}
-    - {name: compact, body_pt: 10.0, lh: 1.18, para: 2, sec: 6,  cell: 1.2}
+    - {name: normal,  body_pt: 10.0, line_height: 1.30, para_gap_pt: 3, sec_gap_pt: 10, cell: 2.4}
+    - {name: tight,   body_pt: 10.0, line_height: 1.24, para_gap_pt: 2, sec_gap_pt: 8,  cell: 1.8}
+    - {name: compact, body_pt: 10.0, line_height: 1.18, para_gap_pt: 2, sec_gap_pt: 6,  cell: 1.2}
   text_sizes_pt: {footer: 7.5, band: 7.8, name: 20, preline: 9.5, meta: 9.5, sec_head: 9.5, sub: 9.5, decides: 9.5, th: 9.5, ledger_note: 9.5, ledger: 9.5, grade: 9.5}   # D3 (Daniel, Oct 16): 9.5 pt and up for everything a reader reads; only the footer and the classification band stay small
   text_floor_pt: 9.5
   text_floor_exempt: [footer, band]

@@ -1,0 +1,161 @@
+# DECISIONS.yaml -- the only way a rule, parameter, source family, grade field, layout size, setup question, eval check or schema section of the
+# original talyx-ai plug-in (2.1.0, frozen in evals/baseline-2.1.0.json) may differ from it.
+#
+# `python3 eval.py parity` fails on any baseline item that is changed or removed unless an entry here with `status: approved` covers it
+# (`covers` is a list of fnmatch patterns on the item id; run `eval.py parity --list` for the ids). `status: open` is listed, and fails
+# under `parity --strict`: it records a change nobody has approved yet. A schema section (forms, grading, records, ...) whose hash differs
+# from evals/schema.lock.json fails unless an approved entry covers `lock:<section>@<new hash>`.
+#
+# An entry names who decided and where it is recorded. A session may add an `open` entry; only Daniel's word (or the cited meeting or
+# instruction) makes one `approved`. Never edit baseline-2.1.0.json to make parity pass.
+version: 1
+decisions:
+  # ---- the approved schema (Ben's nine blocks and the evidence ledger, page 3's nine sections) replaced B1-B9 / P1-P7
+  - covers: ["brief.sections.B*", "script.blocks.P*", "script.title", "checks.C1.*", "checks.C2.*", "checks.C3.*", "checks.C4.*", "checks.C5.*", "checks.C7.*", "checks.C8.*", "checks.C10.*", "eval.definition"]
+    status: approved
+    by: Daniel and Ben
+    date: 2026-10-13
+    source: "Ben's schema, approved Oct 13 (pcp.yaml brief comment; AID-7); Daniel, Oct 16 (D3): 'keep Ben's schema but cut density back'; block mapping in PARITY-B Table C1 rows C-087 to C-111, C-117 to C-129"
+    summary: "Blocks B1-B9 and P1-P7 became B1-B10 and P1-P9; the checks follow the new ids; the word budgets are the D3 density cut (page_budget.density keeps the old ones for briefs dated before Oct 16)."
+  # ---- plain words (Oct 9): the user reads no intelligence-trade or technical words
+  - covers: ["calibration.questions.Q5.options", "stages.S3.name", "stages.S3.rows.S3-1.*", "stages.S3.rows.S3-4.*", "stages.S2.name", "families.F12.extract"]
+    status: approved
+    by: Daniel
+    date: 2026-10-13
+    source: "plain_words in pcp.yaml: Oct 9 'don't use mil/intel/tech words in actual outputs'; Daniel Oct 13: intel words fine internally, banned only in rendered output; D1, Oct 16: 'SOCMINT/military terms stay internal; user-facing reads plain'"
+    summary: "families -> source types; ACH -> what they may want; score -> read; Behavioral read -> Behavioral profile; stage names are placeholders."
+  # ---- D1 / D2: LinkedIn and the social chip
+  - covers: ["calibration.questions.Q6.header", "calibration.questions.Q6.options", "families.F6.extract", "stages.S2.rows.S2-1.*"]
+    status: approved
+    by: Daniel
+    date: 2026-10-16
+    source: "D1 (Q6 chip reads 'Social'); D2 (read a LinkedIn URL or a saved profile when the user gives one); AID-63 Oct 14 (search results, never a browser)"
+    summary: "Q6 chip 'Social'; LinkedIn read as search results, a link the user gives, or a saved profile; S2-1 states it; F6's extract names S2-7."
+  # ---- the user's own files and answers are a source (CAL-4, Oct 9)
+  - covers: ["calibration.questions.Q8.*", "families.F11.extract", "stages.S2.inputs"]
+    status: approved
+    by: Ben and Daniel
+    date: 2026-10-09
+    source: "pcp.yaml CAL-4 basis: 'Oct 9: a user with a business context profile can upload files'; Sep 28: use what people already have"
+    summary: "Q8 invites file paths; F11 and known_context widen to the user's notes, files and answers (tag Yours)."
+  # ---- source grading: Daniel delegated the design (Oct 16) and the claim fields grew
+  - covers: ["stages.S2.outputs", "stages.S2.rows.S2-2.*", "stages.S2.rows.S2-3.*", "stages.S2.rows.S2-5.*"]
+    status: approved
+    by: Daniel
+    date: 2026-10-16
+    source: "Ben's grades, Oct 7 (Measured, Derived, Inference, Not determined); Daniel Oct 16: 'figure out the best evidence-grading design ... hard requirement: weak sources never read as strong' -> grading in pcp.yaml; MUST-FIX 9 (base + rounds in coverage); status stamped in the masthead (Oct 14)"
+    summary: "Claims keep every 2.1.0 field and add published, grade, says, page; coverage keeps every 2.1.0 field and adds base, rounds, linkedin, searches, per-type counts; the page prints grade, how found and strength."
+  # ---- masthead / footer / run row (Oct 7, Oct 14)
+  - covers: ["calibration.rules.CAL-2.*", "stages.S4.rows.S4-5.*", "stages.S4.rows.S4-1.*", "stages.S4.outputs", "stages.S4.name", "stages.S4.context.*"]
+    status: approved
+    by: Daniel
+    date: 2026-10-14
+    source: "Daniel Oct 14: no page footer holds a metric; run details under the sources (Oct 7); output file name '<date>-<slug>-intelligence-brief.pdf'"
+    summary: "Profile line, status and metrics moved from the footer to the masthead meta line and the ledger's Run row; ledger numbers replace claim ids."
+  # ---- evidence tier (Ben's profile schema) and the overflow rule
+  - covers: ["stages.S3.rows.S3-2.*", "stages.S3.rows.S3-3.*", "stages.S4.rows.S4-4.*"]
+    status: approved
+    by: Daniel
+    date: 2026-10-16
+    source: "Ben's evidence tier (Oct 14 schema); Daniel Oct 16 MUST-FIX 4: cut wording, never cited facts"
+    summary: "B6's tier is the highest tier three rows reach and gates P5/P6; an overflow cuts words only (C24)."
+  # ---- where the PDF is made, and in-chat fallback
+  - covers: ["stages.S4.rows.S4-3.*"]
+    status: approved
+    by: Daniel
+    date: 2026-10-13
+    source: "Daniel Oct 13: PDF where scripts run, in-chat fallback elsewhere (S4-10)"
+    summary: "PDF only where the host can run scripts and a browser engine; full brief in chat otherwise."
+  # ---- Socratic questions
+  - covers: ["stages.S1.context.*"]
+    status: approved
+    by: Daniel
+    date: 2026-10-12
+    source: "Daniel Oct 12: Socratic questions the plug-in asks the user as needed (S1-4)"
+    summary: "S1 reads references/socratic-questions.md; budget 900 words."
+  # ---- type scale
+  - covers: ["checks.C10.*"]
+    status: approved
+    by: Daniel
+    date: 2026-10-16
+    source: "D3: 9.5 pt and up for everything a reader reads (page_budget.text_sizes_pt)"
+    summary: "C10 adds exactly 3 pages with the ledger last on page 2 and the script on page 3."
+  # ---- OPEN: changes with no recorded decision (reworded text, nothing weakened that I can see); Daniel to approve or revert
+  - covers: ["calibration.questions.Q2.options", "calibration.questions.Q7.options", "calibration.rules.CAL-1.*"]
+    status: open
+    by: none yet
+    date: 2026-10-16
+    source: "rc2 rewording: Q2 option descriptions, Q7's EU description ('working notes are deleted once the PDF renders'), CAL-1 'ask only the questions with no saved answer' (adds Q9 without re-asking all). Not in a recorded decision."
+    summary: "Needs Daniel's yes or a revert."
+  - covers: ["lock:forms@fcbfb88c38af"]
+    status: approved
+    by: "Daniel (Oct 16 instructions: MUST-FIX 1-9, D1-D3, grading design delegated, parameterization, forms/assembler, no-drift guard)"
+    date: 2026-10-16
+    source: "RESTORE-REPORT.md section 'Schema locks'; messages of Oct 16 1:45-2:15 PM"
+    summary: "schema section forms changed from none to fcbfb88c38af"
+  - covers: ["lock:grading@8b31f6cf79e4"]
+    status: approved
+    by: "Daniel (Oct 16 instructions: MUST-FIX 1-9, D1-D3, grading design delegated, parameterization, forms/assembler, no-drift guard)"
+    date: 2026-10-16
+    source: "RESTORE-REPORT.md section 'Schema locks'; messages of Oct 16 1:45-2:15 PM"
+    summary: "schema section grading changed from none to 8b31f6cf79e4"
+  - covers: ["lock:records@6f26f380104f"]
+    status: approved
+    by: "Daniel (Oct 16 instructions: MUST-FIX 1-9, D1-D3, grading design delegated, parameterization, forms/assembler, no-drift guard)"
+    date: 2026-10-16
+    source: "RESTORE-REPORT.md section 'Schema locks'; messages of Oct 16 1:45-2:15 PM"
+    summary: "schema section records changed from none to 6f26f380104f"
+  - covers: ["lock:placeholders@b0d025dbfc2a"]
+    status: approved
+    by: "Daniel (Oct 16 instructions: MUST-FIX 1-9, D1-D3, grading design delegated, parameterization, forms/assembler, no-drift guard)"
+    date: 2026-10-16
+    source: "RESTORE-REPORT.md section 'Schema locks'; messages of Oct 16 1:45-2:15 PM"
+    summary: "schema section placeholders changed from none to b0d025dbfc2a"
+  - covers: ["lock:intake_columns@c5259df01988"]
+    status: approved
+    by: "Daniel (Oct 16 instructions: MUST-FIX 1-9, D1-D3, grading design delegated, parameterization, forms/assembler, no-drift guard)"
+    date: 2026-10-16
+    source: "RESTORE-REPORT.md section 'Schema locks'; messages of Oct 16 1:45-2:15 PM"
+    summary: "schema section intake_columns changed from none to c5259df01988"
+  - covers: ["lock:colors@9a6703f5407a"]
+    status: approved
+    by: "Daniel (Oct 16 instructions: MUST-FIX 1-9, D1-D3, grading design delegated, parameterization, forms/assembler, no-drift guard)"
+    date: 2026-10-16
+    source: "RESTORE-REPORT.md section 'Schema locks'; messages of Oct 16 1:45-2:15 PM"
+    summary: "schema section colors changed from none to 9a6703f5407a"
+  - covers: ["lock:balance@b17cd54d274a"]
+    status: approved
+    by: "Daniel (Oct 16 instructions: MUST-FIX 1-9, D1-D3, grading design delegated, parameterization, forms/assembler, no-drift guard)"
+    date: 2026-10-16
+    source: "RESTORE-REPORT.md section 'Schema locks'; messages of Oct 16 1:45-2:15 PM"
+    summary: "schema section balance changed from none to b17cd54d274a"
+  - covers: ["lock:page_budget@956961a9eef8"]
+    status: approved
+    by: "Daniel (Oct 16 instructions: MUST-FIX 1-9, D1-D3, grading design delegated, parameterization, forms/assembler, no-drift guard)"
+    date: 2026-10-16
+    source: "RESTORE-REPORT.md section 'Schema locks'; messages of Oct 16 1:45-2:15 PM"
+    summary: "schema section page_budget changed from none to 956961a9eef8"
+  - covers: ["lock:osint@12b51c613d3a"]
+    status: approved
+    by: "Daniel (Oct 16 instructions: MUST-FIX 1-9, D1-D3, grading design delegated, parameterization, forms/assembler, no-drift guard)"
+    date: 2026-10-16
+    source: "RESTORE-REPORT.md section 'Schema locks'; messages of Oct 16 1:45-2:15 PM"
+    summary: "schema section osint changed from none to 12b51c613d3a"
+  - covers: ["lock:linkedin@34320caf49d2"]
+    status: approved
+    by: "Daniel (Oct 16 instructions: MUST-FIX 1-9, D1-D3, grading design delegated, parameterization, forms/assembler, no-drift guard)"
+    date: 2026-10-16
+    source: "RESTORE-REPORT.md section 'Schema locks'; messages of Oct 16 1:45-2:15 PM"
+    summary: "schema section linkedin changed from none to 34320caf49d2"
+  - covers: ["lock:source_quality@f02333d74ccb"]
+    status: approved
+    by: "Daniel (Oct 16 instructions: MUST-FIX 1-9, D1-D3, grading design delegated, parameterization, forms/assembler, no-drift guard)"
+    date: 2026-10-16
+    source: "RESTORE-REPORT.md section 'Schema locks'; messages of Oct 16 1:45-2:15 PM"
+    summary: "schema section source_quality changed from none to f02333d74ccb"
+  - covers: ["lock:families@166381a76529"]
+    status: approved
+    by: "Daniel (Oct 16 instructions: MUST-FIX 1-9, D1-D3, grading design delegated, parameterization, forms/assembler, no-drift guard)"
+    date: 2026-10-16
+    source: "RESTORE-REPORT.md section 'Schema locks'; messages of Oct 16 1:45-2:15 PM"
+    summary: "schema section families changed from none to 166381a76529"

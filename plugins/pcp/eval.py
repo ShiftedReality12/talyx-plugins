@@ -24,6 +24,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 
 HERE = pathlib.Path(__file__).resolve().parent
 R = json.loads((HERE / "pcp.json").read_text())   # pcp.yaml as JSON (render_skill.py): no YAML library needed at run time
@@ -299,6 +300,10 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
             if bare:   # R11b (Oct 15) cited a LinkedIn post as [linkedin.com](...), as if the page had been read
                 fails.append(f"C16 linkedin: ledger rows {bare} cite linkedin.com without 'search result'; "
                              "every LinkedIn row (profile, post or article) is cited [linkedin.com, search result](its URL)")
+        elif b4.group(1) == li["read"]["link"]:   # D2: the link the user gave, read once with the page fetch: its profile is a ledger row
+            rows = [m for m in SRC_ROW.finditer(grid) if "linkedin.com/in/" in m.group(3).lower()]
+            if not rows:
+                fails.append(f"C16 linkedin: {li['read']['link']}, yet no ledger row cites the linkedin.com/in address the user gave")
         elif b4.group(1) == li["read"]["file"]:   # the saved profile is the user's file: cited by its name, tagged Yours
             profile = [m.group(1) for m in SRC_ROW.finditer(grid) if "linkedin.com/in/" in m.group(3).lower()]
             if profile:
@@ -756,23 +761,78 @@ def self_test(require_pdf=False):
             print(f"tripped: C21 by {case}")
         else:
             print(f"FAIL C21 must trip on {case} (got {f})"); ok = False
-    # ---- the type scale: the renderer's own defaults are the registry's numbers (page_budget), so a copy with no pcp.json draws the same page
-    import ast
-    src = ast.parse((HERE / "format/talyx_pdf.py").read_text())
-    lit = {}
-    for node in src.body:
-        if isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name) and node.targets[0].id in ("LADDER", "BRIEF_LADDER"):
-            lit[node.targets[0].id] = [{k.arg: ast.literal_eval(k.value) for k in c.keywords} for c in node.value.elts]
-        if isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name) and node.targets[0].id == "SZ":
-            lit["SZ"] = {k.arg: ast.literal_eval(k.value) for k in node.value.keywords}
-    pb = R["page_budget"]
-    norm = lambda rows: [{k: (tuple(v) if isinstance(v, list) else v) for k, v in r.items()} for r in rows]
-    same = (norm(lit.get("LADDER", [])) == norm(pb["ladder"]) and norm(lit.get("BRIEF_LADDER", [])) == norm(pb["brief_ladder"])
-            and lit.get("SZ") == pb["text_sizes_pt"] and pb["body_pt_floor"] == min(r["body_pt"] for r in pb["ladder"] + pb["brief_ladder"]))
-    if same:
-        print(f"passes: the renderer's type scale equals page_budget (floor {pb['body_pt_floor']} pt, {len(pb['ladder'])} + {len(pb['brief_ladder'])} rungs, {len(pb['text_sizes_pt'])} text sizes)")
+    # ---- hard-coded values (C27): the page and the wording come from pcp.yaml; a literal in a render script is caught
+    if hardcoded_check():
+        print("FAIL hardcoded must pass on the shipped scripts:", *hardcoded_check(), sep="\n - "); ok = False
     else:
-        print("FAIL the renderer's default ladders or text sizes differ from page_budget in pcp.yaml"); ok = False
+        lay = json.loads((HERE / "format/layout.json").read_text())
+        print(f"passes: C27 the renderer holds no layout number or colour ({len(lay['layout'])} layout values, {len(lay['balance'])} balance values, "
+              f"{len(lay['colors'])} colours, the ladders and {len(lay['page_budget']['text_sizes_pt'])} text sizes are in pcp.yaml)")
+    with tempfile.TemporaryDirectory() as td:
+        root = pathlib.Path(td)
+        (root / "format").mkdir()
+        for rel in ("format/talyx_pdf.py", "format/layout.json", "render_skill.py", "skills/pre-call-prep/assets/intake-template.csv"):
+            (root / rel).parent.mkdir(parents=True, exist_ok=True)
+            (root / rel).write_text((HERE / rel).read_text())
+        base_css, base_rs = (root / "format/talyx_pdf.py").read_text(), (root / "render_skill.py").read_text()
+        for case, rel, new_text, want in (
+                ("a CSS number in the renderer", "format/talyx_pdf.py", base_css.replace("{L['page_content__padding']}", "0.55in", 1), "talyx_pdf.py's CSS"),
+                ("a colour in the renderer", "format/talyx_pdf.py", base_css + '\nX = "#123456"\n', "holds a colour"),
+                ("a decimal in the balance script", "format/talyx_pdf.py", base_css.replace("CFG.spare_in", "0.2", 1), "balance script"),
+                ("a block title spelled in render_skill.py", "render_skill.py", base_rs + '\nX = "Strongest case against"\n', "render_skill.py")):
+            (root / rel).write_text(new_text)
+            f = hardcoded_check(root)
+            (root / rel).write_text(base_css if rel.endswith("pdf.py") else base_rs)
+            if any(want in x for x in f):
+                print(f"tripped: C27 by {case}")
+            else:
+                print(f"FAIL C27 must trip on {case} (got {f})"); ok = False
+    # ---- parity (C28): nothing of the 2.1.0 baseline is removed or weakened without an approved decision
+    pf, ps = parity()
+    if pf:
+        print("FAIL parity must pass on the shipped registry:", *pf[:5], sep="\n - "); ok = False
+    else:
+        print(f"passes: C28 parity: {ps['total']} items of the 2.1.0 baseline, {ps['kept']} kept, {ps['approved']} changed with an approved decision, "
+              f"{ps['open']} open, {ps['unapproved']} unapproved; {ps['locked']} schema sections locked")
+    import copy
+    def mutated(fn):
+        r2 = copy.deepcopy(R); fn(r2); return r2
+    for case, fn, want in (
+            ("a source type removed (F4)", lambda r: r["families"].remove(next(f for f in r["families"] if f["id"] == "F4")), "families.F4"),
+            ("the FULL threshold weakened (standard 8 to 6)", lambda r: r["research"]["full_threshold"].update(standard=6), "research.full_threshold"),
+            ("a rule's text weakened (S1-2)", lambda r: r["stages"][0]["rows"][1].update(text="Two or more people match: pick one."), "S1-2"),
+            ("a setup question dropped (Q3)", lambda r: r["calibration"]["questions"].remove(next(q for q in r["calibration"]["questions"] if q["id"] == "Q3")), "Q3"),
+            ("a grade field dropped from the claims", lambda r: r["records"]["claims"]["fields"].remove("tag"), "schema section 'records'"),
+            ("a ledger form label changed", lambda r: r["forms"]["B1"]["fields"][0].update(label="Summary."), "schema section 'forms'"),
+            ("a strength cap loosened (weak domain C3 to C1)", lambda r: r["grading"]["caps"].update(weak_domain="C1"), "schema section 'grading'"),
+            ("a layout size changed", lambda r: r["page_budget"]["text_sizes_pt"].update(ledger=8), "schema section 'page_budget'")):
+        f, _ = parity(reg=mutated(fn))
+        if any(want in x for x in f):
+            print(f"tripped: C28 by {case}")
+        else:
+            print(f"FAIL C28 must trip on {case} (wanted '{want}'; got {f[:2]})"); ok = False
+    with tempfile.TemporaryDirectory() as td:
+        rt = pathlib.Path(td); (rt / "evals").mkdir()
+        for fn in ("baseline-2.1.0.json", "DECISIONS.yaml", "schema.lock.json"):
+            (rt / "evals" / fn).write_text((HERE / "evals" / fn).read_text())
+        for fn in ("eval.py", "format/talyx_pdf.py"):
+            (rt / fn).parent.mkdir(parents=True, exist_ok=True); (rt / fn).write_text((HERE / fn).read_text())
+        weak = mutated(lambda r: r["research"]["full_threshold"].update(standard=6))
+        with open(rt / "evals/DECISIONS.yaml", "a") as fh:
+            fh.write('  - covers: ["research.full_threshold.standard"]\n    status: approved\n    by: test\n    source: self-test\n')
+        f, _ = parity(root=rt, reg=weak)
+        print("passes: C28 lets an approved decision cover a change" if not any("full_threshold" in x for x in f) else "FAIL an approved decision must cover its change"); ok = ok and not any("full_threshold" in x for x in f)
+        (rt / "evals/baseline-2.1.0.json").write_text((rt / "evals/baseline-2.1.0.json").read_text().replace("Two or more people", "Two or more persons", 1))
+        f, _ = parity(root=rt)
+        if any("baseline-2.1.0.json was edited" in x for x in f):
+            print("tripped: C28 by an edit to the frozen baseline")
+        else:
+            print("FAIL C28 must trip on an edit to baseline-2.1.0.json"); ok = False
+    f, _ = parity(strict=True)
+    if any("still open" in x for x in f):
+        print(f"tripped: C28 --strict on the {ps['open']} decisions that are still open")
+    else:
+        print("FAIL parity --strict must fail an open decision"); ok = False
     # ---- quiet research (S2-10): rounds and progress stay out of the reply
     def msg(kind, text):
         return json.dumps({"type": "assistant", "message": {"content": [{"type": kind, kind if kind == "thinking" else "text": text}]}})
@@ -870,7 +930,6 @@ def self_test(require_pdf=False):
         print("FAIL records_ok must pass C23:", records_check(rec_dir, "standard", c12_md)); ok = False
     else:
         print("passes: C23 on records_ok (12 claims, 12 source-type counts, six dimensions) against control_12.md")
-    import tempfile
     def broken(edit, name):
         with tempfile.TemporaryDirectory() as td:
             for fn in ("claims.jsonl", "coverage.json", "read.json"):
@@ -1030,7 +1089,6 @@ def pdf_self_test(fx):
     the jargon PDF's printed text trips C11 on every word, and control_12.md rendered with --brief-pages 3 (4 pages,
     the ledger on page 3) trips C10. None if this computer cannot render or read a PDF."""
     import importlib.util
-    import tempfile
     sys.dont_write_bytecode = True   # importing the renderer must not leave __pycache__ in the plug-in
     spec = importlib.util.spec_from_file_location("talyx_pdf", HERE / "format/talyx_pdf.py")
     tp = importlib.util.module_from_spec(spec); spec.loader.exec_module(tp)
@@ -1338,7 +1396,6 @@ def render_check(pdf, dpi=72):
     no word box outside the 0.3in side margins or past the page; the last ink above the 0.62in footer margin ends
     within 0.5in of it; page 1 shows the logo whole in the top-right masthead (its ink box sits inside the page
     with a clear gap on every side)."""
-    import tempfile
     fails, edge, side = [], int(0.12 * dpi), 0.3 * 72
     with tempfile.TemporaryDirectory() as td:
         subprocess.run(["pdftoppm", "-gray", "-r", str(dpi), str(pdf), f"{td}/p"], check=True)
@@ -1775,6 +1832,7 @@ def battery(lines, depth="standard", brief="", cited=None, profile=None, popup=N
     needs a question before the first search."""
     ev, host = read_history(lines)
     fails, batches, named, order = [], {}, {}, []
+    given = [u for e in ev if e["kind"] == "user" for u in URL.findall(e.get("text", "")) if "linkedin.com" in u.lower()]   # D2: the user's own link
     pending, early, opened, fetch_ids = None, [], set(), set()
     searches = [e for e in ev if e["kind"] == "search"]
     first_s = next((i for i, e in enumerate(ev) if e["kind"] == "search"), None)
@@ -1798,8 +1856,9 @@ def battery(lines, depth="standard", brief="", cited=None, profile=None, popup=N
             batches[s].append(e)
         elif k == "open":
             opened.add(_page(e["url"])); fetch_ids.add(e.get("id"))
-            if "linkedin.com" in e["url"].lower():
-                fails.append(f"C21 battery: a linkedin.com page was requested ({e['url']}); LinkedIn is read from search results only")
+            if "linkedin.com" in e["url"].lower() and not any(_page(e["url"]) == _page(u) for u in given):
+                fails.append(f"C21 battery: a linkedin.com page was requested ({e['url']}) that the user did not give; "
+                             "LinkedIn is read from search results, or from the one address the user gives")
         elif k == "redirect" and e.get("id") in fetch_ids:
             opened.update(_page(u) for u in e["urls"])
         elif k == "shell":
@@ -2630,6 +2689,243 @@ def assembled_matches(folder, profile=None, depth=None):
     return fails
 
 
+# ---------------------------------------------------------------- hard-coded values (C27) -----------------------------
+def registry_tokens():
+    """Every wording the registry owns, as (token, where): titles, labels, names, statuses, phrases. A script that spells one of
+    these itself instead of reading it from pcp.yaml has a value that can drift from the registry."""
+    out = {}
+    def add(s, where):
+        s = str(s).strip()
+        if len(s) >= 10 and not re.fullmatch(r"[\d.\s:|/-]*", s):
+            out.setdefault(s, where)
+    for b in R["brief"]["sections"] + R["script"]["blocks"]:
+        add(b["title"], f"{b['id']} title")
+    def walk(o, where):
+        if isinstance(o, dict):
+            for k, v in o.items():
+                if k == "label":
+                    add(v, f"{where} label")
+                walk(v, where)
+        elif isinstance(o, list):
+            for v in o:
+                walk(v, where)
+    walk(R["forms"], "forms")
+    for f in R["families"]:
+        add(f["name"], f"{f['id']} name")
+    for r in R["osint"]["rounds"]:
+        add(r["name"], f"round {r['round']} name")
+    for x in R["guardrails"]["never_say"]:
+        add(x, "never_say")
+    for d in R["rubric"]["dimensions"]:
+        add(d["shows"], f"{d['id']} row label")
+    for k, v in R["names"].items():
+        add(v, f"names.{k}")
+    for v in R["grading"]["strength"].values():
+        add(v, "grading.strength")
+    for v in R["linkedin"]["read"].values():
+        add(v, "linkedin.read")
+    for v in R["linkedin"]["reasons"]:
+        add(v, "linkedin.reasons")
+    for k in ("title", "subtitle"):
+        add(R["script"][k], f"script.{k}")
+    for fmt, beats in R["script"]["beats_by_format"].items():
+        for b in beats:
+            add(b, f"beats.{fmt}")
+    return out
+
+
+def _py_strings(path, skip=()):
+    """The string constants of a Python file's code, apart from the named functions (test data) and docstrings."""
+    import ast
+    tree = ast.parse(pathlib.Path(path).read_text())
+    doc = set()
+    for n in ast.walk(tree):
+        if isinstance(n, (ast.FunctionDef, ast.ClassDef, ast.Module)) and n.body and isinstance(n.body[0], ast.Expr) and isinstance(getattr(n.body[0], "value", None), ast.Constant):
+            doc.add(id(n.body[0].value))
+    out = []
+    def visit(node, skipping=False):
+        for c in ast.iter_child_nodes(node):
+            sk = skipping or (isinstance(c, ast.FunctionDef) and c.name in skip)
+            if isinstance(c, ast.Constant) and isinstance(c.value, str) and id(c) not in doc and not sk:
+                out.append((c.lineno, c.value))
+            visit(c, sk)
+    visit(tree)
+    return out
+
+
+def hardcoded_check(root=None):
+    """C27: the page, the setup and the wording come from pcp.yaml, not from the scripts. Fails when
+      - talyx_pdf.py holds a CSS number, a colour or a ladder of its own (every one is in layout.json, written from pcp.yaml),
+      - render_skill.py spells a registry title, label, name, status or phrase instead of reading it,
+      - a placeholder in a query template or round is not declared in `placeholders`, or an intake column has no mapping,
+      - the renderer's page margins and the balance script's differ."""
+    fails, here = [], pathlib.Path(root or HERE)
+    css = (here / "format/talyx_pdf.py").read_text()
+    for m in re.finditer(r'return f"""(.*?)"""', css, re.S):
+        s = re.sub(r"\{\{|\}\}", "", m.group(1)); s = re.sub(r"\{[^{}]*\}", "", s)
+        lit = [x for x in re.findall(r"(?<![\w#.\-])(-?\d+(?:\.\d+)?)(?:pt|in|px|em|%|fr)\b", s) if float(x) != 0]
+        if lit:
+            fails.append(f"C27 hardcoded: talyx_pdf.py's CSS holds the number(s) {sorted(set(lit))}; move them to pcp.yaml layout")
+    if re.search(r"""["':\s]#[0-9A-Fa-f]{6}\b""", css):
+        fails.append("C27 hardcoded: talyx_pdf.py holds a colour; colours live in pcp.yaml colors")
+    if re.search(r"^(?:LADDER|BRIEF_LADDER|SZ)\s*=\s*[\[(d]", css, re.M) and "LAYOUT" not in css:
+        fails.append("C27 hardcoded: talyx_pdf.py holds a ladder or a size table of its own")
+    js = re.search(r'BALANCE = "<script>.*?</script>"', css, re.S)
+    if js:
+        body = re.sub(r"//[^\n]*", "", js.group(0))
+        lit = sorted({x for x in re.findall(r"(?<![\w.])(\d+\.\d+)(?![\w])", body) if x not in ("0.75", "0.01")})
+        if lit:
+            fails.append(f"C27 hardcoded: the balance script holds the decimal number(s) {lit}; they belong in pcp.yaml balance")
+    lay = json.loads((here / "format/layout.json").read_text()) if (here / "format/layout.json").exists() else {}
+    if lay and (lay["balance"]["margin_top_in"], lay["balance"]["margin_bottom_in"]) != tuple(float(re.search(r"[\d.]+", lay["layout"][k]).group(0)) for k in ("page__margin_top", "page__margin_bottom")) \
+            if all(k in lay.get("layout", {}) for k in ("page__margin_top", "page__margin_bottom")) else False:
+        fails.append("C27 hardcoded: the balance script's page margins differ from the renderer's")
+    tokens = registry_tokens()
+    for line, s in _py_strings(here / "render_skill.py"):
+        for tok, where in tokens.items():
+            if tok in s and len(s) < 400:
+                fails.append(f"C27 hardcoded: render_skill.py line {line} spells '{tok}' ({where}); read it from the registry")
+                break
+    ph = set(R["placeholders"])
+    for f in R["families"]:
+        for name in re.findall(r"\{(\w+)\}", str(f["query"])):
+            if name not in ph:
+                fails.append(f"C27 hardcoded: {f['id']}'s query uses {{{name}}}, which pcp.yaml placeholders does not declare")
+    for r in R["osint"]["rounds"]:
+        for q in r["queries"]:
+            for name in re.findall(r"\{(\w+)\}", q):
+                if name not in ph:
+                    fails.append(f"C27 hardcoded: round {r['round']} uses {{{name}}}, which pcp.yaml placeholders does not declare")
+    csv = here / "skills/pre-call-prep/assets/intake-template.csv"
+    if csv.exists():
+        cols = csv.read_text().splitlines()[0].split(",")
+        missing = [c for c in cols if c not in R["intake_columns"]]
+        if missing:
+            fails.append(f"C27 hardcoded: intake columns {missing} have no mapping in pcp.yaml intake_columns")
+    return fails
+
+
+# ---------------------------------------------------------------- parity: the no-drift guard ---------------------------
+def _flatten(o, path=()):
+    """{path: leaf}, the scheme build/baseline.py froze 2.1.0 with: a list of dicts that carry an id is keyed by it."""
+    out = {}
+    if isinstance(o, dict):
+        for k, v in o.items():
+            out.update(_flatten(v, path + (str(k),)))
+    elif isinstance(o, list) and o and all(isinstance(x, dict) and ("id" in x or len(x) == 1) for x in o):
+        for x in o:
+            key = x["id"] if "id" in x else next(iter(x))
+            out.update(_flatten({k: v for k, v in x.items() if k != "id"} if "id" in x else x[key], path + (str(key),)))
+    else:
+        out[".".join(path)] = o
+    return out
+
+
+def _live_items(root, reg=None):
+    reg = reg or R
+    items = {p: v for p, v in _flatten({k: v for k, v in reg.items() if k not in ("generated_files", "render_header", "registry_version")}).items()}
+    ev = (root / "eval.py").read_text()
+    for name in re.findall(r'sub\.add_parser\("([\w-]+)"', ev):
+        items[f"eval.subcommand.{name}"] = True
+    m = re.search(r"CHECKS = \[(.*?)\]", ev, re.S)
+    for name in re.findall(r'"([\w-]+)"', m.group(1)) if m else []:
+        items[f"eval.check_flag.{name}"] = True
+    for flag in re.findall(r'add_argument\("(--[\w-]+)"', (root / "format/talyx_pdf.py").read_text()):
+        items[f"renderer.flag.{flag}"] = True
+    return items
+
+
+LOCKED = ("forms", "grading", "records", "placeholders", "intake_columns", "colors", "balance", "page_budget", "osint", "linkedin", "source_quality", "families")
+
+
+def schema_lock(reg=None):
+    """sha256 of each schema section of the live registry: the brief's forms, the grading, the records, the page budget and so on."""
+    import hashlib
+    reg = reg or R
+    return {k: hashlib.sha256(json.dumps(reg[k], sort_keys=True, default=str, ensure_ascii=False).encode()).hexdigest()[:12] for k in LOCKED}
+
+
+def _covers(base, live):
+    """The live value holds everything the baseline value did: equal, or a list of dicts whose entries each hold the baseline's keys
+    (an added key is not a weakening)."""
+    if isinstance(base, dict) and isinstance(live, dict):
+        return all(k in live and _covers(v, live[k]) for k, v in base.items())
+    if isinstance(base, list) and isinstance(live, list) and len(base) == len(live) and any(isinstance(x, dict) for x in base):
+        return all(_covers(x, y) for x, y in zip(base, live))
+    return json.dumps(base, sort_keys=True, default=str) == json.dumps(live, sort_keys=True, default=str)
+
+
+def parity(root=None, strict=False, update_lock=False, approve=None, reg=None):
+    """The no-drift guard. Every item of the frozen 2.1.0 baseline (rule ids, parameters, source families, grade fields, layout sizes,
+    setup questions, eval checks and subcommands, renderer flags) is KEPT (equal), CHANGED (a different value) or REMOVED. A change or
+    a removal passes only when evals/DECISIONS.yaml has an entry with status approved that covers it (an fnmatch pattern on the item
+    id); status open is listed and fails under --strict. A schema section whose hash differs from evals/schema.lock.json fails unless an
+    approved decision carries its new hash. Returns (failures, summary dict)."""
+    import fnmatch
+    import yaml
+    root = pathlib.Path(root or HERE)
+    base = json.loads((root / "evals/baseline-2.1.0.json").read_text())
+    dec = yaml.safe_load((root / "evals/DECISIONS.yaml").read_text()) or {}
+    decisions = dec.get("decisions", [])
+    live = _live_items(root, reg)
+    stat = {"kept": [], "changed": [], "removed": []}
+    for pid, it in base["items"].items():
+        if pid not in live:
+            stat["removed"].append(pid)
+        elif not _covers(it["value"], live[pid]):
+            stat["changed"].append(pid)
+        else:
+            stat["kept"].append(pid)
+    def cover(pid):
+        hit = [d for d in decisions if any(fnmatch.fnmatch(pid, pat) for pat in d.get("covers", []))]
+        return ("approved" if any(d.get("status") == "approved" for d in hit) else "open" if hit else "none")
+    fails, tally = [], {"approved": 0, "open": 0, "none": 0}
+    open_ids = []
+    for kind in ("removed", "changed"):
+        for pid in stat[kind]:
+            c = cover(pid)
+            tally[c] += 1
+            if c == "none":
+                fails.append(f"C28 parity: {pid} was {kind} from the 2.1.0 baseline and no approved entry in evals/DECISIONS.yaml covers it")
+            elif c == "open":
+                open_ids.append(pid)
+                if strict:
+                    fails.append(f"C28 parity: {pid} was {kind} from the 2.1.0 baseline; its decision is still open (--strict)")
+    lock_path = root / "evals/schema.lock.json"
+    import hashlib
+    now = schema_lock(reg)
+    now["_baseline"] = hashlib.sha256((root / "evals/baseline-2.1.0.json").read_bytes()).hexdigest()[:12]   # the frozen baseline is never edited
+    old = json.loads(lock_path.read_text()) if lock_path.exists() else {}
+    if approve:   # an explicit act: who approves the new hashes, and where it is recorded
+        new = [k for k, sha in now.items() if old.get(k) != sha and k != "_baseline"]
+        if new:
+            with open(root / "evals/DECISIONS.yaml", "a") as fh:
+                for k in new:
+                    fh.write(f"  - covers: [\"lock:{k}@{now[k]}\"]\n    status: approved\n    by: {json.dumps(approve['by'])}\n    date: {dt.date.today().isoformat()}\n"
+                             f"    source: {json.dumps(approve['source'])}\n    summary: {json.dumps(f'schema section {k} changed from ' + old.get(k, 'none') + ' to ' + now[k])}\n")
+            decisions = (yaml.safe_load((root / "evals/DECISIONS.yaml").read_text()) or {}).get("decisions", [])
+    if approve:
+        lock_path.write_text(json.dumps(now, indent=1, sort_keys=True) + "\n")
+    elif update_lock:   # a silent update would defeat the guard: write the lock only when every changed section has its approved decision
+        pending = [k for k, sha in now.items() if k != "_baseline" and old.get(k) != sha
+                   and not any(d.get("status") == "approved" and f"lock:{k}@{sha}" in d.get("covers", []) for d in decisions)]
+        if not pending:
+            lock_path.write_text(json.dumps(now, indent=1, sort_keys=True) + "\n")
+            old = dict(now)
+    for k, sha in now.items():
+        if k == "_baseline":
+            if old.get(k) != sha:
+                fails.append(f"C28 parity: evals/baseline-2.1.0.json was edited ({old.get(k, 'none')} -> {sha}); the baseline is the original plug-in and never changes")
+            continue
+        if old.get(k) != sha:
+            ok = any(d.get("status") == "approved" and f"lock:{k}@{sha}" in d.get("covers", []) for d in decisions)
+            if not ok:
+                fails.append(f"C28 parity: schema section '{k}' changed (lock {old.get(k, 'none')} -> {sha}); add an approved decision covering 'lock:{k}@{sha}' to evals/DECISIONS.yaml, then run eval.py parity --update-lock")
+    return fails, dict(total=len(base["items"]), kept=len(stat["kept"]), changed=len(stat["changed"]), removed=len(stat["removed"]),
+                       approved=tally["approved"], open=tally["open"], unapproved=tally["none"], open_ids=open_ids,
+                       changed_ids=stat["changed"], removed_ids=stat["removed"], locked=len(now) - 1)
+
+
 # ---------------------------------------------------------------- chat (S4-10) ----------------------------------
 CHAT_LABEL = "Intelligence Brief (in chat"
 
@@ -2764,6 +3060,13 @@ def main():
     asm = sub.add_parser("assemble", help="C26: build brief.md and script.md from fields.json, the records and the profile (the model never writes them)")
     asm.add_argument("folder"); asm.add_argument("--profile", default=str(pathlib.Path.home() / ".pcp/profile.yaml"))
     asm.add_argument("--depth", choices=["fast", "standard", "deep"]); asm.add_argument("--check", action="store_true", help="fail unless brief.md and script.md are exactly what assemble builds")
+    sub.add_parser("hardcoded", help="C27: no value the registry owns is hard-coded in the render scripts")
+    pr = sub.add_parser("parity", help="C28: the no-drift guard: nothing of the 2.1.0 baseline is removed or weakened without an approved decision")
+    pr.add_argument("--strict", action="store_true", help="also fail every decision that is still open")
+    pr.add_argument("--update-lock", action="store_true", help="write evals/schema.lock.json from the live registry (after an approved decision)")
+    pr.add_argument("--approve-locks", action="store_true", help="record an approved decision for every changed schema section (needs --by and --source), then lock it")
+    pr.add_argument("--by"); pr.add_argument("--source")
+    pr.add_argument("--list", action="store_true", help="print every changed or removed item and how it is covered")
     sub.add_parser("concordance")
     st = sub.add_parser("self-test"); st.add_argument("--require-pdf", action="store_true", help="fail, not skip, when no PDF can be rendered and read")
     r = sub.add_parser("ratchet"); r.add_argument("--record", action="store_true")
@@ -2797,6 +3100,22 @@ def main():
         if f is None:
             print("pdf: no pdftotext or pypdf to read the PDF -- not run"); sys.exit(2)
         print(f"pdf {a.pdf}: {len(f)} failures"); [print(" -", x) for x in f]; sys.exit(1 if f else 0)
+    if a.cmd in ("parity", "hardcoded") and not (HERE / "render_skill.py").exists():
+        sys.exit(f"{a.cmd}: a maintainer check; it needs the plug-in checkout (render_skill.py, evals/baseline-2.1.0.json), not the copy inside a skill folder")
+    if a.cmd == "parity":
+        if a.approve_locks and not (a.by and a.source):
+            sys.exit("parity --approve-locks needs --by <who decided> and --source <where it is recorded>")
+        f, s = parity(strict=a.strict, update_lock=a.update_lock, approve={"by": a.by, "source": a.source} if a.approve_locks else None)
+        print(f"parity: {s['total']} items of the 2.1.0 baseline: {s['kept']} kept, {s['changed']} changed, {s['removed']} removed; "
+              f"of the {s['changed'] + s['removed']}: {s['approved']} approved, {s['open']} open, {s['unapproved']} unapproved; {s['locked']} schema sections locked")
+        if a.list:
+            print("changed:", *s["changed_ids"], sep="\n  "); print("removed:", *s["removed_ids"], sep="\n  ")
+        print(*[" - " + x for x in f], f"{len(f)} failures", sep="\n")
+        sys.exit(1 if f else 0)
+    if a.cmd == "hardcoded":
+        f = hardcoded_check()
+        print(f"hardcoded: {len(f)} failures", *[" - " + x for x in f], sep="\n")
+        sys.exit(1 if f else 0)
     if a.cmd == "concordance":
         sys.exit(0 if concordance() else 1)
     if a.cmd == "self-test":

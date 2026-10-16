@@ -1,0 +1,2245 @@
+{
+ "count": 403,
+ "items": {
+  "brief.sections.B1.content": {
+   "kind": "block",
+   "value": "Role, path, credentials (F1/F2). Org in its own words + what changed (F3/F4). Status + coverage line."
+  },
+  "brief.sections.B1.title": {
+   "kind": "block",
+   "value": "Snapshot"
+  },
+  "brief.sections.B1.words": {
+   "kind": "block",
+   "value": 140
+  },
+  "brief.sections.B2.content": {
+   "kind": "block",
+   "value": "2-3 exact quotes with [n]; or 'Themes from their public presence' if none (F5/F6)."
+  },
+  "brief.sections.B2.title": {
+   "kind": "block",
+   "value": "In their words"
+  },
+  "brief.sections.B2.words": {
+   "kind": "block",
+   "value": 90
+  },
+  "brief.sections.B3.content": {
+   "kind": "block",
+   "value": "Why this meeting matters to THEM. Pressure, priority, where the caller's offer connects. Counter-evidence acknowledged in one clause (F12)."
+  },
+  "brief.sections.B3.title": {
+   "kind": "block",
+   "value": "Strategic read"
+  },
+  "brief.sections.B3.words": {
+   "kind": "block",
+   "value": 120
+  },
+  "brief.sections.B4.content": {
+   "kind": "block",
+   "value": "Six rows: dimension | band | meaning-for-the-meeting | [n]. 'no read' where tier is missing. Tier gate line."
+  },
+  "brief.sections.B4.title": {
+   "kind": "block",
+   "value": "Behavioral read"
+  },
+  "brief.sections.B4.words": {
+   "kind": "block",
+   "value": 110
+  },
+  "brief.sections.B5.content": {
+   "kind": "block",
+   "value": "4-6 questions, each <= 40 words, each with 'What the answer tells you' and a [n]. Mix set by meeting.format."
+  },
+  "brief.sections.B5.title": {
+   "kind": "block",
+   "value": "Discovery questions"
+  },
+  "brief.sections.B5.words": {
+   "kind": "block",
+   "value": 180
+  },
+  "brief.sections.B6.content": {
+   "kind": "block",
+   "value": "Gap -> Bridge (outcome, not method) -> Urgency, in their language, each step with a [n]."
+  },
+  "brief.sections.B6.title": {
+   "kind": "block",
+   "value": "Their situation framed"
+  },
+  "brief.sections.B6.words": {
+   "kind": "block",
+   "value": 110
+  },
+  "brief.sections.B7.content": {
+   "kind": "block",
+   "value": "One thing of value to bring; the ask; the fallback ask."
+  },
+  "brief.sections.B7.title": {
+   "kind": "block",
+   "value": "Value and next step"
+  },
+  "brief.sections.B7.words": {
+   "kind": "block",
+   "value": 80
+  },
+  "brief.sections.B8.content": {
+   "kind": "block",
+   "value": "Pace/language from B4; [UNVERIFIED] items to confirm; topics left out on purpose; never-say list."
+  },
+  "brief.sections.B8.title": {
+   "kind": "block",
+   "value": "Guardrails"
+  },
+  "brief.sections.B8.words": {
+   "kind": "block",
+   "value": 90
+  },
+  "brief.sections.B9.content": {
+   "kind": "block",
+   "value": "Cited claims only: [n] claim -- URL -- DIRECT|SEARCH -- C-level -- date. Coverage fraction on the last line."
+  },
+  "brief.sections.B9.title": {
+   "kind": "block",
+   "value": "Sources"
+  },
+  "brief.sections.B9.words": {
+   "kind": "block",
+   "value": 160
+  },
+  "brief.vocab_by_domain.general": {
+   "kind": "param",
+   "value": []
+  },
+  "brief.vocab_by_domain.pe": {
+   "kind": "param",
+   "value": [
+    "dry powder",
+    "DPI",
+    "add-on",
+    "hold period",
+    "exit"
+   ]
+  },
+  "brief.vocab_by_domain.saas": {
+   "kind": "param",
+   "value": [
+    "ARR",
+    "NRR",
+    "champion",
+    "security review",
+    "procurement",
+    "renewal"
+   ]
+  },
+  "brief.vocab_by_domain.wealth": {
+   "kind": "param",
+   "value": [
+    "book",
+    "AUM",
+    "custodian",
+    "fee compression",
+    "succession",
+    "next-gen"
+   ]
+  },
+  "calibration.profile_flag": {
+   "kind": "param",
+   "value": "--profile"
+  },
+  "calibration.profile_path": {
+   "kind": "param",
+   "value": "~/.pcp/profile.yaml"
+  },
+  "calibration.questions.Q1.consumed_by": {
+   "kind": "question",
+   "value": [
+    "script.influence_depth",
+    "brief.value_next_step"
+   ]
+  },
+  "calibration.questions.Q1.header": {
+   "kind": "question",
+   "value": "Your role"
+  },
+  "calibration.questions.Q1.options": {
+   "kind": "question",
+   "value": [
+    {
+     "description": "You own the relationship and the offer.",
+     "label": "Founder / principal (Recommended)",
+     "value": "principal"
+    },
+    {
+     "description": "You open and advance deals for your firm.",
+     "label": "Sales / BD",
+     "value": "sales"
+    },
+    {
+     "description": "Wealth, legal, accounting or other professional advisor.",
+     "label": "Advisor / relationship manager",
+     "value": "advisor"
+    },
+    {
+     "description": "You deploy capital or diligence managers.",
+     "label": "Investor / allocator",
+     "value": "investor"
+    }
+   ]
+  },
+  "calibration.questions.Q1.question": {
+   "kind": "question",
+   "value": "Who is making the call?"
+  },
+  "calibration.questions.Q1.sets.caller.authority_level": {
+   "kind": "question",
+   "value": "principal->high, sales->medium, advisor->medium, investor->high"
+  },
+  "calibration.questions.Q1.sets.caller.role": {
+   "kind": "question",
+   "value": "value"
+  },
+  "calibration.questions.Q2.consumed_by": {
+   "kind": "question",
+   "value": [
+    "families.registers",
+    "brief.vocab",
+    "guardrails.forbidden_claims"
+   ]
+  },
+  "calibration.questions.Q2.header": {
+   "kind": "question",
+   "value": "Domain"
+  },
+  "calibration.questions.Q2.options": {
+   "kind": "question",
+   "value": [
+    {
+     "description": "No domain assumptions; broadest source set.",
+     "label": "General professional (Recommended)",
+     "value": "general"
+    },
+    {
+     "description": "Advisors, RIAs, family offices; adds BrokerCheck/IAPD registers.",
+     "label": "Wealth management",
+     "value": "wealth"
+    },
+    {
+     "description": "GPs, LPs, portfolio companies; adds fund/portfolio news families.",
+     "label": "Private equity / VC",
+     "value": "pe"
+    },
+    {
+     "description": "Buyers and champions in technology companies.",
+     "label": "Enterprise / SaaS",
+     "value": "saas"
+    }
+   ]
+  },
+  "calibration.questions.Q2.question": {
+   "kind": "question",
+   "value": "Where do your targets mostly live?"
+  },
+  "calibration.questions.Q2.sets.domain": {
+   "kind": "question",
+   "value": "value"
+  },
+  "calibration.questions.Q3.consumed_by": {
+   "kind": "question",
+   "value": [
+    "families.enabled_by_kind"
+   ]
+  },
+  "calibration.questions.Q3.header": {
+   "kind": "question",
+   "value": "Target kind"
+  },
+  "calibration.questions.Q3.options": {
+   "kind": "question",
+   "value": [
+    {
+     "description": "One named counterpart.",
+     "label": "A person (Recommended)",
+     "value": "person"
+    },
+    {
+     "description": "An account; people come second.",
+     "label": "A company or team",
+     "value": "company"
+    },
+    {
+     "description": "A live process with several parties.",
+     "label": "A deal or transaction",
+     "value": "deal"
+    },
+    {
+     "description": "Decide per run from the intake.",
+     "label": "Mixed",
+     "value": "mixed"
+    }
+   ]
+  },
+  "calibration.questions.Q3.question": {
+   "kind": "question",
+   "value": "Who do you usually prep for?"
+  },
+  "calibration.questions.Q3.sets.target.kind_default": {
+   "kind": "question",
+   "value": "value"
+  },
+  "calibration.questions.Q4.consumed_by": {
+   "kind": "question",
+   "value": [
+    "script.beats",
+    "brief.discovery_questions.mix"
+   ]
+  },
+  "calibration.questions.Q4.header": {
+   "kind": "question",
+   "value": "Meeting"
+  },
+  "calibration.questions.Q4.options": {
+   "kind": "question",
+   "value": [
+    {
+     "description": "Earn the second meeting.",
+     "label": "First intro (cold or warm) (Recommended)",
+     "value": "intro"
+    },
+    {
+     "description": "Learn enough to decide fit.",
+     "label": "Discovery / qualification",
+     "value": "discovery"
+    },
+    {
+     "description": "Move to a decision.",
+     "label": "Pitch / close",
+     "value": "close"
+    },
+    {
+     "description": "Deepen an existing relationship.",
+     "label": "Relationship / renewal",
+     "value": "relationship"
+    }
+   ]
+  },
+  "calibration.questions.Q4.question": {
+   "kind": "question",
+   "value": "What is the typical call?"
+  },
+  "calibration.questions.Q4.sets.meeting.format_default": {
+   "kind": "question",
+   "value": "value"
+  },
+  "calibration.questions.Q5.consumed_by": {
+   "kind": "question",
+   "value": [
+    "families.enabled_by_depth",
+    "research.full_threshold",
+    "rubric.ach"
+   ]
+  },
+  "calibration.questions.Q5.header": {
+   "kind": "question",
+   "value": "Depth"
+  },
+  "calibration.questions.Q5.options": {
+   "kind": "question",
+   "value": [
+    {
+     "description": "Full public footprint, counter-evidence pass on.",
+     "label": "Standard -- 12 families, about 8 minutes (Recommended)",
+     "value": "standard"
+    },
+    {
+     "description": "Identity, org, voice, news, registers, social. No counter-evidence.",
+     "label": "Fast -- 6 families, about 3 minutes",
+     "value": "fast"
+    },
+    {
+     "description": "Adds ACH mini and second-order network pass.",
+     "label": "Deep -- all families + competing hypotheses",
+     "value": "deep"
+    }
+   ]
+  },
+  "calibration.questions.Q5.question": {
+   "kind": "question",
+   "value": "Research depth versus speed?"
+  },
+  "calibration.questions.Q5.sets.research.depth": {
+   "kind": "question",
+   "value": "value"
+  },
+  "calibration.questions.Q6.consumed_by": {
+   "kind": "question",
+   "value": [
+    "families.socmint"
+   ]
+  },
+  "calibration.questions.Q6.header": {
+   "kind": "question",
+   "value": "SOCMINT"
+  },
+  "calibration.questions.Q6.options": {
+   "kind": "question",
+   "value": [
+    {
+     "description": "Public bios, talks, podcasts, LinkedIn-public posts.",
+     "label": "Professional only (Recommended)",
+     "value": "professional"
+    },
+    {
+     "description": "Public posts on open networks; no logins, no scraping.",
+     "label": "Plus public X / Bluesky / Substack",
+     "value": "social"
+    },
+    {
+     "description": "No social family at all.",
+     "label": "None",
+     "value": "none"
+    }
+   ]
+  },
+  "calibration.questions.Q6.question": {
+   "kind": "question",
+   "value": "Public social footprint -- how far?"
+  },
+  "calibration.questions.Q6.sets.socmint.scope": {
+   "kind": "question",
+   "value": "value"
+  },
+  "calibration.questions.Q7.consumed_by": {
+   "kind": "question",
+   "value": [
+    "exclusions",
+    "guardrails.never_say",
+    "retention"
+   ]
+  },
+  "calibration.questions.Q7.header": {
+   "kind": "question",
+   "value": "Compliance"
+  },
+  "calibration.questions.Q7.options": {
+   "kind": "question",
+   "value": [
+    {
+     "description": "Public professional record; standard exclusions.",
+     "label": "US (Recommended)",
+     "value": "us"
+    },
+    {
+     "description": "Adds minimisation -- claims.jsonl deleted after render.",
+     "label": "UK / EU (GDPR strict)",
+     "value": "eu"
+    },
+    {
+     "description": "Adds performance-claim and promissory-language guardrails.",
+     "label": "Regulated sales (FINRA / FCA style)",
+     "value": "regulated"
+    },
+    {
+     "description": "Standard exclusions; formal-register openers.",
+     "label": "APAC",
+     "value": "apac"
+    }
+   ]
+  },
+  "calibration.questions.Q7.question": {
+   "kind": "question",
+   "value": "Jurisdiction and compliance posture?"
+  },
+  "calibration.questions.Q7.sets.jurisdiction": {
+   "kind": "question",
+   "value": "value"
+  },
+  "calibration.questions.Q8.consumed_by": {
+   "kind": "question",
+   "value": [
+    "checks.swap_test",
+    "eval.duf_binding"
+   ]
+  },
+  "calibration.questions.Q8.free_text": {
+   "kind": "question",
+   "value": true
+  },
+  "calibration.questions.Q8.header": {
+   "kind": "question",
+   "value": "Your offer"
+  },
+  "calibration.questions.Q8.options": {
+   "kind": "question",
+   "value": []
+  },
+  "calibration.questions.Q8.question": {
+   "kind": "question",
+   "value": "In one line -- what do you offer, and what does a win in this meeting look like? (free text)"
+  },
+  "calibration.questions.Q8.sets.caller.offer_one_line": {
+   "kind": "question",
+   "value": "text"
+  },
+  "calibration.questions.Q8.sets.meeting.win_definition": {
+   "kind": "question",
+   "value": "text"
+  },
+  "calibration.reask_flag": {
+   "kind": "param",
+   "value": "--recalibrate"
+  },
+  "calibration.rules.CAL-1.basis": {
+   "kind": "rule",
+   "value": "design choice, 8 rapid one-time questions"
+  },
+  "calibration.rules.CAL-1.test": {
+   "kind": "rule",
+   "value": "Delete the profile and run -- the run must ask. Run again -- it must not."
+  },
+  "calibration.rules.CAL-1.text": {
+   "kind": "rule",
+   "value": "Ask all eight questions only when ~/.pcp/profile.yaml is missing, invalid, or --recalibrate is passed. Otherwise read it silently."
+  },
+  "calibration.rules.CAL-2.basis": {
+   "kind": "rule",
+   "value": "verify at value level"
+  },
+  "calibration.rules.CAL-2.test": {
+   "kind": "rule",
+   "value": "Skip Q5 -- profile shows research.depth standard, defaulted true; footer reads \"standard\"."
+  },
+  "calibration.rules.CAL-2.text": {
+   "kind": "rule",
+   "value": "A skipped answer takes the first (Recommended) option and is stored with defaulted:true; the PDF footer shows the profile line."
+  },
+  "calibration.rules.CAL-3.basis": {
+   "kind": "rule",
+   "value": "design choice, no silent adaptation"
+  },
+  "calibration.rules.CAL-3.test": {
+   "kind": "rule",
+   "value": "Three debriefs with facts_used > 80% must produce a proposal, and the profile must be unchanged until answered."
+  },
+  "calibration.rules.CAL-3.text": {
+   "kind": "rule",
+   "value": "The improve loop may PROPOSE a profile change (one line, with the debrief evidence) but never applies one without a yes."
+  },
+  "checks.C1.cmd": {
+   "kind": "check",
+   "value": "eval.py checks --swap"
+  },
+  "checks.C1.name": {
+   "kind": "check",
+   "value": "swap"
+  },
+  "checks.C1.passes_when": {
+   "kind": "check",
+   "value": "no sentence in B1-B7 lacks both a [n] and a target-specific noun"
+  },
+  "checks.C10.cmd": {
+   "kind": "check",
+   "value": "format/talyx_pdf.py --max-pages 3"
+  },
+  "checks.C10.name": {
+   "kind": "check",
+   "value": "pages"
+  },
+  "checks.C10.passes_when": {
+   "kind": "check",
+   "value": "rendered page count == 3"
+  },
+  "checks.C2.cmd": {
+   "kind": "check",
+   "value": "eval.py duf"
+  },
+  "checks.C2.name": {
+   "kind": "check",
+   "value": "bound"
+  },
+  "checks.C2.passes_when": {
+   "kind": "check",
+   "value": "unbound == 0 and every [n] in the body exists in B9 with url+tag+date"
+  },
+  "checks.C3.cmd": {
+   "kind": "check",
+   "value": "eval.py checks --quotes"
+  },
+  "checks.C3.name": {
+   "kind": "check",
+   "value": "quotes"
+  },
+  "checks.C3.passes_when": {
+   "kind": "check",
+   "value": "every quoted string in B2 has a [n]"
+  },
+  "checks.C4.cmd": {
+   "kind": "check",
+   "value": "eval.py checks --custom-q"
+  },
+  "checks.C4.name": {
+   "kind": "check",
+   "value": "custom_q"
+  },
+  "checks.C4.passes_when": {
+   "kind": "check",
+   "value": ">= 2 questions in B5 carry a [n]"
+  },
+  "checks.C5.cmd": {
+   "kind": "check",
+   "value": "eval.py checks --sections"
+  },
+  "checks.C5.name": {
+   "kind": "check",
+   "value": "sections"
+  },
+  "checks.C5.passes_when": {
+   "kind": "check",
+   "value": "B1-B9 and P1-P7 present in order (P5 may be omitted per S3-2)"
+  },
+  "checks.C6.cmd": {
+   "kind": "check",
+   "value": "eval.py checks --budgets"
+  },
+  "checks.C6.name": {
+   "kind": "check",
+   "value": "budgets"
+  },
+  "checks.C6.passes_when": {
+   "kind": "check",
+   "value": "no section exceeds its words by > 15%"
+  },
+  "checks.C7.cmd": {
+   "kind": "check",
+   "value": "eval.py checks --never-say"
+  },
+  "checks.C7.name": {
+   "kind": "check",
+   "value": "never_say"
+  },
+  "checks.C7.passes_when": {
+   "kind": "check",
+   "value": "no never_say phrase appears outside P7/B8"
+  },
+  "checks.C8.cmd": {
+   "kind": "check",
+   "value": "eval.py checks --outcome"
+  },
+  "checks.C8.name": {
+   "kind": "check",
+   "value": "outcome"
+  },
+  "checks.C8.passes_when": {
+   "kind": "check",
+   "value": "B6 Bridge contains no method verbs from checks.method_verbs"
+  },
+  "checks.C9.cmd": {
+   "kind": "check",
+   "value": "eval.py checks --exclusions"
+  },
+  "checks.C9.name": {
+   "kind": "check",
+   "value": "exclusions"
+  },
+  "checks.C9.passes_when": {
+   "kind": "check",
+   "value": "no excluded topic keyword appears in the body"
+  },
+  "checks.method_verbs": {
+   "kind": "check",
+   "value": [
+    "we scrape",
+    "we ingest",
+    "our pipeline",
+    "our model",
+    "we crawl",
+    "our algorithm"
+   ]
+  },
+  "eval.baseline_required_before_claims": {
+   "kind": "param",
+   "value": true
+  },
+  "eval.definition": {
+   "kind": "param",
+   "value": "decision-useful fact = a claim [n] that is (a) cited in B1-B7 or P1-P6, (b) present in B9 with url + tag + date, (c) target-specific (passes swap). duf_pp = count / pages."
+  },
+  "eval.frozen_targets_dir": {
+   "kind": "param",
+   "value": "evals/targets"
+  },
+  "eval.metric": {
+   "kind": "param",
+   "value": "duf_pp"
+  },
+  "eval.negative_control": {
+   "kind": "param",
+   "value": "evals/fixtures/control_broken.md"
+  },
+  "eval.policy": {
+   "kind": "param",
+   "value": "floor_is_best_ever_never_regress"
+  },
+  "eval.positive_control": {
+   "kind": "param",
+   "value": "evals/fixtures/control_12.md"
+  },
+  "eval.ratchet_file": {
+   "kind": "param",
+   "value": "evals/ratchet.json"
+  },
+  "eval.subcommand.checks": {
+   "kind": "command",
+   "value": true
+  },
+  "eval.subcommand.concordance": {
+   "kind": "command",
+   "value": true
+  },
+  "eval.subcommand.duf": {
+   "kind": "command",
+   "value": true
+  },
+  "eval.subcommand.improve": {
+   "kind": "command",
+   "value": true
+  },
+  "eval.subcommand.ratchet": {
+   "kind": "command",
+   "value": true
+  },
+  "eval.subcommand.self-test": {
+   "kind": "command",
+   "value": true
+  },
+  "exclusions.base": {
+   "kind": "param",
+   "value": [
+    "health",
+    "family matters outside the public professional record",
+    "political giving",
+    "litigation as a talking point",
+    "home address",
+    "personal finances"
+   ]
+  },
+  "exclusions.by_jurisdiction.apac": {
+   "kind": "param",
+   "value": []
+  },
+  "exclusions.by_jurisdiction.eu": {
+   "kind": "param",
+   "value": [
+    "any claim older than 5 years that is not a current role",
+    "retention of claims.jsonl after render"
+   ]
+  },
+  "exclusions.by_jurisdiction.regulated": {
+   "kind": "param",
+   "value": [
+    "performance claims",
+    "promissory language",
+    "comparative claims about named competitors"
+   ]
+  },
+  "exclusions.by_jurisdiction.us": {
+   "kind": "param",
+   "value": []
+  },
+  "families.F1.depth": {
+   "kind": "family",
+   "value": [
+    "fast",
+    "standard",
+    "deep"
+   ]
+  },
+  "families.F1.extract": {
+   "kind": "family",
+   "value": "current role + start date, prior roles, education, credentials, boards, awards"
+  },
+  "families.F1.kinds": {
+   "kind": "family",
+   "value": [
+    "person",
+    "company",
+    "deal"
+   ]
+  },
+  "families.F1.name": {
+   "kind": "family",
+   "value": "identity"
+  },
+  "families.F1.query": {
+   "kind": "family",
+   "value": "\"{name}\" \"{org}\" {title}"
+  },
+  "families.F1.socmint": {
+   "kind": "family",
+   "value": false
+  },
+  "families.F1.weight": {
+   "kind": "family",
+   "value": 1.0
+  },
+  "families.F10.depth": {
+   "kind": "family",
+   "value": [
+    "standard",
+    "deep"
+   ]
+  },
+  "families.F10.extract": {
+   "kind": "family",
+   "value": "upcoming and recent appearances; a live hook for the opener"
+  },
+  "families.F10.kinds": {
+   "kind": "family",
+   "value": [
+    "person",
+    "company"
+   ]
+  },
+  "families.F10.name": {
+   "kind": "family",
+   "value": "events"
+  },
+  "families.F10.query": {
+   "kind": "family",
+   "value": "\"{name}\" OR \"{org}\" conference OR summit OR webinar {year}"
+  },
+  "families.F10.socmint": {
+   "kind": "family",
+   "value": false
+  },
+  "families.F10.weight": {
+   "kind": "family",
+   "value": 0.5
+  },
+  "families.F11.depth": {
+   "kind": "family",
+   "value": [
+    "standard",
+    "deep"
+   ]
+  },
+  "families.F11.extract": {
+   "kind": "family",
+   "value": "shared people, prior touches, mutual affiliations named by the caller"
+  },
+  "families.F11.kinds": {
+   "kind": "family",
+   "value": [
+    "person",
+    "company",
+    "deal"
+   ]
+  },
+  "families.F11.name": {
+   "kind": "family",
+   "value": "shared context"
+  },
+  "families.F11.query": {
+   "kind": "family",
+   "value": "known_context only (no search)"
+  },
+  "families.F11.socmint": {
+   "kind": "family",
+   "value": false
+  },
+  "families.F11.weight": {
+   "kind": "family",
+   "value": 0.8
+  },
+  "families.F12.depth": {
+   "kind": "family",
+   "value": [
+    "standard",
+    "deep"
+   ]
+  },
+  "families.F12.extract": {
+   "kind": "family",
+   "value": "what contradicts the strategic read; feeds ACH; litigation stays excluded from the page"
+  },
+  "families.F12.kinds": {
+   "kind": "family",
+   "value": [
+    "person",
+    "company",
+    "deal"
+   ]
+  },
+  "families.F12.name": {
+   "kind": "family",
+   "value": "counter-evidence"
+  },
+  "families.F12.query": {
+   "kind": "family",
+   "value": "\"{org}\" lawsuit OR layoffs OR departure OR decline OR criticism -- filtered by exclusions"
+  },
+  "families.F12.socmint": {
+   "kind": "family",
+   "value": false
+  },
+  "families.F12.weight": {
+   "kind": "family",
+   "value": 0.7
+  },
+  "families.F2.depth": {
+   "kind": "family",
+   "value": [
+    "standard",
+    "deep"
+   ]
+  },
+  "families.F2.extract": {
+   "kind": "family",
+   "value": "dated moves; the last 24 months first"
+  },
+  "families.F2.kinds": {
+   "kind": "family",
+   "value": [
+    "person"
+   ]
+  },
+  "families.F2.name": {
+   "kind": "family",
+   "value": "career timeline"
+  },
+  "families.F2.query": {
+   "kind": "family",
+   "value": "\"{name}\" {org} career OR joined OR appointed OR promoted"
+  },
+  "families.F2.socmint": {
+   "kind": "family",
+   "value": false
+  },
+  "families.F2.weight": {
+   "kind": "family",
+   "value": 0.8
+  },
+  "families.F3.depth": {
+   "kind": "family",
+   "value": [
+    "fast",
+    "standard",
+    "deep"
+   ]
+  },
+  "families.F3.extract": {
+   "kind": "family",
+   "value": "deals, leadership changes, launches, growth or contraction, anything the target led"
+  },
+  "families.F3.kinds": {
+   "kind": "family",
+   "value": [
+    "person",
+    "company",
+    "deal"
+   ]
+  },
+  "families.F3.name": {
+   "kind": "family",
+   "value": "org news"
+  },
+  "families.F3.query": {
+   "kind": "family",
+   "value": "\"{org}\" news OR announces OR partnership OR acquisition OR raises {year}"
+  },
+  "families.F3.socmint": {
+   "kind": "family",
+   "value": false
+  },
+  "families.F3.weight": {
+   "kind": "family",
+   "value": 1.0
+  },
+  "families.F4.depth": {
+   "kind": "family",
+   "value": [
+    "standard",
+    "deep"
+   ]
+  },
+  "families.F4.extract": {
+   "kind": "family",
+   "value": "how the org describes itself in its own words"
+  },
+  "families.F4.kinds": {
+   "kind": "family",
+   "value": [
+    "person",
+    "company",
+    "deal"
+   ]
+  },
+  "families.F4.name": {
+   "kind": "family",
+   "value": "org self-description"
+  },
+  "families.F4.query": {
+   "kind": "family",
+   "value": "{org_website} about OR mission"
+  },
+  "families.F4.socmint": {
+   "kind": "family",
+   "value": false
+  },
+  "families.F4.weight": {
+   "kind": "family",
+   "value": 0.6
+  },
+  "families.F5.depth": {
+   "kind": "family",
+   "value": [
+    "fast",
+    "standard",
+    "deep"
+   ]
+  },
+  "families.F5.extract": {
+   "kind": "family",
+   "value": "exact quotes with URL; recurring themes; the words they use for their own work"
+  },
+  "families.F5.kinds": {
+   "kind": "family",
+   "value": [
+    "person"
+   ]
+  },
+  "families.F5.name": {
+   "kind": "family",
+   "value": "voice"
+  },
+  "families.F5.query": {
+   "kind": "family",
+   "value": "\"{name}\" interview OR podcast OR panel OR quoted OR keynote"
+  },
+  "families.F5.socmint": {
+   "kind": "family",
+   "value": false
+  },
+  "families.F5.weight": {
+   "kind": "family",
+   "value": 1.0
+  },
+  "families.F6.depth": {
+   "kind": "family",
+   "value": [
+    "fast",
+    "standard",
+    "deep"
+   ]
+  },
+  "families.F6.extract": {
+   "kind": "family",
+   "value": "public posts in the last 180 days; themes, tone, what they amplify; scope per profile.socmint.scope"
+  },
+  "families.F6.kinds": {
+   "kind": "family",
+   "value": [
+    "person"
+   ]
+  },
+  "families.F6.name": {
+   "kind": "family",
+   "value": "public social"
+  },
+  "families.F6.query": {
+   "kind": "family",
+   "value": "\"{name}\" site:linkedin.com/posts OR site:x.com OR site:substack.com OR site:bsky.app"
+  },
+  "families.F6.socmint": {
+   "kind": "family",
+   "value": true
+  },
+  "families.F6.weight": {
+   "kind": "family",
+   "value": 0.7
+  },
+  "families.F7.depth": {
+   "kind": "family",
+   "value": [
+    "standard",
+    "deep"
+   ]
+  },
+  "families.F7.extract": {
+   "kind": "family",
+   "value": "boards, associations, alumni networks, speaking circuits"
+  },
+  "families.F7.kinds": {
+   "kind": "family",
+   "value": [
+    "person"
+   ]
+  },
+  "families.F7.name": {
+   "kind": "family",
+   "value": "affiliations"
+  },
+  "families.F7.query": {
+   "kind": "family",
+   "value": "\"{name}\" board OR trustee OR advisory OR member OR association OR alumni"
+  },
+  "families.F7.socmint": {
+   "kind": "family",
+   "value": false
+  },
+  "families.F7.weight": {
+   "kind": "family",
+   "value": 0.6
+  },
+  "families.F8.depth": {
+   "kind": "family",
+   "value": [
+    "standard",
+    "deep"
+   ]
+  },
+  "families.F8.extract": {
+   "kind": "family",
+   "value": "what they have published; the positions they defend in print"
+  },
+  "families.F8.kinds": {
+   "kind": "family",
+   "value": [
+    "person",
+    "company"
+   ]
+  },
+  "families.F8.name": {
+   "kind": "family",
+   "value": "publications"
+  },
+  "families.F8.query": {
+   "kind": "family",
+   "value": "\"{name}\" author OR paper OR patent OR whitepaper OR book"
+  },
+  "families.F8.socmint": {
+   "kind": "family",
+   "value": false
+  },
+  "families.F8.weight": {
+   "kind": "family",
+   "value": 0.5
+  },
+  "families.F9.depth": {
+   "kind": "family",
+   "value": [
+    "fast",
+    "standard",
+    "deep"
+   ]
+  },
+  "families.F9.extract": {
+   "kind": "family",
+   "value": "regulator / registry facts (see registers); C1 by definition"
+  },
+  "families.F9.kinds": {
+   "kind": "family",
+   "value": [
+    "person",
+    "company",
+    "deal"
+   ]
+  },
+  "families.F9.name": {
+   "kind": "family",
+   "value": "registers"
+  },
+  "families.F9.query": {
+   "kind": "family",
+   "value": "by_domain"
+  },
+  "families.F9.socmint": {
+   "kind": "family",
+   "value": false
+  },
+  "families.F9.weight": {
+   "kind": "family",
+   "value": 0.9
+  },
+  "guardrails.forbidden_claims_by_domain.general": {
+   "kind": "param",
+   "value": []
+  },
+  "guardrails.forbidden_claims_by_domain.pe": {
+   "kind": "param",
+   "value": [
+    "guaranteed return",
+    "no downside"
+   ]
+  },
+  "guardrails.forbidden_claims_by_domain.saas": {
+   "kind": "param",
+   "value": [
+    "unlimited",
+    "zero risk"
+   ]
+  },
+  "guardrails.forbidden_claims_by_domain.wealth": {
+   "kind": "param",
+   "value": [
+    "guaranteed",
+    "outperform",
+    "beat the market"
+   ]
+  },
+  "guardrails.never_say": {
+   "kind": "param",
+   "value": [
+    "Does that make sense?",
+    "Is this helpful?",
+    "No pressure",
+    "You'd know better than me",
+    "Just checking in"
+   ]
+  },
+  "page_budget.body_pt_floor": {
+   "kind": "layout",
+   "value": 10.0
+  },
+  "page_budget.brief_pages": {
+   "kind": "layout",
+   "value": 2
+  },
+  "page_budget.ladder": {
+   "kind": "layout",
+   "value": [
+    {
+     "body_pt": 11.0,
+     "line_height": 1.42,
+     "name": "loose",
+     "para_gap_pt": 6,
+     "sec_gap_pt": 12
+    },
+    {
+     "body_pt": 10.5,
+     "line_height": 1.36,
+     "name": "normal",
+     "para_gap_pt": 5,
+     "sec_gap_pt": 10
+    },
+    {
+     "body_pt": 10.0,
+     "line_height": 1.3,
+     "name": "tight",
+     "para_gap_pt": 4,
+     "sec_gap_pt": 8
+    },
+    {
+     "body_pt": 10.0,
+     "line_height": 1.24,
+     "name": "compact",
+     "para_gap_pt": 3,
+     "sec_gap_pt": 6
+    }
+   ]
+  },
+  "page_budget.script_pages": {
+   "kind": "layout",
+   "value": 1
+  },
+  "page_budget.total_pages": {
+   "kind": "layout",
+   "value": 3
+  },
+  "registers.general": {
+   "kind": "param",
+   "value": []
+  },
+  "registers.pe": {
+   "kind": "param",
+   "value": [
+    {
+     "name": "SEC EDGAR Form D / ADV",
+     "url": "https://www.sec.gov/edgar"
+    },
+    {
+     "name": "Companies House (UK)",
+     "url": "https://find-and-update.company-information.service.gov.uk"
+    }
+   ]
+  },
+  "registers.saas": {
+   "kind": "param",
+   "value": [
+    {
+     "name": "Companies House (UK)",
+     "url": "https://find-and-update.company-information.service.gov.uk"
+    },
+    {
+     "name": "SEC EDGAR",
+     "url": "https://www.sec.gov/edgar"
+    }
+   ]
+  },
+  "registers.wealth": {
+   "kind": "param",
+   "value": [
+    {
+     "name": "FINRA BrokerCheck",
+     "url": "https://brokercheck.finra.org"
+    },
+    {
+     "name": "SEC IAPD",
+     "url": "https://adviserinfo.sec.gov"
+    },
+    {
+     "name": "SEC EDGAR",
+     "url": "https://www.sec.gov/edgar"
+    }
+   ]
+  },
+  "renderer.flag.--brief": {
+   "kind": "command",
+   "value": true
+  },
+  "renderer.flag.--footer": {
+   "kind": "command",
+   "value": true
+  },
+  "renderer.flag.--input": {
+   "kind": "command",
+   "value": true
+  },
+  "renderer.flag.--max-pages": {
+   "kind": "command",
+   "value": true
+  },
+  "renderer.flag.--out": {
+   "kind": "command",
+   "value": true
+  },
+  "renderer.flag.--script": {
+   "kind": "command",
+   "value": true
+  },
+  "renderer.flag.--setup": {
+   "kind": "command",
+   "value": true
+  },
+  "renderer.flag.--subtitle": {
+   "kind": "command",
+   "value": true
+  },
+  "renderer.flag.--title": {
+   "kind": "command",
+   "value": true
+  },
+  "research.full_threshold.deep": {
+   "kind": "param",
+   "value": 10
+  },
+  "research.full_threshold.fast": {
+   "kind": "param",
+   "value": 4
+  },
+  "research.full_threshold.standard": {
+   "kind": "param",
+   "value": 8
+  },
+  "research.socmint_networks.none": {
+   "kind": "param",
+   "value": []
+  },
+  "research.socmint_networks.professional": {
+   "kind": "param",
+   "value": [
+    "linkedin.com/posts",
+    "linkedin.com/pulse",
+    "youtube.com",
+    "podcasts"
+   ]
+  },
+  "research.socmint_networks.social": {
+   "kind": "param",
+   "value": [
+    "linkedin.com/posts",
+    "linkedin.com/pulse",
+    "youtube.com",
+    "podcasts",
+    "x.com",
+    "bsky.app",
+    "substack.com",
+    "medium.com"
+   ]
+  },
+  "retention.default": {
+   "kind": "param",
+   "value": "keep claims.jsonl beside the PDF"
+  },
+  "retention.eu": {
+   "kind": "param",
+   "value": "delete claims.jsonl after render"
+  },
+  "rubric.ach.enabled_by_depth": {
+   "kind": "param",
+   "value": [
+    "deep"
+   ]
+  },
+  "rubric.ach.max_hypotheses": {
+   "kind": "param",
+   "value": 3
+  },
+  "rubric.ach.requires_disconfirming_claim": {
+   "kind": "param",
+   "value": true
+  },
+  "rubric.dimensions.competitive_drive.meaning.high": {
+   "kind": "param",
+   "value": "Name what peers are doing; they will want to be ahead of it."
+  },
+  "rubric.dimensions.competitive_drive.meaning.low": {
+   "kind": "param",
+   "value": "Frame around their own goals, not peers."
+  },
+  "rubric.dimensions.competitive_drive.meaning.mid": {
+   "kind": "param",
+   "value": "One peer reference is useful; more is noise."
+  },
+  "rubric.dimensions.competitive_drive.signals": {
+   "kind": "param",
+   "value": [
+    "benchmarks and rankings in their language",
+    "peer references",
+    "win/loss framing"
+   ]
+  },
+  "rubric.dimensions.dominance.meaning.high": {
+   "kind": "param",
+   "value": "Lead with the outcome in one sentence; they decide fast and dislike preamble."
+  },
+  "rubric.dimensions.dominance.meaning.low": {
+   "kind": "param",
+   "value": "Let them set the pace; ask before you propose."
+  },
+  "rubric.dimensions.dominance.meaning.mid": {
+   "kind": "param",
+   "value": "Match their pace; propose once, then ask."
+  },
+  "rubric.dimensions.dominance.signals": {
+   "kind": "param",
+   "value": [
+    "interrupts or redirects in recorded panels",
+    "directive language in posts",
+    "org-chart authority",
+    "first-person plural for the firm"
+   ]
+  },
+  "rubric.dimensions.ego_vulnerability.meaning.high": {
+   "kind": "param",
+   "value": "Never correct them in the room; ask a question that lets them arrive at it."
+  },
+  "rubric.dimensions.ego_vulnerability.meaning.low": {
+   "kind": "param",
+   "value": "Direct disagreement is fine; they separate idea from self."
+  },
+  "rubric.dimensions.ego_vulnerability.meaning.mid": {
+   "kind": "param",
+   "value": "Frame challenges as questions about the situation, not the person."
+  },
+  "rubric.dimensions.ego_vulnerability.signals": {
+   "kind": "param",
+   "value": [
+    "reaction to public criticism",
+    "defensiveness in interviews",
+    "credit-taking vs. credit-giving"
+   ]
+  },
+  "rubric.dimensions.information_appetite.meaning.high": {
+   "kind": "param",
+   "value": "Bring the numbers and the sources; allow silence after a question."
+  },
+  "rubric.dimensions.information_appetite.meaning.low": {
+   "kind": "param",
+   "value": "Headline and one proof point; offer detail only if asked."
+  },
+  "rubric.dimensions.information_appetite.meaning.mid": {
+   "kind": "param",
+   "value": "Headline, two proof points, a source on request."
+  },
+  "rubric.dimensions.information_appetite.signals": {
+   "kind": "param",
+   "value": [
+    "length and density of their writing",
+    "data in their talks",
+    "questions they ask on panels",
+    "sources they cite"
+   ]
+  },
+  "rubric.dimensions.risk_tolerance.meaning.high": {
+   "kind": "param",
+   "value": "Lead with the upside and the speed; do not over-hedge."
+  },
+  "rubric.dimensions.risk_tolerance.meaning.low": {
+   "kind": "param",
+   "value": "Reduce risk first: references, reversibility, small first step."
+  },
+  "rubric.dimensions.risk_tolerance.meaning.mid": {
+   "kind": "param",
+   "value": "Pair the upside with the safeguard in the same sentence."
+  },
+  "rubric.dimensions.risk_tolerance.signals": {
+   "kind": "param",
+   "value": [
+    "career moves into or out of stability",
+    "public positions on new or unproven things",
+    "language of caution vs. opportunity"
+   ]
+  },
+  "rubric.dimensions.status_sensitivity.meaning.high": {
+   "kind": "param",
+   "value": "Open with respect for a specific, recent, public achievement; never one-up."
+  },
+  "rubric.dimensions.status_sensitivity.meaning.low": {
+   "kind": "param",
+   "value": "Skip the flattery; substance only."
+  },
+  "rubric.dimensions.status_sensitivity.meaning.mid": {
+   "kind": "param",
+   "value": "Acknowledge one specific achievement, then move on."
+  },
+  "rubric.dimensions.status_sensitivity.signals": {
+   "kind": "param",
+   "value": [
+    "titles and awards foregrounded in bios",
+    "name-drops",
+    "curated public image",
+    "response to public recognition"
+   ]
+  },
+  "rubric.tiers.high.corroborated_across_sources": {
+   "kind": "param",
+   "value": 2
+  },
+  "rubric.tiers.high.min_observations": {
+   "kind": "param",
+   "value": 3
+  },
+  "rubric.tiers.high.requires_direct_quote_or_action": {
+   "kind": "param",
+   "value": true
+  },
+  "rubric.tiers.low.inferred_from_role_only": {
+   "kind": "param",
+   "value": true
+  },
+  "rubric.tiers.low.min_observations": {
+   "kind": "param",
+   "value": 1
+  },
+  "rubric.tiers.medium.corroborated_across_sources": {
+   "kind": "param",
+   "value": 1
+  },
+  "rubric.tiers.medium.min_observations": {
+   "kind": "param",
+   "value": 2
+  },
+  "rubric.version": {
+   "kind": "param",
+   "value": "2.0.0-public"
+  },
+  "script.beats_by_format.close": {
+   "kind": "block",
+   "value": [
+    "open",
+    "restate their words",
+    "the outcome",
+    "the safeguard",
+    "the ask"
+   ]
+  },
+  "script.beats_by_format.discovery": {
+   "kind": "block",
+   "value": [
+    "open",
+    "situation question",
+    "gap question",
+    "impact question",
+    "next-step test"
+   ]
+  },
+  "script.beats_by_format.intro": {
+   "kind": "block",
+   "value": [
+    "open",
+    "credibility in one line",
+    "one insight they did not have",
+    "ask for the second meeting"
+   ]
+  },
+  "script.beats_by_format.relationship": {
+   "kind": "block",
+   "value": [
+    "open",
+    "acknowledge what changed",
+    "one thing of value",
+    "one forward question"
+   ]
+  },
+  "script.blocks.P1.content": {
+   "kind": "block",
+   "value": "<= 2 sentences; names a [n]."
+  },
+  "script.blocks.P1.title": {
+   "kind": "block",
+   "value": "Open"
+  },
+  "script.blocks.P1.words": {
+   "kind": "block",
+   "value": 40
+  },
+  "script.blocks.P2.content": {
+   "kind": "block",
+   "value": "One line per beat from beats_by_format, each with the [n] it rests on."
+  },
+  "script.blocks.P2.title": {
+   "kind": "block",
+   "value": "Beats"
+  },
+  "script.blocks.P2.words": {
+   "kind": "block",
+   "value": 200
+  },
+  "script.blocks.P3.content": {
+   "kind": "block",
+   "value": "5 questions verbatim from B5, ordered for the room."
+  },
+  "script.blocks.P3.title": {
+   "kind": "block",
+   "value": "Questions"
+  },
+  "script.blocks.P3.words": {
+   "kind": "block",
+   "value": 150
+  },
+  "script.blocks.P4.content": {
+   "kind": "block",
+   "value": "3 objection -> response pairs, each response <= 30 words."
+  },
+  "script.blocks.P4.title": {
+   "kind": "block",
+   "value": "If they say"
+  },
+  "script.blocks.P4.words": {
+   "kind": "block",
+   "value": 120
+  },
+  "script.blocks.P5.content": {
+   "kind": "block",
+   "value": "ONLY if tier high AND authority high: 3 moves from B4 meanings. Otherwise this block is omitted, not blank."
+  },
+  "script.blocks.P5.title": {
+   "kind": "block",
+   "value": "Influence sequence"
+  },
+  "script.blocks.P5.words": {
+   "kind": "block",
+   "value": 60
+  },
+  "script.blocks.P6.content": {
+   "kind": "block",
+   "value": "The ask, the fallback, the follow-up promise."
+  },
+  "script.blocks.P6.title": {
+   "kind": "block",
+   "value": "Close and ask"
+  },
+  "script.blocks.P6.words": {
+   "kind": "block",
+   "value": 50
+  },
+  "script.blocks.P7.content": {
+   "kind": "block",
+   "value": "guardrails.never_say + jurisdiction rows."
+  },
+  "script.blocks.P7.title": {
+   "kind": "block",
+   "value": "Never say"
+  },
+  "script.blocks.P7.words": {
+   "kind": "block",
+   "value": 40
+  },
+  "script.title": {
+   "kind": "block",
+   "value": "Meeting script"
+  },
+  "stages.S1.context.budget_words": {
+   "kind": "rule",
+   "value": 600
+  },
+  "stages.S1.context.excluded": {
+   "kind": "rule",
+   "value": [
+    "reference files of later stages",
+    "prior briefs"
+   ]
+  },
+  "stages.S1.context.order": {
+   "kind": "rule",
+   "value": [
+    "profile",
+    "intake row",
+    "this stage's rows"
+   ]
+  },
+  "stages.S1.inputs": {
+   "kind": "rule",
+   "value": [
+    {
+     "fallback": "ask the required intake fields in one message",
+     "name": "arguments",
+     "required": true,
+     "source": "$ARGUMENTS",
+     "type": "path.csv | 'Full Name, Organisation' | empty"
+    },
+    {
+     "fallback": "run calibration",
+     "name": "profile",
+     "required": true,
+     "source": "~/.pcp/profile.yaml",
+     "type": "yaml"
+    },
+    {
+     "fallback": "ask: What do you want to walk out of this meeting with?",
+     "name": "meeting.objective",
+     "required": true,
+     "source": "intake row or one question",
+     "type": "text"
+    },
+    {
+     "fallback": "person",
+     "name": "target.kind",
+     "required": true,
+     "source": "intake or profile.target.kind_default",
+     "type": "person|company|deal"
+    }
+   ]
+  },
+  "stages.S1.name": {
+   "kind": "rule",
+   "value": "Intake"
+  },
+  "stages.S1.rows.S1-1.basis": {
+   "kind": "rule",
+   "value": "original plugin v1"
+  },
+  "stages.S1.rows.S1-1.test": {
+   "kind": "rule",
+   "value": "Run with a name only -- the run must ask, not search."
+  },
+  "stages.S1.rows.S1-1.text": {
+   "kind": "rule",
+   "value": "Do not start research without a full name and an organisation."
+  },
+  "stages.S1.rows.S1-2.basis": {
+   "kind": "rule",
+   "value": "original plugin v1"
+  },
+  "stages.S1.rows.S1-2.test": {
+   "kind": "rule",
+   "value": "Seed an ambiguous name -- the run must present the candidates and stop."
+  },
+  "stages.S1.rows.S1-2.text": {
+   "kind": "rule",
+   "value": "Two or more people match the name: stop and ask which one. Wrong-person research is worse than none."
+  },
+  "stages.S1.rows.S1-3.basis": {
+   "kind": "rule",
+   "value": "original plugin v1"
+  },
+  "stages.S1.rows.S1-3.test": {
+   "kind": "rule",
+   "value": "A 9-row CSV must be refused with the count."
+  },
+  "stages.S1.rows.S1-3.text": {
+   "kind": "rule",
+   "value": "Up to 8 targets per run; research targets in parallel, write briefs in turn."
+  },
+  "stages.S2.context.budget_words": {
+   "kind": "rule",
+   "value": 1200
+  },
+  "stages.S2.context.excluded": {
+   "kind": "rule",
+   "value": [
+    "rubric",
+    "brief structure",
+    "script structure"
+   ]
+  },
+  "stages.S2.context.order": {
+   "kind": "rule",
+   "value": [
+    "resolved_families with query templates",
+    "exclusions",
+    "target identity",
+    "known_context"
+   ]
+  },
+  "stages.S2.inputs": {
+   "kind": "rule",
+   "value": [
+    {
+     "fallback": "none -- derived",
+     "name": "resolved_families",
+     "required": true,
+     "source": "families filtered by profile (kind, depth, socmint)",
+     "type": "list"
+    },
+    {
+     "fallback": "none -- derived",
+     "name": "exclusions",
+     "required": true,
+     "source": "exclusions.base + exclusions.by_jurisdiction[profile.jurisdiction]",
+     "type": "list"
+    },
+    {
+     "fallback": "empty",
+     "name": "known_context",
+     "required": false,
+     "source": "intake Notes column",
+     "type": "text"
+    }
+   ]
+  },
+  "stages.S2.name": {
+   "kind": "rule",
+   "value": "Collection"
+  },
+  "stages.S2.outputs": {
+   "kind": "rule",
+   "value": [
+    {
+     "fields": [
+      "id",
+      "claim",
+      "family",
+      "url",
+      "retrieved_at",
+      "tag",
+      "confidence",
+      "exclusion_hit"
+     ],
+     "name": "claims.jsonl"
+    },
+    {
+     "fields": [
+      "families_attempted",
+      "families_total",
+      "hits_by_family",
+      "failed_urls",
+      "status"
+     ],
+     "name": "coverage"
+    }
+   ]
+  },
+  "stages.S2.rows.S2-1.basis": {
+   "kind": "rule",
+   "value": "original plugin v1"
+  },
+  "stages.S2.rows.S2-1.test": {
+   "kind": "rule",
+   "value": "A LinkedIn login wall counts as a failed URL and appears in coverage.failed_urls."
+  },
+  "stages.S2.rows.S2-1.text": {
+   "kind": "rule",
+   "value": "Public sources only. Nothing behind a login, no paid data the user has not supplied, no scraping."
+  },
+  "stages.S2.rows.S2-2.basis": {
+   "kind": "rule",
+   "value": "a confidence ladder"
+  },
+  "stages.S2.rows.S2-2.test": {
+   "kind": "rule",
+   "value": "A claim missing any field is dropped by eval.py claims and counted in coverage.dropped."
+  },
+  "stages.S2.rows.S2-2.text": {
+   "kind": "rule",
+   "value": "Every claim carries url, retrieved_at, tag DIRECT|SEARCH, and confidence C1 (primary, dated) | C2 (reputable secondary) | C3 (single weak source) | C4 (inferred)."
+  },
+  "stages.S2.rows.S2-3.basis": {
+   "kind": "rule",
+   "value": "original plugin v1 + every rule carries a falsification test"
+  },
+  "stages.S2.rows.S2-3.test": {
+   "kind": "rule",
+   "value": "Seed a claim tagged exclusion health -- it must not appear in any output file."
+  },
+  "stages.S2.rows.S2-3.text": {
+   "kind": "rule",
+   "value": "A claim that hits an exclusion is dropped BEFORE the writer sees it and counted in coverage.excluded; the brief's guardrails say a topic was left out, never which fact."
+  },
+  "stages.S2.rows.S2-4.basis": {
+   "kind": "rule",
+   "value": "never truncate silently"
+  },
+  "stages.S2.rows.S2-4.test": {
+   "kind": "rule",
+   "value": "Disable WebFetch -- coverage must show 0/N attempted and status LIMITED, never FULL."
+  },
+  "stages.S2.rows.S2-4.text": {
+   "kind": "rule",
+   "value": "Coverage is a required output: families_attempted/families_total and hits per family. A run without coverage is not a run."
+  },
+  "stages.S2.rows.S2-5.basis": {
+   "kind": "rule",
+   "value": "original plugin FULL/LIMITED, made numeric"
+  },
+  "stages.S2.rows.S2-5.test": {
+   "kind": "rule",
+   "value": "Remove all C1/C2 claims from one family below threshold -- status flips to LIMITED."
+  },
+  "stages.S2.rows.S2-5.text": {
+   "kind": "rule",
+   "value": "Status FULL requires >= 1 C1/C2 claim in >= research.full_threshold[depth] families; else LIMITED, stamped on page 1."
+  },
+  "stages.S2.rows.S2-6.basis": {
+   "kind": "rule",
+   "value": "analysis of competing hypotheses"
+  },
+  "stages.S2.rows.S2-6.test": {
+   "kind": "rule",
+   "value": "With depth standard or deep, coverage must show family F12 attempted."
+  },
+  "stages.S2.rows.S2-6.text": {
+   "kind": "rule",
+   "value": "Run the counter-evidence family last: search for what would contradict the strategic read."
+  },
+  "stages.S3.context.budget_words": {
+   "kind": "rule",
+   "value": 1500
+  },
+  "stages.S3.context.excluded": {
+   "kind": "rule",
+   "value": [
+    "claims of other families",
+    "brief structure"
+   ]
+  },
+  "stages.S3.context.order": {
+   "kind": "rule",
+   "value": [
+    "rubric dimensions + bands",
+    "claims tagged family in F1/F5/F6/F7",
+    "authority_level"
+   ]
+  },
+  "stages.S3.inputs": {
+   "kind": "rule",
+   "value": [
+    {
+     "fallback": "none",
+     "name": "claims.jsonl",
+     "required": true,
+     "source": "S2",
+     "type": "jsonl"
+    },
+    {
+     "fallback": "none",
+     "name": "rubric",
+     "required": true,
+     "source": "pcp.yaml rubric",
+     "type": "rows"
+    },
+    {
+     "fallback": "medium",
+     "name": "authority_level",
+     "required": true,
+     "source": "profile.caller.authority_level",
+     "type": "high|medium"
+    }
+   ]
+  },
+  "stages.S3.name": {
+   "kind": "rule",
+   "value": "Behavioral read"
+  },
+  "stages.S3.outputs": {
+   "kind": "rule",
+   "value": [
+    {
+     "fields": [
+      "dimension",
+      "band",
+      "evidence_tier",
+      "observation_ids",
+      "meeting_meaning"
+     ],
+     "name": "read.json"
+    }
+   ]
+  },
+  "stages.S3.rows.S3-1.basis": {
+   "kind": "rule",
+   "value": "rubric v1.1 evidence tiers"
+  },
+  "stages.S3.rows.S3-1.test": {
+   "kind": "rule",
+   "value": "A target with only role-archetype claims must render every dimension as tier low and the script must contain no influence sequence."
+  },
+  "stages.S3.rows.S3-1.text": {
+   "kind": "rule",
+   "value": "Score each of the six dimensions only from observation_ids in claims.jsonl; a band with fewer observations than its tier minimum is reported as 'no read' -- never guessed from role."
+  },
+  "stages.S3.rows.S3-2.basis": {
+   "kind": "rule",
+   "value": "an evidence gate"
+  },
+  "stages.S3.rows.S3-2.test": {
+   "kind": "rule",
+   "value": "Delete one corroborating claim -- the tier must drop and the influence sequence must disappear on re-run."
+  },
+  "stages.S3.rows.S3-2.text": {
+   "kind": "rule",
+   "value": "Evidence tier gates script depth: low -> opener + questions; medium -> + framing; high -> + influence sequence (only if authority_level high)."
+  },
+  "stages.S3.rows.S3-3.basis": {
+   "kind": "rule",
+   "value": "generated files are never hand-edited"
+  },
+  "stages.S3.rows.S3-3.test": {
+   "kind": "rule",
+   "value": "Grep the brief for a band phrase not in rubric.*.meaning -- concordance fails."
+  },
+  "stages.S3.rows.S3-3.text": {
+   "kind": "rule",
+   "value": "Every band phrase on the page is a rubric row in pcp.yaml; no band phrase is written in prose."
+  },
+  "stages.S3.rows.S3-4.basis": {
+   "kind": "rule",
+   "value": "analysis of competing hypotheses"
+  },
+  "stages.S3.rows.S3-4.test": {
+   "kind": "rule",
+   "value": "Depth standard -- no ACH block; depth deep -- ACH block with a disconfirming claim id per hypothesis."
+  },
+  "stages.S3.rows.S3-4.text": {
+   "kind": "rule",
+   "value": "Depth deep adds an ACH mini: <= 3 hypotheses about what the target wants from this meeting, each with the claim that would disconfirm it."
+  },
+  "stages.S4.context.budget_words": {
+   "kind": "rule",
+   "value": 3000
+  },
+  "stages.S4.context.excluded": {
+   "kind": "rule",
+   "value": [
+    "rubric evidence lists",
+    "family query templates"
+   ]
+  },
+  "stages.S4.context.order": {
+   "kind": "rule",
+   "value": [
+    "brief sections with word budgets",
+    "script beats",
+    "claims (C1/C2 first)",
+    "read.json",
+    "profile.caller",
+    "guardrails"
+   ]
+  },
+  "stages.S4.inputs": {
+   "kind": "rule",
+   "value": [
+    {
+     "fallback": "none",
+     "name": "claims.jsonl",
+     "required": true,
+     "source": "S2",
+     "type": "jsonl"
+    },
+    {
+     "fallback": "none",
+     "name": "read.json",
+     "required": true,
+     "source": "S3",
+     "type": "json"
+    },
+    {
+     "fallback": "none",
+     "name": "profile",
+     "required": true,
+     "source": "~/.pcp/profile.yaml",
+     "type": "yaml"
+    },
+    {
+     "fallback": "none",
+     "name": "page_budget",
+     "required": true,
+     "source": "pcp.yaml brief + script",
+     "type": "rows"
+    }
+   ]
+  },
+  "stages.S4.name": {
+   "kind": "rule",
+   "value": "Brief + script"
+  },
+  "stages.S4.outputs": {
+   "kind": "rule",
+   "value": [
+    {
+     "name": "brief.md",
+     "note": "pages 1-2"
+    },
+    {
+     "name": "script.md",
+     "note": "page 3"
+    },
+    {
+     "name": "<out>/<date>-<slug>.pdf",
+     "note": "ONE 3-page PDF via format/talyx_pdf.py --max-pages 3"
+    }
+   ]
+  },
+  "stages.S4.rows.S4-1.basis": {
+   "kind": "rule",
+   "value": "DUF metric definition"
+  },
+  "stages.S4.rows.S4-1.test": {
+   "kind": "rule",
+   "value": "eval.py duf reports unbound > 0 -- the run must rewrite before render."
+  },
+  "stages.S4.rows.S4-1.text": {
+   "kind": "rule",
+   "value": "Every fact in the brief cites a claim id [n]; the Sources block lists only cited claims. A fact with no citation is a defect, not a style choice."
+  },
+  "stages.S4.rows.S4-2.basis": {
+   "kind": "rule",
+   "value": "original plugin check 1, tightened to sentence"
+  },
+  "stages.S4.rows.S4-2.test": {
+   "kind": "rule",
+   "value": "A brief with a sentence containing no claim id and no target-specific noun fails checks.swap."
+  },
+  "stages.S4.rows.S4-2.text": {
+   "kind": "rule",
+   "value": "Every sentence passes the swap test against caller.offer_one_line and the target: if another target's name would leave it true, delete it."
+  },
+  "stages.S4.rows.S4-3.basis": {
+   "kind": "rule",
+   "value": "design choice, PDF only"
+  },
+  "stages.S4.rows.S4-3.test": {
+   "kind": "rule",
+   "value": "The output directory contains exactly one .pdf and no .md/.html after a run."
+  },
+  "stages.S4.rows.S4-3.text": {
+   "kind": "rule",
+   "value": "Render ONLY through format/talyx_pdf.py with --max-pages 3; never emit Markdown or HTML as the deliverable."
+  },
+  "stages.S4.rows.S4-4.basis": {
+   "kind": "rule",
+   "value": "never truncate silently"
+  },
+  "stages.S4.rows.S4-4.test": {
+   "kind": "rule",
+   "value": "Feed a 900-word section -- the engine must exit non-zero naming the section."
+  },
+  "stages.S4.rows.S4-4.text": {
+   "kind": "rule",
+   "value": "If the tightest density rung still overflows 3 pages, the run FAILS with the section word counts; it never truncates or spills."
+  },
+  "stages.S4.rows.S4-5.basis": {
+   "kind": "rule",
+   "value": "coverage as a required output"
+  },
+  "stages.S4.rows.S4-5.test": {
+   "kind": "rule",
+   "value": "Extract page-3 footer text -- all four fields present."
+  },
+  "stages.S4.rows.S4-5.text": {
+   "kind": "rule",
+   "value": "The PDF footer carries: profile line, research status, duf_pp, coverage fraction."
+  },
+  "stages.S5.context.budget_words": {
+   "kind": "rule",
+   "value": 800
+  },
+  "stages.S5.context.excluded": {
+   "kind": "rule",
+   "value": [
+    "everything else"
+   ]
+  },
+  "stages.S5.context.order": {
+   "kind": "rule",
+   "value": [
+    "ratchet floors",
+    "debrief rows",
+    "the pcp.yaml rows the debrief touches"
+   ]
+  },
+  "stages.S5.inputs": {
+   "kind": "rule",
+   "value": [
+    {
+     "fallback": "skip loop",
+     "name": "debrief.yaml",
+     "required": false,
+     "source": "user, after the call (60 seconds, 4 fields)",
+     "type": "yaml"
+    },
+    {
+     "fallback": "initialise empty",
+     "name": "ratchet.json",
+     "required": true,
+     "source": "evals/ratchet.json",
+     "type": "json"
+    }
+   ]
+  },
+  "stages.S5.name": {
+   "kind": "rule",
+   "value": "Debrief + ratchet"
+  },
+  "stages.S5.rows.S5-1.basis": {
+   "kind": "rule",
+   "value": "design choice, floor = best ever"
+  },
+  "stages.S5.rows.S5-1.test": {
+   "kind": "rule",
+   "value": "Lower a family weight so a target's duf_pp drops -- ratchet must exit non-zero and name the target."
+  },
+  "stages.S5.rows.S5-1.text": {
+   "kind": "rule",
+   "value": "A change to pcp.yaml lands only if eval.py ratchet passes: every frozen target's duf_pp >= its floor AND all checks pass. The floor is the best ever seen and only rises."
+  },
+  "stages.S5.rows.S5-2.basis": {
+   "kind": "rule",
+   "value": "path of least resistance"
+  },
+  "stages.S5.rows.S5-2.test": {
+   "kind": "rule",
+   "value": "The debrief template has exactly four fields."
+  },
+  "stages.S5.rows.S5-2.text": {
+   "kind": "rule",
+   "value": "Debrief fields: facts_used[claim ids], questions_landed[ids], band_accuracy{dim: hit|miss}, outcome. Nothing else is asked."
+  },
+  "stages.S5.rows.S5-3.basis": {
+   "kind": "rule",
+   "value": "generated files are never hand-edited"
+  },
+  "stages.S5.rows.S5-3.test": {
+   "kind": "rule",
+   "value": "Run improve -- the only file written is evals/proposals/<date>.patch."
+  },
+  "stages.S5.rows.S5-3.text": {
+   "kind": "rule",
+   "value": "improve proposes row diffs (family weights, question templates, band phrases) as a patch with basis: debrief_id; it never edits SKILL.md and never lands a diff itself."
+  }
+ },
+ "source": "upstream/main (993a8be), talyx-ai plug-in 2.1.0"
+}

@@ -1,0 +1,16 @@
+#!/bin/sh
+# No-drift guard (pcp): a commit that touches the plug-in may not drop or weaken anything of the original talyx-ai 2.1.0 without an approved
+# entry in plugins/pcp/evals/DECISIONS.yaml, may not hard-code a value the registry owns, and may not leave the generated files stale.
+# Enable once per clone:  git config core.hooksPath .githooks
+root=$(git rev-parse --show-toplevel) || exit 0
+git diff --cached --name-only | grep -q -E '^(plugins/pcp/|build/)' || exit 0
+cd "$root/plugins/pcp" || exit 0
+fail=0
+python3 render_skill.py --check || fail=1
+python3 eval.py concordance >/dev/null || { echo "concordance: SKILL.md or a reference drifted from pcp.yaml"; fail=1; }
+python3 eval.py hardcoded || fail=1
+python3 eval.py parity || fail=1
+if [ "$fail" != 0 ]; then
+  echo "pre-commit: blocked. A removed or weakened 2.1.0 item needs an approved entry in plugins/pcp/evals/DECISIONS.yaml (python3 eval.py parity --list)."
+  exit 1
+fi

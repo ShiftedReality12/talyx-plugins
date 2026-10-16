@@ -159,9 +159,17 @@ Enabled per profile: `depth` filters the column, `target.kind` filters `kinds`, 
 to `{', '.join(R['research']['socmint_networks']['professional'])}` (professional) or the wider list (social) or none.
 FULL status needs >= 1 C1/C2 claim in {R['research']['full_threshold']} families (by depth).
 
-| Id | Family | Depth | Social | Query template | Extract |
+| Id | Family | Depth | SOCMINT | Query template | Extract |
 |---|---|---|---|---|---|
 {chr(10).join(fam_lines)}
+
+Placeholders in the query templates and rounds: {'; '.join(f"`{{{k}}}` = {v}" for k, v in R['placeholders'].items())}.
+
+Intake columns (assets/intake-template.csv) and what each sets:
+
+| Column | Sets |
+|---|---|
+{chr(10).join(f"| {k} | {v} |" for k, v in R['intake_columns'].items())}
 
 Registers by domain: {'; '.join(f"{k}: " + ', '.join(r['name'] for r in v) for k, v in R['registers'].items() if v) or 'none'}.
 
@@ -209,7 +217,8 @@ Beats by meeting format:
 |---|---|---|---|---|
 {table(R['script']['blocks'])}
 
-Never say: {'; '.join(f'"{p}"' for p in R['guardrails']['never_say'])}.
+{R['forms']['P8']['never']['label']} {'; '.join(f'"{p}"' for p in R['guardrails']['never_say'])}.
+Forbidden claims by domain (P8 quotes the saved domain's): {'; '.join(f"{k}: " + ', '.join(f'"{x}"' for x in v) for k, v in R['guardrails']['forbidden_claims_by_domain'].items() if v)}.
 
 ## fields.json: what you fill (S4-13)
 
@@ -414,10 +423,10 @@ Input from the user: `$ARGUMENTS`
 First load the `pre-call-prep` skill in this plug-in (Skill tool, or read `skills/pre-call-prep/SKILL.md`) -- the block schema, titles and budgets live there, not here. Never write a brief without it. Then follow it exactly, in stage order:
 
 0. **Setup** -- ask the questions with `AskUserQuestion` ({calls_txt}), only those `{R['calibration']['profile_path']}` has no answer for (all with `--recalibrate`), a typed list only where the host has no question tool; read files given with `--context`.
-1. **Intake** -- resolve `$ARGUMENTS` (CSV path, `"Name, Org"`, or ask). Never start without a full name and an organisation. Ask the user only as `references/socratic-questions.md` says.
+1. **Intake** -- resolve `$ARGUMENTS` (CSV path, `"Name, Org"`, or ask). Never start without a full name and an organisation. Confirm the meeting objective: say it back in the one status line, and ask only as `references/socratic-questions.md` says.
 2. **{n['collection']}** -- run the enabled source types in the search rounds of `references/osint-search.md` (LinkedIn only as its search results show it; never a browser); write `claims.jsonl` and the coverage ledger. Drop excluded claims before writing.
 3. **{n['profile']}** -- read six dimensions from claim ids only; set the evidence tier.
-4. **{n['deliverable']}** -- write `brief.md` (B1-B10) and `script.md` (P1-P9); run `python3 eval.py checks brief.md script.md --target-nouns \"<name>,<org>\" --experience <Q9> --authority <caller.authority_level>` and `python3 eval.py duf brief.md script.md`; rewrite until clean; render with `format/talyx_pdf.py --style brief --brief-pages {pb['brief_pages']} --max-pages {pb['total_pages']}` and check it with `python3 eval.py pdf <the PDF> brief.md`. Deliver the PDF path. Delete `brief.md`/`script.md` after a clean render.
+4. **{n['deliverable']}** -- fill `fields.json` (SKILL.md lists its keys) and run `python3 eval.py assemble <folder>` -- it builds `brief.md` (B1-B10) and `script.md` (P1-P9) from the schema, never write them yourself; run `python3 eval.py checks brief.md script.md --target-nouns \"<name>,<org>\" --experience <Q9> --authority <caller.authority_level>` and `python3 eval.py duf brief.md script.md`; rewrite until clean; render with `format/talyx_pdf.py --style brief --brief-pages {pb['brief_pages']} --max-pages {pb['total_pages']}` and check it with `python3 eval.py pdf <the PDF> brief.md`. Deliver the PDF path and the run line (date · depth · status · facts · searches, from the ledger's Run row). Delete `brief.md`/`script.md` after a clean render.
 5. **After the call** -- offer the four-field template in `evals/debrief_template.yaml`; never ask for more.
 
 Say what was NOT found before what was.
@@ -531,7 +540,8 @@ def main():
                HERE / "skills/pre-call-prep/references/osint-search.md": render_osint(R, sha),
                HERE / "commands/pcp.md": render_command(R, sha),
                HERE / "INVENTORY.md": render_inventory(R, sha),
-               HERE / "pcp.json": json.dumps(R, ensure_ascii=False, separators=(",", ":"), default=str) + "\n"}
+               HERE / "pcp.json": json.dumps(R, ensure_ascii=False, separators=(",", ":"), default=str) + "\n",
+               HERE / "format/layout.json": json.dumps({k: R[k] for k in ("page_budget", "layout", "balance", "colors")}, ensure_ascii=False, indent=1, default=str) + "\n"}
     if sorted(str(p.relative_to(HERE)) for p in targets) != sorted(R["generated_files"]):
         print("GENERATED FILES FAIL -- pcp.yaml generated_files differs from what this writes:",
               sorted(str(p.relative_to(HERE)) for p in targets))

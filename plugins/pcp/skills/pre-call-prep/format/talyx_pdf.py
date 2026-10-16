@@ -45,21 +45,16 @@ HERE = pathlib.Path(__file__).resolve().parent
 ASSETS = HERE / "assets"
 # Ben, Oct 14: three colours, so the page reads when printed -- Midnight, black and white for all text and fills;
 # the hairline is for rules only, never text (brand/BRAND.md)
-MIDNIGHT, INK, WHITE, HAIR = "#0F2744", "#000000", "#FFFFFF", "#E8EAED"
-
-LADDER = [
-    dict(name="loose",   body_pt=11.0, lh=1.42, para=6, sec=12, mh=(0.15, 0.22), cell=3, page=(0.55, 0.6)),
-    dict(name="normal",  body_pt=10.5, lh=1.36, para=5, sec=10, mh=(0.15, 0.22), cell=3, page=(0.55, 0.6)),
-    dict(name="tight",   body_pt=10.0, lh=1.30, para=4, sec=8,  mh=(0.15, 0.22), cell=3, page=(0.55, 0.6)),
-    dict(name="compact", body_pt=10.0, lh=1.24, para=3, sec=6,  mh=(0.05, 0.14), cell=1.5, page=(0.45, 0.55)),
-]
-# --style brief: Ben's format (schema approved Oct 13), 10 pt body on every rung (Ben: "Keep 10 pt, not 9 pt");
-# rungs tighten only leading and spacing, never the type size
-BRIEF_LADDER = [
-    dict(name="normal",  body_pt=10.0, lh=1.30, para=3, sec=10, cell=2.4),
-    dict(name="tight",   body_pt=10.0, lh=1.24, para=2, sec=8,  cell=1.8),
-    dict(name="compact", body_pt=10.0, lh=1.18, para=2, sec=6,  cell=1.2),
-]
+# every number and colour of the page lives in pcp.yaml (page_budget, layout, balance, colors); render_skill.py writes them to
+# layout.json beside this file, and eval.py hardcoded fails a literal here
+LAYOUT = json.loads((HERE / "layout.json").read_text())
+L, BAL, PB = LAYOUT["layout"], LAYOUT["balance"], LAYOUT["page_budget"]
+MIDNIGHT, INK, WHITE, HAIR = (LAYOUT["colors"][k] for k in ("midnight", "ink", "white", "hair"))
+rung = lambda r: dict(r, lh=r["line_height"], para=r["para_gap_pt"], sec=r["sec_gap_pt"])   # the registry's names, the renderer's short ones
+LADDER = [rung(dict(r, mh=tuple(r["mh"]), page=tuple(r["page"]))) for r in PB["ladder"]]
+BRIEF_LADDER = [rung(r) for r in PB["brief_ladder"]]
+SZ = PB["text_sizes_pt"]
+BODY_PT_FLOOR = PB["body_pt_floor"]
 
 
 # ---------------------------------------------------------------- markdown -> html --------------------------
@@ -272,7 +267,7 @@ def columns(secs, htmls, spec):
 # The script (page 3) flows its blocks in order down the left column and on into the right, which end together;
 # then it takes the largest type (the rung's size up to 2pt more) and leading that still fit its one page, and spreads
 # what is left between its sections and bullets, so a short script fills the page instead of ending in a blank band.
-BALANCE = """<script>
+BALANCE = "<script>const CFG = " + json.dumps(BAL) + ";" + """
 function shortest(lo, hi, step, set, height) {   // the lowest height; of settings within 1px of it, the nearest to 50
   const tries = [];
   for (let p = lo; p <= hi; p += step) { set(p); tries.push({p, h: height()}); }
@@ -281,8 +276,8 @@ function shortest(lo, hi, step, set, height) {   // the lowest height; of settin
 }
 function balanceRow(row) {
   const cols = [...row.children], tables = [...row.querySelectorAll('table:not(.src)')];
-  const fit = () => tables.forEach(t => shortest(30, 70, 2, p => t.style.setProperty('--c1', p + '%'), () => t.offsetHeight));
-  shortest(40, 60, 1, p => { row.style.gridTemplateColumns = p + 'fr ' + (100 - p) + 'fr'; fit(); },
+  const fit = () => tables.forEach(t => shortest(...CFG.table_split, p => t.style.setProperty('--c1', p + '%'), () => t.offsetHeight));
+  shortest(...CFG.col_split, p => { row.style.gridTemplateColumns = p + 'fr ' + (100 - p) + 'fr'; fit(); },
            () => Math.max(...cols.map(c => c.offsetHeight)));
 }
 function balance() {
@@ -290,17 +285,17 @@ function balance() {
   document.querySelectorAll('.part-0').forEach(fillBrief);
   document.querySelectorAll('.part-1').forEach(fill);
 }
-const LIMIT = (11 - 0.42 - 0.62 - 0.2) * 96;   // a page's content height in CSS px, less 0.2in to spare
+const LIMIT = (CFG.page_in - CFG.margin_top_in - CFG.margin_bottom_in - CFG.spare_in) * CFG.px_per_in;   // a page's content height in CSS px, less 0.2in to spare
 function spread(els, height, limit = LIMIT) {   // the most --fill (space between blocks, rows and bullets) that still fits
   const set = g => els.forEach(e => e.style.setProperty('--fill', g + 'px'));
-  let lo = 0, hi = 160;
-  for (let i = 0; i < 12; i++) { const g = (lo + hi) / 2; set(g); if (height() <= limit) lo = g; else hi = g; }
+  let lo = 0, hi = CFG.spread_max_px;
+  for (let i = 0; i < CFG.spread_steps; i++) { const g = (lo + hi) / 2; set(g); if (height() <= limit) lo = g; else hi = g; }
   set(lo);
 }
 function fillBrief(part) {   // pages 1 and 2 keep the rung's type; what is left on each page goes between its blocks
   const kids = [...part.children], k = kids.findIndex(e => e.matches('.two:has(.sec-b7), .sec-b7'));
   if (k < 1) return;
-  const first = (0.42 - 0.30) * 96;   // page 1's top margin is 0.30in (@page :first), the others 0.42in
+  const first = (CFG.margin_top_in - CFG.first_top_in) * CFG.px_per_in;   // page 1's top margin is 0.30in (@page :first), the others 0.42in
   const pages = [[part, kids.slice(0, k), LIMIT + first], [kids[k], kids.slice(k), LIMIT]];
   for (const [top, els, limit] of pages) {
     const height = () => Math.max(...els.map(e => e.getBoundingClientRect().bottom)) - top.getBoundingClientRect().top;
@@ -312,8 +307,8 @@ function fill(part) {
   const limit = LIMIT;
   const base = parseFloat(getComputedStyle(part).fontSize) * 0.75;   // the rung's body size in pt: the floor
   let fits = false;
-  for (let pt = base + 2; pt >= base - 0.01 && !fits; pt -= 0.25) {
-    for (const lh of pt > base ? [1.5, 1.45, 1.4, 1.35] : [1.5, 1.45, 1.4, 1.35, '']) {   // larger type keeps open leading
+  for (let pt = base + CFG.enlarge_pt; pt >= base - 0.01 && !fits; pt -= CFG.enlarge_step_pt) {
+    for (const lh of pt > base ? CFG.open_leading : CFG.open_leading.concat([''])) {   // larger type keeps open leading
       part.style.fontSize = pt + 'pt'; part.style.lineHeight = lh;
       if (part.offsetHeight <= limit) { fits = true; break; }
     }
@@ -331,58 +326,58 @@ def css(rung, footer):
     b, lh, pg, sg = rung["body_pt"], rung["lh"], rung["para"], rung["sec"]
     (mt, mb), cp, (top, bottom) = rung["mh"], rung["cell"], rung["page"]
     return f"""
-@font-face {{ font-family:'Archivo'; font-weight:100 900; src:url(data:font/woff2;base64,{archivo}) format('woff2'); }}
+@font-face {{ font-family:'Archivo'; font-weight:{L['font_face__font-weight']} {L['font_face__font-weight_2']}; src:url(data:font/woff2;base64,{archivo}) format('woff2'); }}
 @page {{ size: Letter; margin: {top}in 0 {bottom}in 0;
-  @bottom-left {{ content: "{html.escape(footer)}"; font-family:'Archivo'; font-size:7.5pt; color:{MIDNIGHT}; padding-left:0.5in; }}
-  @bottom-right {{ content: "Page " counter(page) " of " counter(pages); font-family:'Archivo'; font-size:7.5pt; color:{MIDNIGHT}; padding-right:0.5in; }} }}
+  @bottom-left {{ content: "{html.escape(footer)}"; font-family:'Archivo'; font-size:{L['bottom_left__font-size']}; color:{MIDNIGHT}; padding-left:{L['bottom_left__padding-left']}; }}
+  @bottom-right {{ content: "Page " counter(page) " of " counter(pages); font-family:'Archivo'; font-size:{L['bottom_right__font-size']}; color:{MIDNIGHT}; padding-right:{L['bottom_right__padding-right']}; }} }}
 html {{ -webkit-print-color-adjust:exact; }}
 body {{ font-family:'Archivo', -apple-system, sans-serif; color:{INK}; margin:0; hyphens:manual; -webkit-hyphens:manual; font-variant-ligatures:common-ligatures; }}
-.page-content {{ padding:0 0.5in; position:relative; }}
+.page-content {{ padding:0 {L['page_content__padding']}; position:relative; }}
 .masthead-alt {{ position:relative; padding-top:{mt}in; margin:0 0 {mb}in 0; font-family:'Archivo'; hyphens:none; }}
-.mh-alt-logo {{ position:absolute; top:0.05in; right:-0.35in; width:88px; height:auto; }}
-.mh-alt-titles {{ padding-right:1.2in; }}
-.mh-alt-title {{ margin:0; font-size:22pt; font-weight:800; letter-spacing:-0.02em; line-height:1.02; color:{MIDNIGHT}; }}
-.mh-alt-role {{ font-size:10.5pt; font-weight:500; color:{MIDNIGHT}; margin-top:5px; }}
+.mh-alt-logo {{ position:absolute; top:{L['mh_alt_logo__top']}; right:{L['mh_alt_logo__right']}; width:{L['mh_alt_logo__width']}; height:auto; }}
+.mh-alt-titles {{ padding-right:{L['mh_alt_titles__padding-right']}; }}
+.mh-alt-title {{ margin:0; font-size:{L['mh_alt_title__font-size']}; font-weight:{L['mh_alt_title__font-weight']}; letter-spacing:{L['mh_alt_title__letter-spacing']}; line-height:{L['mh_alt_title__line-height']}; color:{MIDNIGHT}; }}
+.mh-alt-role {{ font-size:{L['mh_alt_role__font-size']}; font-weight:{L['mh_alt_role__font-weight']}; color:{MIDNIGHT}; margin-top:{L['mh_alt_role__margin-top']}; }}
 .sec {{ margin:0; }}
-.sec-head {{ display:block; font-size:inherit; font-weight:inherit; line-height:1.0; padding-bottom:3px; margin:{sg}pt 0 {max(sg-6,3)}pt; break-after:avoid; }}
+.sec-head {{ display:block; font-size:inherit; font-weight:inherit; line-height:{L['sec_head__line-height']}; padding-bottom:{L['sec_head__padding-bottom']}; margin:{sg}pt 0 {max(sg-L['sec_head__expr'],L['sec_head__expr_2'])}pt; break-after:avoid; }}
 .sec:first-child .sec-head {{ margin-top:0; }}
-.sec-num {{ font-size:9.5pt; font-weight:700; color:{MIDNIGHT}; font-variant-numeric:lining-nums tabular-nums; }}
-.sec-title {{ font-size:12.5pt; font-weight:700; letter-spacing:-0.01em; color:{MIDNIGHT}; }}
-.sub {{ font-size:{b}pt; font-weight:700; color:{MIDNIGHT}; margin:{pg}pt 0 2pt; }}
-p {{ font-size:{b}pt; line-height:{lh}; margin:0 0 {pg}pt; max-width:6.6in; }}
-blockquote {{ font-size:{b + 0.5}pt; line-height:{lh}; margin:0 0 {pg}pt; padding:1pt 0 1pt calc(16px - 2.5px); border-left:2.5px solid {MIDNIGHT}; max-width:6.6in; }}
-ul, ol {{ margin:0 0 {pg}pt; padding-left:16px; max-width:6.6in; }}
-ol > li::marker {{ color:{MIDNIGHT}; font-weight:700; font-variant-numeric:tabular-nums; }}
-li {{ font-size:{b}pt; line-height:{lh}; margin:{max(pg-3,1)}pt 0; }}
-li > ul, li > ol {{ margin:{max(pg-4,1)}pt 0 {max(pg-2,2)}pt; padding-left:16px; }}
-li li {{ margin:{max(pg-4,1)}pt 0; }}
+.sec-num {{ font-size:{L['sec_num__font-size']}; font-weight:{L['sec_num__font-weight']}; color:{MIDNIGHT}; font-variant-numeric:lining-nums tabular-nums; }}
+.sec-title {{ font-size:{L['sec_title__font-size']}; font-weight:{L['sec_title__font-weight']}; letter-spacing:{L['sec_title__letter-spacing']}; color:{MIDNIGHT}; }}
+.sub {{ font-size:{b}pt; font-weight:{L['sub__font-weight']}; color:{MIDNIGHT}; margin:{pg}pt 0 {L['sub__margin']}; }}
+p {{ font-size:{b}pt; line-height:{lh}; margin:0 0 {pg}pt; max-width:{L['p__max-width']}; }}
+blockquote {{ font-size:{b + L['blockquote__expr']}pt; line-height:{lh}; margin:0 0 {pg}pt; padding:{L['blockquote__padding']} 0 {L['blockquote__padding_2']} calc({L['blockquote__padding_3']} - {L['blockquote__padding_4']}); border-left:{L['blockquote__border-left']} solid {MIDNIGHT}; max-width:{L['blockquote__max-width']}; }}
+ul, ol {{ margin:0 0 {pg}pt; padding-left:{L['ul_ol__padding-left']}; max-width:{L['ul_ol__max-width']}; }}
+ol > li::marker {{ color:{MIDNIGHT}; font-weight:{L['ol_li_marker__font-weight']}; font-variant-numeric:tabular-nums; }}
+li {{ font-size:{b}pt; line-height:{lh}; margin:{max(pg-L['li__expr'],L['li__expr_2'])}pt 0; }}
+li > ul, li > ol {{ margin:{max(pg-L['li_ul_li_ol__expr'],L['li_ul_li_ol__expr_2'])}pt 0 {max(pg-L['li_ul_li_ol__expr_3'],L['li_ul_li_ol__expr_4'])}pt; padding-left:{L['li_ul_li_ol__padding-left']}; }}
+li li {{ margin:{max(pg-L['li_li__expr'],L['li_li__expr_2'])}pt 0; }}
 li.check {{ list-style-type:"\\2610\\00a0\\00a0"; }} li.check.done {{ list-style-type:"\\2611\\00a0\\00a0"; }}
-p.lbl {{ padding-left:16px; text-indent:-16px; margin-bottom:{max(pg-2,2)}pt; max-width:none; }}
+p.lbl {{ padding-left:{L['p_lbl__padding-left']}; text-indent:{L['p_lbl__text-indent']}; margin-bottom:{max(pg-L['p_lbl__expr'],L['p_lbl__expr_2'])}pt; max-width:none; }}
 ul, ul ul {{ list-style-type:disc; }}
-.hang {{ display:block; padding-left:16px; text-indent:-16px; }} .hang > .num {{ display:inline-block; width:16px; text-indent:0; }}
+.hang {{ display:block; padding-left:{L['hang__padding-left']}; text-indent:{L['hang__text-indent']}; }} .hang > .num {{ display:inline-block; width:{L['hang_num__width']}; text-indent:0; }}
 .amp {{ font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; }}
-p.lbl > strong:first-child + em {{ margin-left:-0.12em; }}
-.num {{ color:{MIDNIGHT}; font-weight:700; font-variant-numeric:tabular-nums; }}
+p.lbl > strong:first-child + em {{ margin-left:{L['p_lbl_strong_first_child_em__margin-left']}; }}
+.num {{ color:{MIDNIGHT}; font-weight:{L['num__font-weight']}; font-variant-numeric:tabular-nums; }}
 table.kv td:first-child, table.kv th:first-child {{ white-space:nowrap; }}
-p.lbl > strong:first-child, li > strong:first-child, blockquote > strong:first-child {{ color:{MIDNIGHT}; font-weight:600; }}
-strong {{ font-weight:600; }} em {{ font-style:italic; font-weight:400; }}
-a {{ color:{MIDNIGHT}; text-decoration:underline; text-decoration-thickness:0.5px; text-underline-offset:1.5px; }}
-.cite {{ color:{MIDNIGHT}; font-size:0.8em; font-weight:500; font-variant-numeric:tabular-nums; }}
+p.lbl > strong:first-child, li > strong:first-child, blockquote > strong:first-child {{ color:{MIDNIGHT}; font-weight:{L['p_lbl_strong_first_child_li_strong_first__font-weight']}; }}
+strong {{ font-weight:{L['strong__font-weight']}; }} em {{ font-style:italic; font-weight:{L['em__font-weight']}; }}
+a {{ color:{MIDNIGHT}; text-decoration:underline; text-decoration-thickness:{L['a__text-decoration-thickness']}; text-underline-offset:{L['a__text-underline-offset']}; }}
+.cite {{ color:{MIDNIGHT}; font-size:{L['cite__font-size']}; font-weight:{L['cite__font-weight']}; font-variant-numeric:tabular-nums; }}
 table {{ border-collapse:collapse; width:100%; margin:0 0 {pg}pt; table-layout:auto; break-inside:avoid; }}
 table.src {{ break-inside:auto; }}
 td:last-child, th:last-child {{ padding-right:0; }}
 tr {{ break-inside:avoid; }} thead {{ display:table-header-group; }}
-th {{ font-size:{b-1.5}pt; font-weight:500; text-transform:uppercase; letter-spacing:0.04em; color:{MIDNIGHT}; text-align:left; padding:{cp}px 14px {cp}px 0; border-bottom:1.25px solid {MIDNIGHT}; }}
-td {{ font-size:{b-0.5}pt; line-height:{lh}; padding:{cp}px 14px {cp}px 0; border-bottom:0.5px solid {HAIR}; vertical-align:top; overflow-wrap:anywhere; text-wrap:pretty; }}
-tbody tr:last-child td {{ border-bottom:1.25px solid {INK}; }}
+th {{ font-size:{b-L['th__expr']}pt; font-weight:{L['th__font-weight']}; text-transform:uppercase; letter-spacing:{L['th__letter-spacing']}; color:{MIDNIGHT}; text-align:left; padding:{cp}px {L['th__padding']} {cp}px 0; border-bottom:{L['th__border-bottom']} solid {MIDNIGHT}; }}
+td {{ font-size:{b-L['td__expr']}pt; line-height:{lh}; padding:{cp}px {L['td__padding']} {cp}px 0; border-bottom:{L['td__border-bottom']} solid {HAIR}; vertical-align:top; overflow-wrap:anywhere; text-wrap:pretty; }}
+tbody tr:last-child td {{ border-bottom:{L['tbody_tr_last_child_td__border-bottom']} solid {INK}; }}
 table.src td {{ white-space:nowrap; overflow-wrap:normal; }}
 /* everything in a Sources section is reference material: one small size and fixed compact rows at every density */
-.sec.ref td {{ font-size:8pt; line-height:1.15; padding:1.5px 9px 1.5px 0; }} .sec.ref th {{ font-size:7pt; padding:1px 9px 2px 0; }}
-.sec.ref table {{ margin-bottom:6pt; }}
+.sec.ref td {{ font-size:{L['sec_ref_td__font-size']}; line-height:{L['sec_ref_td__line-height']}; padding:{L['sec_ref_td__padding']} {L['sec_ref_td__padding_2']} {L['sec_ref_td__padding_3']} 0; }} .sec.ref th {{ font-size:{L['sec_ref_th__font-size']}; padding:{L['sec_ref_th__padding']} {L['sec_ref_th__padding_2']} {L['sec_ref_th__padding_3']} 0; }}
+.sec.ref table {{ margin-bottom:{L['sec_ref_table__margin-bottom']}; }}
 table.src td:nth-child(2) {{ white-space:normal; width:100%; }}
-table.grid td {{ font-size:{b}pt; padding:{max(cp - 1, 1)}px 10px {max(cp - 1, 1)}px 0; }}
-table.grid td:first-child {{ width:1.2in; font-weight:700; color:{MIDNIGHT}; }}
-table.grid tbody tr:last-child td {{ border-bottom:0.5px solid {HAIR}; }}
+table.grid td {{ font-size:{b}pt; padding:{max(cp - L['table_grid_td__expr'], L['table_grid_td__expr_2'])}px {L['table_grid_td__padding']} {max(cp - L['table_grid_td__expr_3'], L['table_grid_td__expr_4'])}px 0; }}
+table.grid td:first-child {{ width:{L['table_grid_td_first_child__width']}; font-weight:{L['table_grid_td_first_child__font-weight']}; color:{MIDNIGHT}; }}
+table.grid tbody tr:last-child td {{ border-bottom:{L['table_grid_tbody_tr_last_child_td__border-bottom']} solid {HAIR}; }}
 .pagebreak {{ break-before:page; }}
 .pagebreak .masthead-alt {{ padding-top:0; }}
 """
@@ -393,63 +388,63 @@ def brief_css(rung, footer):
     archivo = base64.b64encode((ASSETS / "archivo-variable.woff2").read_bytes()).decode()
     b, lh, pg, sg, cp = rung["body_pt"], rung["lh"], rung["para"], rung["sec"], rung["cell"]
     return f"""
-@font-face {{ font-family:'Archivo'; font-weight:100 900; src:url(data:font/woff2;base64,{archivo}) format('woff2'); }}
-@page {{ size: Letter; margin: 0.42in 0 0.62in 0;
-  @bottom-left {{ content: "{html.escape(footer)}"; font-family:'Archivo'; font-size:7.2pt; color:{MIDNIGHT}; padding-left:0.55in; }}
-  @bottom-right {{ content: "page " counter(page) " of " counter(pages); font-family:'Archivo'; font-size:7.2pt; color:{MIDNIGHT}; padding-right:0.55in; }} }}
-@page :first {{ margin-top:0.30in; }}   /* the logo stamp starts page 1 inside the printable area: a negative margin clipped its top */
+@font-face {{ font-family:'Archivo'; font-weight:{L['font_face__font-weight_3']} {L['font_face__font-weight_4']}; src:url(data:font/woff2;base64,{archivo}) format('woff2'); }}
+@page {{ size: Letter; margin: {L['page__margin']} 0 {L['page__margin_2']} 0;
+  @bottom-left {{ content: "{html.escape(footer)}"; font-family:'Archivo'; font-size:{SZ['footer']}pt; color:{MIDNIGHT}; padding-left:{L['bottom_left__padding-left_2']}; }}
+  @bottom-right {{ content: "page " counter(page) " of " counter(pages); font-family:'Archivo'; font-size:{SZ['footer']}pt; color:{MIDNIGHT}; padding-right:{L['bottom_right__padding-right_2']}; }} }}
+@page :first {{ margin-top:{L['page_first__margin-top']}; }}   /* the logo stamp starts page 1 inside the printable area: a negative margin clipped its top */
 html {{ -webkit-print-color-adjust:exact; }}
 body {{ font-family:'Archivo', sans-serif; color:{MIDNIGHT}; margin:0; font-size:{b}pt; line-height:{lh}; }}
-.page-content {{ padding:0 0.55in; }}
-.stamp {{ display:flex; justify-content:flex-end; margin:0 -0.05in 3pt 0; }} .stamp img {{ width:90px; height:auto; }}
-.band {{ display:flex; align-items:center; height:18pt; border-bottom:1pt solid {HAIR}; margin-bottom:9pt; }}
-.cls {{ font-size:7.8pt; font-weight:600; letter-spacing:0.16em; color:{MIDNIGHT}; }}
-h1.name {{ font-size:14.2pt; font-weight:700; margin:0 0 2pt; }}
-.part-0 > .sec.pre p:first-child {{ font-size:9pt; font-weight:700; color:{MIDNIGHT}; margin:0 0 4pt; }}
-.part-0 > .sec.pre p + p {{ font-size:7.5pt; color:{MIDNIGHT}; line-height:1.4; margin:0 0 7pt; }}
-.sec.pre p strong {{ font-weight:700; }}
-h1.h, .sec-head {{ display:block; font-size:7.8pt; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:{MIDNIGHT};
-  border-bottom:1pt solid {HAIR}; padding-bottom:3pt; margin:calc({sg}pt + var(--fill, 0px)) 0 5pt; break-after:avoid; }}
+.page-content {{ padding:0 {L['page_content__padding_2']}; }}
+.stamp {{ display:flex; justify-content:flex-end; margin:0 {L['stamp__margin']} {L['stamp__margin_2']} 0; }} .stamp img {{ width:{L['stamp_img__width']}; height:auto; }}
+.band {{ display:flex; align-items:center; height:{L['band__height']}; border-bottom:{L['band__border-bottom']} solid {HAIR}; margin-bottom:{L['band__margin-bottom']}; }}
+.cls {{ font-size:{SZ['band']}pt; font-weight:{L['cls__font-weight']}; letter-spacing:{L['cls__letter-spacing']}; color:{MIDNIGHT}; }}
+h1.name {{ font-size:{SZ['name']}pt; font-weight:{L['h1_name__font-weight']}; margin:0 0 {L['h1_name__margin']}; }}
+.part-0 > .sec.pre p:first-child {{ font-size:{SZ['preline']}pt; font-weight:{L['part_0_sec_pre_p_first_child__font-weight']}; color:{MIDNIGHT}; margin:0 0 {L['part_0_sec_pre_p_first_child__margin']}; }}
+.part-0 > .sec.pre p + p {{ font-size:{SZ['meta']}pt; color:{MIDNIGHT}; line-height:{L['part_0_sec_pre_p_p__line-height']}; margin:0 0 {L['part_0_sec_pre_p_p__margin']}; }}
+.sec.pre p strong {{ font-weight:{L['sec_pre_p_strong__font-weight']}; }}
+h1.h, .sec-head {{ display:block; font-size:{SZ['sec_head']}pt; font-weight:{L['h1_h_sec_head__font-weight']}; letter-spacing:{L['h1_h_sec_head__letter-spacing']}; text-transform:uppercase; color:{MIDNIGHT};
+  border-bottom:{L['h1_h_sec_head__border-bottom']} solid {HAIR}; padding-bottom:{L['h1_h_sec_head__padding-bottom']}; margin:calc({sg}pt + var(--fill, 0px)) 0 {L['h1_h_sec_head__margin']}; break-after:avoid; }}
 /* one heading rhythm: a block's last line carries no bottom margin, so every head sits {sg}pt below the text above it */
 .sec-body > :last-child, .sec-body > :last-child > li:last-child {{ margin-bottom:0; }}
-h1.h {{ margin-top:0; }} .part-1 > .sec.pre p {{ font-size:7.5pt; color:{MIDNIGHT}; margin:-2pt 0 5pt; }}
+h1.h {{ margin-top:0; }} .part-1 > .sec.pre p {{ font-size:{SZ['meta']}pt; color:{MIDNIGHT}; margin:{L['part_1_sec_pre_p__margin']} 0 {L['part_1_sec_pre_p__margin_2']}; }}
 p {{ margin:0 0 {pg}pt; }} p.lbl {{ margin:0 0 {pg}pt; }}
-ul, ol {{ margin:0 0 {pg}pt; padding-left:11pt; }} li {{ margin:0 0 calc(3pt + var(--fill, 0px) / 4); }} li > ul, li > ol {{ margin:1pt 0 0; }}
-strong {{ font-weight:700; }} em {{ font-style:italic; }}
-a {{ color:{MIDNIGHT}; text-decoration:underline; text-decoration-thickness:0.5px; text-underline-offset:1.5px; }}
-.cite {{ color:{MIDNIGHT}; font-size:0.8em; font-weight:500; }}
-.sub {{ font-size:8.8pt; font-weight:700; margin:2pt 0 3pt; }} .sec-b9 .sub {{ margin-top:calc(7pt + var(--fill, 0px) / 2); }} .sec-b9 .sub:first-child {{ margin-top:0; }}
-.two {{ display:grid; grid-template-columns:1fr 1fr; column-gap:0.28in; align-items:start; break-inside:avoid; }}
-@media screen {{ body {{ width:8.5in; }} }}   /* BALANCE measures at the printed width */
+ul, ol {{ margin:0 0 {pg}pt; padding-left:{L['ul_ol__padding-left_2']}; }} li {{ margin:0 0 calc({L['li__margin']} + var(--fill, {L['li__margin_2']}) / 4); }} li > ul, li > ol {{ margin:{L['li_ul_li_ol__margin']} 0 0; }}
+strong {{ font-weight:{L['strong__font-weight_2']}; }} em {{ font-style:italic; }}
+a {{ color:{MIDNIGHT}; text-decoration:underline; text-decoration-thickness:{L['a__text-decoration-thickness_2']}; text-underline-offset:{L['a__text-underline-offset_2']}; }}
+.cite {{ color:{MIDNIGHT}; font-size:{L['cite__font-size_2']}; font-weight:{L['cite__font-weight_2']}; }}
+.sub {{ font-size:{SZ['sub']}pt; font-weight:{L['sub__font-weight_2']}; margin:{L['sub__margin_2']} 0 {L['sub__margin_3']}; }} .sec-b9 .sub {{ margin-top:calc({L['sec_b9_sub__margin-top']} + var(--fill, {L['sec_b9_sub__margin-top_2']}) / 2); }} .sec-b9 .sub:first-child {{ margin-top:0; }}
+.two {{ display:grid; grid-template-columns:{L['two__grid-template-columns']} {L['two__grid-template-columns_2']}; column-gap:{L['two__column-gap']}; align-items:start; break-inside:avoid; }}
+@media screen {{ body {{ width:{L['body__width']}; }} }}   /* BALANCE measures at the printed width */
 /* the schema's page 2 opens on Who decides | Strongest case against: B1-B6 are page 1, even when page 1 has room */
 .part-0 .two:has(.sec-b7), .part-0 > .sec-b7 {{ break-before:page; }} .part-0 .sec-b7 .sec-head, .part-0 .sec-b8 .sec-head {{ margin-top:{sg}pt; }}
 .sec-b1 .sec-head {{ display:none; }}
-.sec-b1 .sec-body {{ background:{MIDNIGHT}; color:{WHITE}; font-size:{b}pt; line-height:1.4; padding:8pt 11pt; border-radius:6pt; margin-top:2pt; }}
+.sec-b1 .sec-body {{ background:{MIDNIGHT}; color:{WHITE}; font-size:{b}pt; line-height:{L['sec_b1_sec_body__line-height']}; padding:{L['sec_b1_sec_body__padding']} {L['sec_b1_sec_body__padding_2']}; border-radius:{L['sec_b1_sec_body__border-radius']}; margin-top:{L['sec_b1_sec_body__margin-top']}; }}
 .sec-b1 p {{ margin:0; }} .sec-b1 strong, .sec-b1 a, .sec-b1 .cite {{ color:{WHITE}; }}
-.sec-b2 ol {{ padding-left:15pt; }} .sec-b2 ol > li {{ font-size:{b + 0.9}pt; font-weight:600; }}
-.sec-b2 li > ul {{ list-style:none; padding-left:0; }} .sec-b2 li li {{ font-size:7.8pt; font-weight:400; color:{MIDNIGHT}; margin:0; }}
+.sec-b2 ol {{ padding-left:{L['sec_b2_ol__padding-left']}; }} .sec-b2 ol > li {{ font-size:{b + L['sec_b2_ol_li__expr']}pt; font-weight:{L['sec_b2_ol_li__font-weight']}; }}
+.sec-b2 li > ul {{ list-style:none; padding-left:0; }} .sec-b2 li li {{ font-size:{SZ['decides']}pt; font-weight:{L['sec_b2_li_li__font-weight']}; color:{MIDNIGHT}; margin:0; }}
 .sec-b2 li li strong {{ color:{MIDNIGHT}; }}
 table {{ border-collapse:collapse; width:100%; margin:0 0 {pg}pt; break-inside:avoid; }} tr {{ break-inside:avoid; }}
 table.src {{ break-inside:auto; }}
-th {{ text-align:left; font-size:7.4pt; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:{MIDNIGHT};
-  padding:0 6pt 3pt 0; border-bottom:1pt solid {HAIR}; }}
-td {{ vertical-align:top; padding:calc({cp}pt + var(--fill, 0px) / 4) 6pt calc({cp}pt + var(--fill, 0px) / 4) 0; border-bottom:0.6pt solid {HAIR}; text-wrap:pretty; }}
+th {{ text-align:left; font-size:{SZ['th']}pt; font-weight:{L['th__font-weight_2']}; letter-spacing:{L['th__letter-spacing_2']}; text-transform:uppercase; color:{MIDNIGHT};
+  padding:0 {L['th__padding_2']} {L['th__padding_3']} 0; border-bottom:{L['th__border-bottom_2']} solid {HAIR}; }}
+td {{ vertical-align:top; padding:calc({cp}pt + var(--fill, 0px) / 4) {L['td__padding_2']} calc({cp}pt + var(--fill, 0px) / 4) 0; border-bottom:{L['td__border-bottom_2']} solid {HAIR}; text-wrap:pretty; }}
 .sec-b5 td:first-child {{ width:var(--c1, 48%); }} .sec-b6 td:first-child {{ width:var(--c1, 55%); }} .sec-b8 td:first-child {{ width:var(--c1, 50%); }}
-.sec-b6 td {{ padding-top:calc({max(cp - 0.6, 0.8)}pt + var(--fill, 0px) / 4); padding-bottom:calc({max(cp - 0.6, 0.8)}pt + var(--fill, 0px) / 4); }}
-.sec-b6 p.noread {{ margin:2pt 0 {pg}pt; }}
+.sec-b6 td {{ padding-top:calc({max(cp - L['sec_b6_td__expr'], L['sec_b6_td__expr_2'])}pt + var(--fill, 0px) / 4); padding-bottom:calc({max(cp - L['sec_b6_td__expr_3'], L['sec_b6_td__expr_4'])}pt + var(--fill, 0px) / 4); }}
+.sec-b6 p.noread {{ margin:{L['sec_b6_p_noread__margin']} 0 {pg}pt; }}
 /* the ledger block (B10) is one scale: its note line small, its table and its label grid one size, one grid */
-.sec-b10 .sec-body > p:first-child {{ font-size:7.5pt; color:{MIDNIGHT}; margin:0 0 3pt; }}
-.sec-b10 table td {{ font-size:8pt; line-height:1.3; padding:calc(1.6pt + var(--fill, 0px) / 4) 8pt calc(1.6pt + var(--fill, 0px) / 4) 0; }}
-table.src td {{ white-space:nowrap; }} table.src td:nth-child(1) {{ width:4%; }} table.src td:nth-child(2) {{ white-space:normal; width:auto; }}
-table.src td:nth-child(3) {{ width:20%; }} table.src td:nth-child(4), table.src td:nth-child(5) {{ width:11%; }}
-table.src td:first-child .cite {{ font-size:1em; color:{MIDNIGHT}; font-variant-numeric:tabular-nums; }}
-table.src td.grade {{ font-size:7pt; font-weight:500; letter-spacing:0.05em; text-transform:uppercase; color:{MIDNIGHT}; }}
-table.src td.g-derived, table.src td.g-inference, table.src td.g-not {{ font-weight:700; }}
-table.grid {{ margin-top:6pt; }} table.grid td:first-child {{ width:1.35in; white-space:nowrap; font-weight:700; }}
-.sec-b10 ul.open {{ margin:0; padding-left:9pt; }} .sec-b10 ul.open li {{ margin:0; }}
-.sec-p9 .sec-head {{ display:none; }} .sec-p9 {{ margin-top:calc(12pt + var(--fill, 0px)); }}
+.sec-b10 .sec-body > p:first-child {{ font-size:{SZ['ledger_note']}pt; color:{MIDNIGHT}; margin:0 0 {L['sec_b10_sec_body_p_first_child__margin']}; }}
+.sec-b10 table td {{ font-size:{SZ['ledger']}pt; line-height:{L['sec_b10_table_td__line-height']}; padding:calc({L['sec_b10_table_td__padding']} + var(--fill, {L['sec_b10_table_td__padding_2']}) / 4) {L['sec_b10_table_td__padding_3']} calc({L['sec_b10_table_td__padding_4']} + var(--fill, {L['sec_b10_table_td__padding_5']}) / 4) 0; }}
+table.src td {{ white-space:nowrap; }} table.src td:nth-child(2) {{ white-space:normal; }}
+table.src td:nth-child(1) {{ width:4%; }} table.src td:nth-child(2) {{ width:36%; }} table.src td:nth-child(3) {{ width:24%; }} table.src td:nth-child(4) {{ width:18%; }} table.src td:nth-child(5) {{ width:14%; }}
+table.src td:first-child .cite {{ font-size:{L['table_src_td_first_child_cite__font-size']}; color:{MIDNIGHT}; font-variant-numeric:tabular-nums; }}
+table.src td.grade {{ font-size:{SZ['grade']}pt; font-weight:{L['table_src_td_grade__font-weight']}; letter-spacing:{L['table_src_td_grade__letter-spacing']}; text-transform:uppercase; color:{MIDNIGHT}; }}
+table.src td.g-derived, table.src td.g-inference, table.src td.g-not {{ font-weight:{L['table_src_td_g_derived_table_src_td_g_in__font-weight']}; }}
+table.grid {{ margin-top:{L['table_grid__margin-top']}; }} table.grid td:first-child {{ width:{L['table_grid_td_first_child__width_2']}; white-space:nowrap; font-weight:{L['table_grid_td_first_child__font-weight_2']}; }}
+.sec-b10 ul.open {{ margin:0; padding-left:{L['sec_b10_ul_open__padding-left']}; }} .sec-b10 ul.open li {{ margin:0; }}
+.sec-p9 .sec-head {{ display:none; }} .sec-p9 {{ margin-top:calc({L['sec_p9__margin-top']} + var(--fill, {L['sec_p9__margin-top_2']})); }}
 /* page 3 reads as one flow down the left column and on into the right; a bullet never splits, a head keeps its first line */
-.part-1 .two {{ display:block; columns:2; column-gap:0.28in; }} .part-1 .two > div {{ display:contents; }}
+.part-1 .two {{ display:block; columns:2; column-gap:{L['part_1_two__column-gap']}; }} .part-1 .two > div {{ display:contents; }}
 .part-1 li, .part-1 p {{ break-inside:avoid; }}
 .part-1 .two > div:first-child > .sec:first-child .sec-head {{ margin-top:{sg}pt; }}
 .pagebreak {{ break-before:page; }}

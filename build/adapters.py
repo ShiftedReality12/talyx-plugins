@@ -44,7 +44,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 PLUGIN = ROOT / "plugins" / "pcp"
 SRC = {k: v for k, v in json.loads((ROOT / "build" / "plugin.source.json").read_text()).items() if not k.startswith("_")}
 META = {k: SRC[k] for k in ("name", "version", "description", "author", "homepage", "repository", "license", "keywords")}
-RENDERER = ["format/talyx_pdf.py", "format/assets/archivo-variable.woff2", "format/assets/talyx-logo-navy-base64.txt"]
+RENDERER = ["format/talyx_pdf.py", "format/layout.json", "format/assets/archivo-variable.woff2", "format/assets/talyx-logo-navy-base64.txt"]
 # the plug-in files each skill's instructions name (v2.0.0 paths, relative to the plug-in)
 NAMED = {"pre-call-prep": ["eval.py", "pcp.yaml", "pcp.json", *RENDERER, "evals/debrief_template.yaml", "evals/ratchet.json"],
          "talyx-pdf": RENDERER}
@@ -96,13 +96,19 @@ CHAT_ROWS = {
     "CAL-2": {"text": "A skipped answer takes the first (Recommended) option and is stored with defaulted:true; the heading shows Prepared for and Depth.",
               "test": "Skip Q5 -- the Saved setup block shows Q5 standard, defaulted true; the heading reads \"Depth: standard\"."},
     "CAL-3": None,   # the improve loop is a script
+    "CAL-5": {"text": "Ask with the host's own question tool when it has one (first option recommended); only where it has none, type the questions in the reply, numbered, ending 'Reply with your answers, or reply skip and I'll go on without them.' Say in one line what skip does, then stop until the user answers. When the request names a business, offer or domain other than the saved offer, ask which to use before any search.",
+              "test": "A request about AI meeting prep with a saved transaction-advisory offer -- the reply asks which offer to use before it researches."},
     "CAL-4": {"text": "Files the user attaches about their business are read once; a summary of at most 150 words goes in the Saved setup block under context. Facts from them are tagged Yours, never presented as public. Supported: .pdf .docx .md .txt .csv. Any other file gets one line naming the supported types, and the Saved setup block is not changed.",
               "test": "Attach a one-page file -- the updated Saved setup block holds its summary, and a fact from it carries tag Yours. Attach a .pptx -- one line names the supported types and no new block is given."},
     "S2-2": {"test": "A claim missing any field is dropped and counted in coverage.dropped."},
-    "S2-9": {"test": "A reply whose searches skip a round its depth enables, send fewer than the battery's queries in a round or too few with operators, start before the Round 1 line, or whose Run row counts differ from the searches sent, fails."},
+    "S2-10": {"test": "A reply that prints a round, a list of queries or a progress note between its first search and the brief fails."},
+    "S1-4": {"text": "Ask the user only as the Socratic questions section says: when a trigger fires, at most 2 questions after setup, in one message, each skippable, asked with the host's question tool where it has one and waited for. The offer-conflict trigger fires before the first search: when the request names a business, offer or domain other than the saved offer (Q8), ask which to use.",
+             "test": "An intake with an objective and no relationship -- the reply asks nothing before it researches. A request about AI meeting prep with a saved transaction-advisory offer -- it asks which offer to use first."},
+    "S2-9": {"test": "A reply whose searches skip a source type's own query or a round its depth enables, send fewer than the battery's queries in a round or too few with operators, print a round or its queries in the reply, or whose Run row counts differ from the searches sent, fails."},
     "S4-1": {"test": "Check C2 finds unbound > 0 -- the answer is rewritten before it is delivered."},
     "S4-3": None, "S4-4": None,   # the PDF renderer
-    "S4-10": {"text": "This host cannot make the PDF, so always deliver the full brief in the chat, never a summary: first line exactly 'Intelligence Brief (in chat: this app cannot make the PDF, so the same 3 pages follow as text)'; the heading lines; '--- Page 1 ---' and B1-B6; '--- Page 2 ---' and B7-B10 with the 5-column ledger and its Coverage / Still open / Left out on purpose / Run rows; '--- Page 3 ---' and '# Meeting script' with P1-P9. Same blocks, order, titles, word budgets, citations, grades and plain-words rules. Apply the checks yourself and end with 'Checks: self-reviewed, not run as code'.",
+    "S2-11": None, "S4-12": None, "S4-13": None,   # background jobs, records and the assembler are scripts
+    "S4-10": {"text": "This host cannot make the PDF, so always deliver the full brief in the chat, never a summary: first line exactly 'Intelligence Brief (in chat: this app cannot make the PDF, so the same 3 pages follow as text)'; the heading lines; '--- Page 1 ---' and B1-B6; '--- Page 2 ---' and B7-B10 with the 5-column ledger and its Coverage / Still open / Left out on purpose / Run rows; '--- Page 3 ---' and '# Meeting script' with P1-P9. Same blocks, order, titles, word budgets, citations and plain-words rules, in the forms table's exact structure and labels. Every ledger row's Source cell ends ' · ' and how it was found (Direct, Search, LinkedIn or Yours); its Grade cell reads 'Measured · Strong' (grade, then strength: Strong, Solid, Weak or Inferred, keyed in the ledger's note line); a weak source never reads Strong or Solid. Apply the checks yourself and end with 'Checks: self-reviewed, not run as code'.",
               "test": "The reply holds the label, the three page markers and every block title in order."},
     "S4-5": {"text": "The heading's meta line carries meeting, prepared for, depth, sources, status and date; the ledger's Run row carries the run details.",
              "test": "The heading has all six fields."},
@@ -116,8 +122,10 @@ CHAT_INPUTS = {"arguments": {"type": "'Full Name, Organisation' | a pasted list"
 CHAT_STAGE0 = """This host runs no scripts. The saved setup is the **Saved setup** block at the end of this knowledge file.
 
 - Every question has a saved answer there -- use them silently. Ask nothing.
-- Otherwise ask ONLY the unanswered questions, in one chat message with the options numbered as in the table (a label
-  such as 'Sales / BD' is one option), first option recommended.
+- Otherwise ask ONLY the unanswered questions with the host's own question tool if it has one (first option recommended);
+  only where it has none, in one chat message with the options numbered as in the table (a label such as 'Sales / BD'
+  is one option), first option recommended, ending 'Reply with your answers, or reply skip and I'll use the recommended ones.'
+  Then wait for the reply.
 - A skipped question takes its first (Recommended) option, marked defaulted.
 - Then output the complete updated **Saved setup** block in the same YAML shape -- each answer as
   `Q1: {value: <option value or your text>, defaulted: false}` under `profiles: default: answers:` -- and tell
@@ -146,7 +154,7 @@ Follow the knowledge file pcp-knowledge exactly, in stage order: calibrate, inta
 
 Calibration is asked once. The Saved setup block at the end of pcp-knowledge holds the saved answers. Ask only the questions it has no answer for, then give the user the updated block to paste into their copy of pcp-knowledge. Never say it was saved: only the user can update that file.
 
-Never start research without a full name and an organisation. If two people match, stop and ask. Public sources found by web search in rounds; LinkedIn only as its search results show it, never opened. A LinkedIn profile the user saves as a PDF and attaches is read as their file. Every fact carries a numbered citation to a source you actually opened. Say what you could not find before what you found. Never invent a fact, a quote or a source.
+Never start research without a full name and an organisation. If two people match, stop and ask. Research each source type with its own query first, then the five search rounds on top; show one short status line, never the rounds or their queries. LinkedIn only as its search results show it, or the one address the user gives; never signed in. A LinkedIn profile the user saves as a PDF and attaches is read as their file. Every fact carries a numbered citation to a source you actually opened. Say what you could not find before what you found. Never invent a fact, a quote or a source.
 
 This host has no PDF renderer and runs no code. Apply the checks yourself and say they were self-checked. Deliver one document and say it is not the Talyx PDF.
 """
@@ -167,7 +175,7 @@ def _chat_registry(R):
         s["inputs"] = [{**i, **CHAT_INPUTS[i["name"]]} if i["name"] in CHAT_INPUTS else i for i in s["inputs"]]
         if s["id"] == "S4":
             s.pop("outputs", None)   # brief.md, script.md and the PDF are files
-    C["checks"] = [c for c in C["checks"] if c.get("id") not in ("C10", "C20")]   # the page count and print colours are the PDF's
+    C["checks"] = [c for c in C["checks"] if c.get("id") not in ("C10", "C20", "C21", "C22", "C23", "C24", "C26")]   # the PDF's, and the ones that read a history, records or an assembled file
     # the in-chat self-check is the same as the plug-in's: its ledger rules and worked examples, from pcp.yaml
     src = next(r for st in R["stages"] for r in st["rows"] if r["id"] == "S4-10")["text"]
     rules = re.search(r"(Build the ledger from your claim list.*?) If a code tool exists.*?against these worked examples: (.*?) End with ", src)
@@ -208,6 +216,9 @@ def chat_knowledge():
                   "Word budgets are length limits: cut to fit, never run over (check C6).", text)
     checks = "\n".join(["| Id | Check | Passes when |", "|---|---|---|"] +
                        [f"| {c['id']} | {c['name']} | {c['passes_when']} |" for c in C["checks"] if "cmd" in c])
+    text = _section(text, "## Asking questions", "## Asking questions\n\nWhen a question is needed -- of the user, or for the room -- read the Socratic questions section first. Ask with the host's own question tool when it has one (first option recommended); only where it has none, type the questions in the reply, numbered, ending 'Reply with your answers, or reply skip and I'll go on without them.' Say in one line what skip does, then stop until the user answers; do no research meanwhile.\n\n", "## Records (C23)")
+    text = _section(text, "## Records (C23)", "", "## Source families")   # records are files
+    text = _section(text, "## fields.json", "", "## Checks")           # the assembler is a script
     text = _section(text, "## Checks", f"## Checks (all pass before delivery)\n\n{checks}\n\n", "## Render")
     text = _section(text, "## Render", CHAT_DELIVER.format(**n), "## About")
     socratic = rs.render_socratic(R, hashlib.sha256(raw).hexdigest()[:12]).split("\n", 2)[2]   # without its generated-file header

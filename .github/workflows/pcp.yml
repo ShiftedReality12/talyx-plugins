@@ -20,6 +20,10 @@ jobs:
         run: |
           python3 plugins/pcp/render_skill.py --check
           python3 plugins/pcp/eval.py concordance
+      - name: No drift from the original plug-in (2.1.0); no hard-coded value in the render scripts
+        run: |
+          python3 plugins/pcp/eval.py parity
+          python3 plugins/pcp/eval.py hardcoded
       - name: Every check is proven able to fail; two PDFs rendered and read back
         run: python3 plugins/pcp/eval.py self-test --require-pdf
       - name: Every host's files are up to date
