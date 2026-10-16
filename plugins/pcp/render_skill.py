@@ -175,7 +175,7 @@ What they may want (depth deep only): <= {R['rubric']['ach']['max_hypotheses']} 
 ## The PDF: pages 1-2, the {n['deliverable']}
 
 `brief.md` starts with `# Full Name`, then the identity line (`**Organization** | Role, since year | City, if public`),
-then the meta line (`Meeting: ... | Prepared for: ... | Depth: ... | Sources: n of 12 source types, n cited | Status FULL or LIMITED | Prepared Mon D, YYYY`).
+then the meta line (`Meeting: ... | Prepared for: ... | Depth: ... | Sources: <types> of 12 source types, <the ledger's fact count> cited | Status FULL or LIMITED | Prepared Mon D, YYYY`).
 Then one `## Bn Title` per block, in order. Word budgets are the page budget; the renderer fails, never spills, past {pb['total_pages']} pages.
 
 | Id | Block | Words | Prints when | Content |

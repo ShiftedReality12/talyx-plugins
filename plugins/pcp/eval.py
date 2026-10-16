@@ -168,6 +168,13 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
 
     if want("cites"):
         fails += cite_relevance(brief_md)
+        mast = re.search(r"Sources: (\d+) of \d+ source types, (\d+) cited", brief_md)   # R12, R12c (Oct 16) printed
+        line = re.search(r"(\d+) facts cited; status \w+ at (\d+) of \d+ source types", brief_md)   # the type count twice
+        rows = len({m.group(1) for m in SRC_ROW.finditer(secs.get(LEDGER, ""))})
+        if mast and rows and int(mast.group(2)) != rows:
+            fails.append(f"C17 cites: the masthead says {mast.group(2)} cited; the ledger lists {rows} facts")
+        if mast and line and mast.group(1) != line.group(2):
+            fails.append(f"C17 cites: the masthead says {mast.group(1)} source types; the ledger line says {line.group(2)}")
     if want("quality"):
         fails += source_quality(ledger(brief_md))
         run = re.search(r"\*\*Run\*\*\s*\|\s*([A-Z][a-z]{2} \d{1,2}, \d{4})", brief_md)
@@ -555,6 +562,8 @@ def self_test(require_pdf=False):
         ("C14 on '(Unconfirmed)'", "C14", c12.replace("the introduction to the custodian [12]", "the custodian (Unconfirmed) [12]")),
         ("C16 on 'read from your file' while a ledger row cites a LinkedIn profile page", "C16",
          (fx / "linkedin_search.md").read_text().replace("read from search results", "read from your file")),
+        ("C17 on a masthead that prints the source-type count as the facts cited", "C17",
+         c12.replace("source types, 12 cited", "source types, 10 cited")),
         ("C16 on a LinkedIn row cited as linkedin.com, not as its search result", "C16",
          (fx / "linkedin_search.md").read_text().replace("Fact 6 about Alder Grey Capital | [linkedin.com, search result]",
                                                         "Fact 6 about Alder Grey Capital | [linkedin.com]")),
