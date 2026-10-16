@@ -1836,7 +1836,8 @@ def _content_words(t):
     return {w for w in re.findall(r"\b(?:ai|[a-z][a-z'-]{2,})\b", t.lower()) if w not in STOP}
 
 
-STOP = set("the and for are but not you your with that this from have has had was were will can could would should about into over than then them they their "
+STOP = set("ai software platform solution solutions service services tool tools technology company business "   # words every offer shares: they never show two offers are the same
+           "the and for are but not you your with that this from have has had was were will can could would should about into over than then them they their "
            "who what when where which how why any all one two out our its his her him she who whom also use used using per via get got let may might "
            "meeting call prep prepare first second time want need new".split())
 
