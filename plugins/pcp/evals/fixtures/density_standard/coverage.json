@@ -1,0 +1,137 @@
+{
+ "base": {
+  "F1": [
+   "\"Satya Nadella\" \"Microsoft\" Chairman and CEO"
+  ],
+  "F2": [
+   "\"Satya Nadella\" Microsoft career OR joined OR appointed OR promoted"
+  ],
+  "F3": [
+   "\"Microsoft\" news OR announces OR partnership OR acquisition OR raises 2026"
+  ],
+  "F4": [
+   "microsoft.com about OR mission"
+  ],
+  "F5": [
+   "\"Satya Nadella\" interview OR podcast OR panel OR quoted OR keynote"
+  ],
+  "F6": [
+   "\"Satya Nadella\" site:x.com OR site:substack.com OR site:bsky.app"
+  ],
+  "F7": [
+   "\"Satya Nadella\" board OR trustee OR advisory OR member OR association OR alumni"
+  ],
+  "F8": [
+   "\"Satya Nadella\" author OR paper OR patent OR whitepaper OR book"
+  ],
+  "F10": [
+   "\"Satya Nadella\" OR \"Microsoft\" conference OR summit OR webinar 2026"
+  ],
+  "F12": [
+   "\"Microsoft\" lawsuit OR layoffs OR departure OR decline OR criticism"
+  ]
+ },
+ "rounds": [
+  {
+   "round": 1,
+   "name": "identity lock",
+   "queries": [
+    "\"Satya Nadella\" \"Microsoft\" identity lock 0",
+    "\"Satya Nadella\" \"Microsoft\" identity lock 1",
+    "\"Satya Nadella\" \"Microsoft\" identity lock 2",
+    "\"Satya Nadella\" \"Microsoft\" identity lock 3"
+   ],
+   "ignored_operators": []
+  },
+  {
+   "round": 2,
+   "name": "role and history",
+   "queries": [
+    "\"Satya Nadella\" \"Microsoft\" role and history 0",
+    "\"Satya Nadella\" \"Microsoft\" role and history 1",
+    "\"Satya Nadella\" \"Microsoft\" role and history 2",
+    "\"Satya Nadella\" \"Microsoft\" role and history 3"
+   ],
+   "ignored_operators": []
+  },
+  {
+   "round": 3,
+   "name": "last 90 days",
+   "queries": [
+    "\"Satya Nadella\" \"Microsoft\" last 90 days 0",
+    "\"Satya Nadella\" \"Microsoft\" last 90 days 1",
+    "\"Satya Nadella\" \"Microsoft\" last 90 days 2",
+    "\"Satya Nadella\" \"Microsoft\" last 90 days 3"
+   ],
+   "ignored_operators": []
+  },
+  {
+   "round": 4,
+   "name": "their own words",
+   "queries": [
+    "\"Satya Nadella\" \"Microsoft\" their own words 0",
+    "\"Satya Nadella\" \"Microsoft\" their own words 1",
+    "\"Satya Nadella\" \"Microsoft\" their own words 2",
+    "\"Satya Nadella\" \"Microsoft\" their own words 3"
+   ],
+   "ignored_operators": []
+  },
+  {
+   "round": 5,
+   "name": "gaps and counter-evidence",
+   "queries": [
+    "\"Satya Nadella\" \"Microsoft\" gaps and counter-evidence 0",
+    "\"Satya Nadella\" \"Microsoft\" gaps and counter-evidence 1",
+    "\"Satya Nadella\" \"Microsoft\" gaps and counter-evidence 2",
+    "\"Satya Nadella\" \"Microsoft\" gaps and counter-evidence 3"
+   ],
+   "ignored_operators": []
+  }
+ ],
+ "searches": 30,
+ "attempted": [
+  "F1",
+  "F2",
+  "F3",
+  "F4",
+  "F5",
+  "F10",
+  "F11",
+  "F12"
+ ],
+ "families_attempted": 8,
+ "families_total": 12,
+ "hits_by_family": {
+  "F1": 1,
+  "F2": 2,
+  "F3": 3,
+  "F4": 1,
+  "F5": 6,
+  "F6": 0,
+  "F7": 0,
+  "F8": 0,
+  "F9": 0,
+  "F10": 2,
+  "F11": 1,
+  "F12": 2
+ },
+ "c1c2_by_family": {
+  "F1": 1,
+  "F2": 2,
+  "F3": 3,
+  "F4": 1,
+  "F5": 2,
+  "F6": 0,
+  "F7": 0,
+  "F8": 0,
+  "F9": 0,
+  "F10": 2,
+  "F11": 0,
+  "F12": 2
+ },
+ "failed_urls": [],
+ "excluded": 0,
+ "dropped": 0,
+ "linkedin": "not read: no matching profile",
+ "status": "LIMITED"
+}

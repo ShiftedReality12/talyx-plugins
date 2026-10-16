@@ -1,0 +1,11 @@
+pcp_profile_format: 1
+profiles:
+  default:
+    answers:
+      Q1: {value: principal, defaulted: false}
+      Q2: {value: general, defaulted: false}
+      Q4: {value: intro, defaulted: false}
+      Q5: {value: standard, defaulted: false}
+      Q7: {value: us, defaulted: false}
+      Q9: {value: experienced, defaulted: false}
+      Q8: {value: AI meeting prep for executive teams, defaulted: false}

@@ -833,6 +833,23 @@ def self_test(require_pdf=False):
         print(f"tripped: C28 --strict on the {ps['open']} decisions that are still open")
     else:
         print("FAIL parity --strict must fail an open decision"); ok = False
+    # ---- D2 (a LinkedIn address the user gives may be read, no other) and MUST-FIX 8 (a subagent's own text is not the reply)
+    li_url = "https://www.linkedin.com/in/jane-doe-example"
+    user_msg = json.dumps({"type": "user", "message": {"role": "user", "content": f"Jane Doe, Alder Grey Capital. Her profile: {li_url}"}})
+    fetch_li = lambda u: json.dumps({"type": "assistant", "message": {"id": "m-li", "content": [{"type": "tool_use", "id": "t-li", "name": "WebFetch", "input": {"url": u}}]}})
+    g = battery([user_msg, fetch_li(li_url)] + bt[1:], "standard", ROW)[0]
+    o = battery([user_msg, fetch_li("https://www.linkedin.com/in/someone-else")] + bt[1:], "standard", ROW)[0]
+    if any("linkedin.com page was requested" in x for x in g) or not any("did not give" in x for x in o):
+        print("FAIL D2: a LinkedIn page the user gave passes C21, any other linkedin.com page fails:", g, o); ok = False
+    else:
+        print("passes: D2 C21 allows the one LinkedIn address the user gave; tripped by any other linkedin.com page")
+    side = json.dumps({"type": "assistant", "isSidechain": True, "message": {"id": "sub1", "content": [{"type": "text", "text": "Round 2 (role): query | query | query | query, searching now."}]}})
+    mid = next(i for i, ln in enumerate(bt) if "Round 3" in ln)
+    f = battery(bt[:mid] + [side] + bt[mid:], "standard", ROW)[0]
+    if any("quiet" in x for x in f):
+        print("FAIL a subagent's own text (isSidechain) must not count as the reply:", f); ok = False
+    else:
+        print("passes: C21 does not count a subagent's own text as the reply, and still counts its searches")
     # ---- quiet research (S2-10): rounds and progress stay out of the reply
     def msg(kind, text):
         return json.dumps({"type": "assistant", "message": {"content": [{"type": kind, kind if kind == "thinking" else "text": text}]}})
@@ -1105,6 +1122,34 @@ def pdf_self_test(fx):
         print("passes: B9 subheads lettered A, B, C by position when the brief letters only the first")
     else:
         print("FAIL B9 subheads must be lettered A, B, C by position:", heads); ok = False
+    # ---- D3 density proof: 18 cited facts, 9.5 pt and up, assembled from fields.json, rendered headless to the 3 pages the schema allows
+    dd = fx / "density_standard"
+    with tempfile.TemporaryDirectory() as tmp2:
+        import yaml as _y
+        for fn in ("claims.jsonl", "coverage.json", "read.json", "fields.json"):
+            pathlib.Path(tmp2, fn).write_text((dd / fn).read_text())
+        brief_d, script_d, probs_d = assemble(tmp2, _y.safe_load((dd / "profile.yaml").read_text()))
+        pathlib.Path(tmp2, "brief.md").write_text(brief_d); pathlib.Path(tmp2, "script.md").write_text(script_d)
+        out_d = pathlib.Path(tmp2, "out.pdf")
+        cmd = [sys.executable, str(HERE / "format/talyx_pdf.py"), "--style", "brief", "--brief", str(pathlib.Path(tmp2, "brief.md")), "--script", str(pathlib.Path(tmp2, "script.md")),
+               "--columns", pb["columns"], "--classification", n["classification"], "--footer", f"{n['deliverable']} · Satya Nadella, Microsoft",
+               "--brief-pages", str(pb["brief_pages"]), "--max-pages", str(pb["total_pages"]), "--out", str(out_d)]
+        run_d = subprocess.run(cmd, capture_output=True, text=True)
+        try:
+            res = json.loads(run_d.stdout)
+        except ValueError:
+            res = {"ok": False, "reason": run_d.stdout[:120] + run_d.stderr[:120]}
+        rep_d = duf(brief_d, script_d, pb["total_pages"])
+        fails_d = probs_d + ([] if res.get("ok") else [f"render failed: {res.get('reason')}"]) + (pdf_check(out_d, brief_d) or [] if res.get("ok") else []) \
+            + (render_check(out_d) + text_colors(out_d) if res.get("ok") else []) + checks(brief_d, script_d, "all", ["Satya Nadella", "Nadella", "Microsoft", "Copilot"], "experienced", "high") \
+            + records_check(tmp2, "standard", brief_d)
+        floor = min(v["duf_pp"] for v in json.loads((HERE / R["eval"]["ratchet_file"]).read_text())["floors"].values())
+        if fails_d or rep_d["bound"] != 18 or rep_d["duf_pp"] < floor:
+            print(f"FAIL density proof: 18 facts at {min(pb['text_sizes_pt'][k] for k in pb['text_sizes_pt'] if k not in pb['text_floor_exempt'])} pt must fit {pb['total_pages']} pages and pass every check "
+                  f"(bound {rep_d['bound']}, duf_pp {rep_d['duf_pp']} vs floor {floor}):", *fails_d, sep="\n - "); ok = False
+        else:
+            print(f"passes: D3 density: {rep_d['bound']} cited facts, duf_pp {rep_d['duf_pp']} (floor {floor}), every reader-facing size at {pb['text_floor_pt']} pt or more, {res['pages']} pages at the {res['rung']} rung, "
+                  "assembled from fields.json, headless")
     with tempfile.TemporaryDirectory() as tmp:
         for name, layout in (("control_12.md", True), ("jargon.md", True), ("control_12.md", False)):
             md = (fx / name).read_text()
@@ -2424,6 +2469,8 @@ def assemble(folder, profile=None, depth=None):
            "| " + " | ".join(f10["header"]) + " |", "|" + "---|" * len(f10["header"])]
     for i, cid in enumerate(order, 1):
         c = claims[cid]
+        if len(str(c.get("says") or "")) > f10["says_max_chars"]:
+            probs.append(f"C26 assemble: claim {cid}'s 'says' is {len(c['says'])} characters; the ledger row is one line, at most {f10['says_max_chars']}")
         url = str(c.get("url", ""))
         tag = c.get("tag", "Direct")
         if url.startswith("http"):

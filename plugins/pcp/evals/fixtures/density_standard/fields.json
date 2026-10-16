@@ -1,0 +1,188 @@
+{
+ "target": {
+  "name": "Satya Nadella",
+  "org": "Microsoft",
+  "role_since": "Chairman and CEO, since 2014"
+ },
+ "meeting": "First intro: earn a second meeting",
+ "prepared": "Oct 16, 2026",
+ "b1": {
+  "take": "Satya Nadella, Microsoft's Chairman and CEO [c1], names knowledge work a focus [c2]; 30 million paid Copilot seats [c3] are a fraction of 450 million workers [c4].",
+  "evidence": "[c2] [c3] [c4].",
+  "action": "open on adoption past 30 million seats [c3].",
+  "avoid": "spend-led pitches; he calls CapEx talk \"a bug\" [c5]."
+ },
+ "b2": [
+  {
+   "q": "Autopilot handles recurring work and follow-ups [c6]; which meeting tasks does it skip?",
+   "decides": "whether a prep gap exists",
+   "ask": "Satya Nadella"
+  },
+  {
+   "q": "Jared Spataro wrote the Copilot launch post [c7]; who owns executive use?",
+   "decides": "the owner for meeting two",
+   "ask": "Satya Nadella"
+  },
+  {
+   "q": "You build \"long-running Foundry agents\" [c8]; which serve executives' own meetings?",
+   "decides": "fit with his agent plans",
+   "ask": "Satya Nadella"
+  },
+  {
+   "q": "How does \"Use all, but be independent of all\" [c9] apply to small tools?",
+   "decides": "partner or build stance",
+   "ask": "Satya Nadella"
+  },
+  {
+   "q": "After April's buyouts [c10], what must a tool prove to earn an executive team's time?",
+   "decides": "the gate",
+   "ask": "Satya Nadella"
+  }
+ ],
+ "b3": {
+  "role": "Chairman and CEO; named CEO in February 2014 [c11].",
+  "path": "led the Cloud and Enterprise group [c12].",
+  "organization": "mission: empower every person and organization to achieve more [c13].",
+  "changed": [
+   "new Copilot with Autopilot (Sep 25) [c14]",
+   "buyouts for about 7% of US staff (Apr 23) [c10]"
+  ],
+  "wins": [
+   "Azure up 43%, past $100 billion (Jul 29, 2026) [c15]"
+  ]
+ },
+ "b4": {
+  "quotes": [
+   {
+    "label": "On Microsoft's role, All-In, Sep 15, 2026",
+    "quote": "We're a toolmaker.",
+    "cite": "[c16]"
+   },
+   {
+    "label": "On focus, Stratechery, Jun 4, 2026",
+    "quote": "three domains ... coding, security, and knowledge work",
+    "cite": "[c2]"
+   }
+  ]
+ },
+ "b5": [
+  {
+   "observable": "Copilot has about 30 million users against 450 million knowledge workers [c4]",
+   "action": "Adoption is the open gap; any route to daily executive use matters."
+  },
+  {
+   "observable": "Your offer is meeting prep for executive teams [c17]",
+   "action": "Executives walk into every meeting prepared, with no setup."
+  },
+  {
+   "observable": "Results are due October 28, after the market closes [c18]",
+   "action": "His attention is on adoption numbers; context, never pressure."
+  }
+ ],
+ "b6": {
+  "dominance": "names his three focus domains himself [c2]",
+  "information_appetite": "cites seat counts and market size [c3] [c4]",
+  "risk_tolerance": "\"independent of all\" while building [c9]"
+ },
+ "b7": {},
+ "b8": {
+  "against": [
+   {
+    "against": "Microsoft's own Autopilot covers recurring work and follow-ups [c6].",
+    "reverses_if": "his team names an executive-prep gap it leaves open."
+   },
+   {
+    "against": "April's buyouts of about 7% of US staff [c10] point to cost scrutiny.",
+    "reverses_if": "you can count the executive hours saved."
+   }
+  ]
+ },
+ "b9": {
+  "frame": "how his executives prepare; not a pitch.",
+  "lands": "\"independent of all\" [c9]: you are replaceable.",
+  "repels": "spend-led pitches [c5].",
+  "bring": "a one-page example brief [c17].",
+  "ask": "30 minutes with him or his owner [c17]",
+  "fallback": "15 minutes with Jared Spataro [c7].",
+  "stop_if": "he says Copilot covers meeting prep.",
+  "meeting_two": "a session with the Copilot owner on seats past 30 million [c3].",
+  "meeting_three": "a pilot with one executive team.",
+  "capture": "who owns it; what Copilot leaves out."
+ },
+ "still_open": [
+  {
+   "label": "Decision maker",
+   "question": "Who owns executive meeting prep at Microsoft?"
+  },
+  {
+   "label": "The gate",
+   "question": "What must a tool prove before executives adopt it?"
+  },
+  {
+   "label": "Relationship holder",
+   "question": "Who does he trust to vet outside tools?"
+  },
+  {
+   "label": "How they take disagreement",
+   "question": "How would you like pushback raised?"
+  }
+ ],
+ "p1": {
+  "hook": "Congratulations on 30 million paid Copilot seats [c3]. You named knowledge work a domain to major on [c2], so I have one question about it.",
+  "credibility": "Talyx builds AI meeting-prep tools for executive teams [c17].",
+  "insight": "Autopilot covers follow-ups [c6]; preparing before the meeting is not in its description.",
+  "rule": "ask one question, then stop; leave the silence after his answer."
+ },
+ "p2": {
+  "beats": [
+   "open on the seat count [c3]",
+   "credibility in one line [c17]",
+   "the insight on Autopilot [c6]",
+   "ask for the second meeting [c17]"
+  ],
+  "order": {
+   "story": 3,
+   "process": 2,
+   "gate": 5,
+   "history": 4,
+   "commitment": 1
+  }
+ },
+ "p3": [
+  {
+   "objection": "Copilot already does this.",
+   "answer": "Autopilot covers follow-ups [c6]; which meeting tasks does it skip?"
+  },
+  {
+   "objection": "No time for another vendor.",
+   "answer": "April's buyouts [c10] show cost care; I ask for 30 minutes, nothing more."
+  },
+  {
+   "objection": "We build, we do not buy.",
+   "answer": "You said \"Use all, but be independent of all\" [c9]; I am replaceable."
+  }
+ ],
+ "p4": {
+  "restate": "ask what would make 30 more minutes an easy yes, then say it back in his words.",
+  "deadline": "his October 28 results [c18] are the next fixed point; offer a slot after it.",
+  "followup": "send the one-page example within one day."
+ },
+ "p5": {
+  "fast": "match his pace; propose once, then ask [c2].",
+  "data": "headline, two proof points, a source on request [c3].",
+  "people": "no read; ask who else weighs in.",
+  "ideas": "pair the upside with the safeguard [c9]."
+ },
+ "p7": {
+  "moves": [
+   "ask which Autopilot gap matters most [c6]",
+   "return to 30 million seats against 450 million workers [c4]"
+  ]
+ },
+ "p8": {
+  "rule": "in the US, promise no results from Microsoft's products; claim only what the public record shows."
+ },
+ "p9": {
+  "next_step": "send the one-page example on Oct 17, 2026 [c17]."
+ }
+}

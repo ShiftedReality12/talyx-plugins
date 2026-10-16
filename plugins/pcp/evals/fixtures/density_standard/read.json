@@ -1,0 +1,53 @@
+[
+ {
+  "dimension": "dominance",
+  "band": "mid",
+  "evidence_tier": "medium",
+  "observation_ids": [
+   2,
+   11
+  ],
+  "meeting_meaning": "Match their pace; propose once, then ask."
+ },
+ {
+  "dimension": "status_sensitivity",
+  "band": "no read",
+  "evidence_tier": "low",
+  "observation_ids": [],
+  "meeting_meaning": "No read"
+ },
+ {
+  "dimension": "information_appetite",
+  "band": "mid",
+  "evidence_tier": "medium",
+  "observation_ids": [
+   3,
+   4
+  ],
+  "meeting_meaning": "Headline, two proof points, a source on request."
+ },
+ {
+  "dimension": "risk_tolerance",
+  "band": "mid",
+  "evidence_tier": "medium",
+  "observation_ids": [
+   9,
+   8
+  ],
+  "meeting_meaning": "Pair the upside with the safeguard in the same sentence."
+ },
+ {
+  "dimension": "ego_vulnerability",
+  "band": "no read",
+  "evidence_tier": "low",
+  "observation_ids": [],
+  "meeting_meaning": "No read"
+ },
+ {
+  "dimension": "competitive_drive",
+  "band": "no read",
+  "evidence_tier": "low",
+  "observation_ids": [],
+  "meeting_meaning": "No read"
+ }
+]

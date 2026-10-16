@@ -159,3 +159,9 @@ decisions:
     date: 2026-10-16
     source: "RESTORE-REPORT.md section 'Schema locks'; messages of Oct 16 1:45-2:15 PM"
     summary: "schema section families changed from none to 166381a76529"
+  - covers: ["lock:forms@63254c8f93ce"]
+    status: approved
+    by: "Daniel (Oct 16: D3 density and 9.5 pt, parameterize layout/sizes, assembled brief, grading design delegated, no-drift guard)"
+    date: 2026-10-16
+    source: "RESTORE-REPORT.md 'Schema locks'; Daniel's messages of Oct 16 1:55-2:15 PM"
+    summary: "schema section forms changed from fcbfb88c38af to 63254c8f93ce"
