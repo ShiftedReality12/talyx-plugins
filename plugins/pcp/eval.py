@@ -665,6 +665,18 @@ def self_test(require_pdf=False):
         tools = [x for x in (e.get("message", {}).get("content") or []) if x.get("type") == "tool_use"] if e.get("type") == "assistant" else []
         single += [json.dumps({"type": "assistant", "message": {"content": [t]}}) for t in tools] if tools else [ln]
     cases.append(("the same searches one per step, no round lines", single, "", "more rounds"))
+    row = "| [{n}] | Fact | [{h}]({u}) | Measured | Oct 1, 2026 |\n"
+    read = (row.format(n=1, h="aldergrey.example", u="https://www.aldergrey.example/team/#jane")
+            + row.format(n=2, h="linkedin.com, search result", u="https://www.linkedin.com/in/jane-doe-example")
+            + "| **Run** | Oct 15, 2026 · standard · US · FULL · 20 searches in 5 rounds |\n")
+    cases.append(("a ledger page the run never opened", bt, read + row.format(n=3, h="news.example", u="https://news.example/jane-doe"), "never opened"))
+    moved = ['{"type": "assistant", "message": {"content": [{"type": "tool_use", "id": "toolu_r", "name": "WebFetch", "input": {"url": "https://old.example/a"}}]}}',
+             '{"type": "user", "message": {"content": [{"type": "tool_result", "tool_use_id": "toolu_r", "content": "REDIRECT DETECTED: https://new.example/a"}]}}']
+    f, _ = battery(bt + moved, "standard", read + row.format(n=3, h="new.example", u="https://new.example/a"))
+    if f:
+        print("FAIL C21 must pass a ledger of opened pages (one by redirect), its LinkedIn row unopened:", f); ok = False
+    else:
+        print("passes: C21 on a ledger whose pages the run opened (www., a fragment, a redirect), LinkedIn cited from its search result")
     for case, lines, brief, want_msg in cases:
         f, _ = battery(lines, "standard", brief)
         if any(want_msg in x for x in f):
@@ -1093,6 +1105,15 @@ def text_colors(pdf):
 OPERATOR = re.compile(r"\b(?:site|intitle|inurl|filetype|after|before|allintitle|allinurl):|\bOR\b|(?:^|\s)-[\"\w]")
 RUN_COUNTS = re.compile(r"(\d+) searches in (\d+) rounds")
 BROWSER_TOOL = re.compile(r"chrome|computer|browser|playwright", re.I)
+URL = re.compile(r"https?://[^\s\"'<>)\]]+")
+
+
+def _page(url):
+    """A URL as the page it names: no scheme, www., fragment, trailing slash or utm_ tags."""
+    import urllib.parse
+    p = urllib.parse.urlsplit(url.strip().rstrip(".,;"))
+    q = "&".join(x for x in p.query.split("&") if x and not x.startswith("utm_"))
+    return p.netloc.lower().removeprefix("www.") + p.path.rstrip("/") + ("?" + q if q else "")
 
 
 def battery_floor(depth):
@@ -1105,17 +1126,25 @@ def battery_floor(depth):
     return need, per, math.ceil(round(per * len(need) * b["operator_share"], 6))
 
 
-def battery(lines, depth="standard", brief=""):
+def battery(lines, depth="standard", brief="", cited=None):
     """C21: the search battery as a run sent it, read from its stream-json transcript (the run's own words and tool
     calls, not its report). Returns (failures, summary). Where the run writes 'Round N (name): ...' lines (in its reply
     or its reasoning), each opens a round and the WebSearch calls after it are that round's queries. Without such
     lines, each step's batch of searches (one assistant message) is one round: S2-9 sends a round's queries together
-    (the R11 runs, Oct 15, kept their round lines to their reasoning in prose and batched each round)."""
-    rounds, cur, early, fails, batches, seen = {}, None, [], [], {}, 0
+    (the R11 runs, Oct 15, kept their round lines to their reasoning in prose and batched each round). With the brief,
+    every page its ledger cites (the PDF's links, or the brief.md's) must be one the run requested, LinkedIn aside:
+    R11b (Oct 15) cited 5 results from their snippets alone."""
+    rounds, cur, early, fails, batches, seen, opened, fetch_ids = {}, None, [], [], {}, 0, set(), set()
     for line in lines:
         try:
             e = json.loads(line)
         except ValueError:
+            continue
+        if e.get("type") == "user" and isinstance(e.get("message", {}).get("content"), list):
+            for x in e["message"]["content"]:   # a fetch that was redirected opened the page it names
+                body = json.dumps(x.get("content")) if x.get("type") == "tool_result" else ""
+                if x.get("tool_use_id") in fetch_ids and re.search(r"redirect", body, re.I):
+                    opened.update(_page(u) for u in URL.findall(body.replace("\\n", " ")))
             continue
         if e.get("type") != "assistant":
             continue
@@ -1134,10 +1163,14 @@ def battery(lines, depth="standard", brief=""):
                         early.append(inp)
                     else:
                         rounds[cur].append(inp)
-                elif name == "WebFetch" and "linkedin.com" in inp.get("url", "").lower():
-                    fails.append(f"C21 battery: a linkedin.com page was requested ({inp['url']}); LinkedIn is read from search results only")
-                elif name == "Bash" and re.search(r"(?:curl|wget)[^\n]*linkedin\.com", inp.get("command", "")):
-                    fails.append("C21 battery: a shell command requested linkedin.com; LinkedIn is read from search results only")
+                elif name == "WebFetch":
+                    opened.add(_page(inp.get("url", ""))); fetch_ids.add(x.get("id"))
+                    if "linkedin.com" in inp.get("url", "").lower():
+                        fails.append(f"C21 battery: a linkedin.com page was requested ({inp['url']}); LinkedIn is read from search results only")
+                elif name == "Bash" and re.search(r"\b(?:curl|wget)\b", inp.get("command", "")):
+                    opened.update(_page(u) for u in URL.findall(inp["command"]))
+                    if re.search(r"(?:curl|wget)[^\n]*linkedin\.com", inp["command"]):
+                        fails.append("C21 battery: a shell command requested linkedin.com; LinkedIn is read from search results only")
                 if BROWSER_TOOL.search(name):
                     fails.append(f"C21 battery: the browser tool {name} was called; research never drives a browser")
     if not rounds:   # no round lines: each step's batch of searches is one round
@@ -1175,6 +1208,11 @@ def battery(lines, depth="standard", brief=""):
             fails.append("C21 battery: the brief's Run row does not say 'N searches in M rounds'")
         elif (int(said.group(1)), int(said.group(2))) != (total, len(done)):
             fails.append(f"C21 battery: the Run row says {said.group(0)}; the transcript shows {total} searches in {len(done)} rounds")
+    pages = list(dict.fromkeys(_page(u) for u in (URL.findall(brief) if cited is None else cited)))
+    unread = [p for p in pages if p and "linkedin.com" not in p and p not in opened]
+    if unread:
+        fails.append(f"C21 battery: the ledger cites {len(unread)} page{'s' * (len(unread) != 1)} the run never opened "
+                     f"({', '.join(unread[:3])}{' ...' if len(unread) > 3 else ''}): open the page behind a result before citing it, or drop its fact")
     return fails, f"{total} searches in {len(done)} rounds {done}, {ops} with an operator or a domain filter"
 
 
@@ -1355,10 +1393,12 @@ def main():
         print("\n".join(f) or "render: nothing clipped, logo whole, no blank band, text in the three colours; 0 failures")
         sys.exit(1 if f else 0)
     if a.cmd == "battery":
-        text = ""
+        text, cited = "", None
         if a.brief:
-            text = "\n".join(pdf_pages(a.brief) or []) if a.brief.lower().endswith(".pdf") else pathlib.Path(a.brief).read_text()
-        f, summary = battery([ln for t in a.transcripts for ln in open(t)], a.depth, text)
+            pdf = a.brief.lower().endswith(".pdf")
+            text = "\n".join(pdf_pages(a.brief) or []) if pdf else pathlib.Path(a.brief).read_text()
+            cited = pdf_links(a.brief) if pdf else None
+        f, summary = battery([ln for t in a.transcripts for ln in open(t)], a.depth, text, cited)
         print(f"battery: {summary}", *[" - " + x for x in f], f"{len(f)} failures", sep="\n")
         sys.exit(1 if f else 0)
     if a.cmd == "ratchet":
