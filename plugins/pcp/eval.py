@@ -397,6 +397,14 @@ def pdf_links(path):
     return [m.decode("latin-1") for m in re.findall(rb"/URI\s*\(([^)]*)\)", pathlib.Path(path).read_bytes())]
 
 
+def link_targets(path):
+    """The links a brief cites: a PDF's link targets, or brief.md's markdown links (S2-8 checks them before render;
+    R12d, Oct 16, ran `links brief.md` and got '0 total' from a reader that took only PDFs)."""
+    if str(path).lower().endswith(".pdf"):
+        return pdf_links(path)
+    return re.findall(r"\]\((https?://[^)\s]+)\)", pathlib.Path(path).read_text())
+
+
 def _flat(t):
     """Letter-spaced, upper-cased headings (E V I D E N C E  L E D G E R) compare as EVIDENCELEDGER."""
     return re.sub(r"\s+", "", t).upper()
@@ -727,6 +735,12 @@ def self_test(require_pdf=False):
             print(f"FAIL C21 on {case}: expected {'a failure' if trips else 'a pass'}, got {got}"); ok = False
         else:
             print(f"{'tripped' if trips else 'passes'}: C21 on {case}")
+    n_md = len(link_targets(fx / "control_12.md"))   # S2-8: links are checked from brief.md before render
+    n_row = len([m for m in SRC_ROW.finditer((fx / "control_12.md").read_text()) if "http" in m.group(3)])
+    if n_md != n_row or not n_md or link_targets(fx / "split_table_pages.txt"):
+        print(f"FAIL links must read brief.md's {n_row} linked ledger rows (got {n_md})"); ok = False
+    else:
+        print(f"passes: links reads brief.md's {n_md} linked ledger rows, as before render")
     pat = re.compile(R["plain_words"]["internal"])   # consumer-facing copy carries no internal notes (render_skill.py, adapters.py)
     leaks = ["not on the page (Ben, Oct 13)", "the Ben/Danny call", "the R10b run", "Optional (AID-62)", "Notes by Gemini",
              "from the meeting notes", "print side by side (Oct 14: a thin run)", "Daniel decides"]
@@ -1379,7 +1393,7 @@ def main():
                    help="the profile's Q9 answer: runs C15 with --all")
     p = sub.add_parser("pdf"); p.add_argument("pdf"); p.add_argument("brief", nargs="?")
     ct = sub.add_parser("cites"); ct.add_argument("brief"); ct.add_argument("--fetch", action="store_true"); ct.add_argument("--claims")
-    lk = sub.add_parser("links"); lk.add_argument("pdf")
+    lk = sub.add_parser("links"); lk.add_argument("pdf", metavar="brief.md|OUT.pdf")
     rc = sub.add_parser("render"); rc.add_argument("pdf")
     bt = sub.add_parser("battery"); bt.add_argument("transcripts", nargs="+", help="the run's stream-json transcript(s), in order")
     bt.add_argument("--depth", default="standard", choices=["fast", "standard", "deep"])
@@ -1430,7 +1444,7 @@ def main():
         print("\n".join(f) or "cites: every cited sentence matches its ledger row; 0 failures")
         sys.exit(1 if f else 0)
     if a.cmd == "links":
-        res = link_status(sorted(set(pdf_links(a.pdf))))
+        res = link_status(sorted(set(link_targets(a.pdf))))
         for u, c, k in res:
             print(f"{k:8} {c:4} {u}")
         dead = [r for r in res if r[2] == "dead"]
