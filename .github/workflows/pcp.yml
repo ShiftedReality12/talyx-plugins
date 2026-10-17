@@ -20,10 +20,11 @@ jobs:
         run: |
           python3 plugins/pcp/render_skill.py --check
           python3 plugins/pcp/eval.py concordance
-      - name: No drift from the original plug-in (2.1.0); no hard-coded value in the render scripts
+      - name: No drift from the original plug-in (2.1.0); no hard-coded value in the render scripts; SKILL.md capped, every step names its files, every 2.1.0 item reachable
         run: |
           python3 plugins/pcp/eval.py parity
           python3 plugins/pcp/eval.py hardcoded
+          python3 plugins/pcp/eval.py skill
       - name: Every check is proven able to fail; two PDFs rendered and read back
         run: python3 plugins/pcp/eval.py self-test --require-pdf
       - name: Every host's files are up to date

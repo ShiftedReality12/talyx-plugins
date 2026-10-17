@@ -811,13 +811,15 @@ def self_test(require_pdf=False):
     with tempfile.TemporaryDirectory() as td:
         root = pathlib.Path(td)
         (root / "format").mkdir()
-        for rel in ("format/talyx_pdf.py", "format/layout.json", "render_skill.py", "skills/pre-call-prep/assets/intake-template.csv"):
+        for rel in ("format/talyx_pdf.py", "format/layout.json", "render_skill.py", "pcp.yaml", "skills/pre-call-prep/SKILL.md", "skills/pre-call-prep/assets/intake-template.csv"):
             (root / rel).parent.mkdir(parents=True, exist_ok=True)
             (root / rel).write_text((HERE / rel).read_text())
         (root / "format/assets").mkdir()
         for asset in (HERE / "format/assets").iterdir():   # the renderer reads its font and logo when it builds a page's CSS
             (root / "format/assets" / asset.name).write_bytes(asset.read_bytes())
         base_css, base_rs = (root / "format/talyx_pdf.py").read_text(), (root / "render_skill.py").read_text()
+        base_md = (root / "skills/pre-call-prep/SKILL.md").read_text()
+        phrase = R["families"][0]["extract"]   # F1's extract: a value pcp.yaml owns, 20+ characters, several words
         lay0 = (root / "format/layout.json").read_text()
         (root / "format/layout.json").write_text(lay0.replace('"ledger": 10', '"ledger": 9.5'))
         f = hardcoded_check(root)
@@ -829,14 +831,46 @@ def self_test(require_pdf=False):
                 ("a CSS number in the renderer", "format/talyx_pdf.py", base_css.replace("{L['page_content__padding']}", "0.55in", 1), "talyx_pdf.py's CSS"),
                 ("a colour in the renderer", "format/talyx_pdf.py", base_css + '\nX = "#123456"\n', "holds a colour"),
                 ("a decimal in the balance script", "format/talyx_pdf.py", base_css.replace("CFG.spare_in", "0.2", 1), "balance script"),
-                ("a block title spelled in render_skill.py", "render_skill.py", base_rs + '\nX = "Strongest case against"\n', "render_skill.py")):
+                ("a block title spelled in render_skill.py", "render_skill.py", base_rs + '\nX = "Strongest case against"\n', "render_skill.py"),
+                ("a registry value typed into SKILL.md's template (render_skill.py)", "render_skill.py", base_rs.replace("This file is the procedure:", "Identity: " + phrase + ". This file is the procedure:", 1), "writes"),
+                ("a registry value typed into SKILL.md by hand", "skills/pre-call-prep/SKILL.md", base_md + "\nIdentity means " + phrase + ".\n", "typed in by hand")):
             (root / rel).write_text(new_text)
             f = hardcoded_check(root)
-            (root / rel).write_text(base_css if rel.endswith("pdf.py") else base_rs)
+            (root / rel).write_text({"format/talyx_pdf.py": base_css, "render_skill.py": base_rs}.get(rel, base_md))
             if any(want in x for x in f):
                 print(f"tripped: C27 by {case}")
             else:
                 print(f"FAIL C27 must trip on {case} (got {f})"); ok = False
+    # ---- skill (C29): SKILL.md is the procedure, capped, every step names its files, every 2.1.0 item is reachable
+    sf, ss = skill_check()
+    if sf:
+        print("FAIL skill must pass on the shipped plug-in:", *sf[:5], sep="\n - "); ok = False
+    else:
+        print(f"passes: C29 skill: SKILL.md {ss['size']} characters (cap {ss['max']}, target {ss['target']}); {ss['steps_named']} of {ss['steps']} steps name the files they load; "
+              f"reachable {ss['reachable']}/{ss['total']} baseline items ({', '.join(f'{k} {v}' for k, v in sorted(ss['how'].items()))})")
+    real = (HERE / SKILL_DIR / "SKILL.md").read_text()
+    pad = lambda n: real + "\n<!-- " + "x" * (n - len(real.encode()) - len("\n<!--  -->")) + " -->"
+    at_cap, over = pad(R["skill"]["max_chars"]), pad(R["skill"]["max_chars"] + 1)
+    if len(at_cap.encode()) != R["skill"]["max_chars"] or len(over.encode()) != R["skill"]["max_chars"] + 1:
+        print("FAIL skill self-test: the padded copies are not exactly the cap and the cap plus one"); ok = False
+    elif any("characters" in x for x in skill_check(skill_text=at_cap)[0]) or not any("characters" in x for x in skill_check(skill_text=over)[0]):
+        print(f"FAIL C29 must pass SKILL.md at exactly {R['skill']['max_chars']} characters and fail it at {R['skill']['max_chars'] + 1}"); ok = False
+    else:
+        print(f"passes: C29 size cap: SKILL.md at {R['skill']['max_chars']} characters passes, at {R['skill']['max_chars'] + 1} fails")
+    loadline = re.search(r"^\*\*Load:\*\*.*profile\.md.*$", real, re.M).group(0)
+    cfgline = re.search(r"^\*\*Config:\*\* `pcp.json` keys `families.*$", real, re.M).group(0)
+    for case, text, want in (
+            ("a step with no Load line", real.replace(loadline + "\n\n", "", 1), "names no file"),
+            ("a step that loads a file that is not there", real.replace("references/profile.md", "references/nope.md", 1), "does not exist"),
+            ("a reference no step loads, whose 2.1.0 items are then in no loaded file", real.replace(loadline, "**Load:** `references/checks.md`.", 1), "baseline items are in neither"),
+            ("a reference no step loads", real.replace(loadline, "**Load:** `references/checks.md`.", 1), "loaded by no step"),
+            ("a Config line that claims keys its file does not hold", real.replace(cfgline, "**Config:** `pcp.json` keys `families.*.nonexistent` -- none.", 1), "holds none"),
+            ("a Config line that drops the keys families need", real.replace(cfgline, "", 1), "baseline items are in neither")):
+        f = skill_check(skill_text=text)[0]
+        if any(want in x for x in f):
+            print(f"tripped: C29 by {case}")
+        else:
+            print(f"FAIL C29 must trip on {case} (wanted '{want}'; got {f[:2]})"); ok = False
     # ---- parity (C28): nothing of the 2.1.0 baseline is removed or weakened without an approved decision
     pf, ps = parity()
     if pf:
@@ -2948,6 +2982,55 @@ def size_floor_check(root=None):
     return fails
 
 
+def skill_literals(root):
+    """C27 (SKILL.md): the procedure holds no value the registry owns. Two ways it can:
+      - render_skill.py's template spells a registry value (a title, a label, a list, a query, a rule) instead of reading it. Found by
+        rendering SKILL.md from a registry whose every such value is replaced by a marker: a value that survives was typed into the template;
+      - SKILL.md was edited by hand: a line the registry does not render that holds one of its values."""
+    import copy
+    import importlib.util
+    sys.dont_write_bytecode = True
+    spec = importlib.util.spec_from_file_location("rs_hardcoded", root / "render_skill.py")
+    rs = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(rs)
+    reg, sha = rs.load()
+    skip = ("skill", "render_header", "generated_files", "registry_version")
+    leaves = {}
+
+    def walk(o, path=()):
+        if isinstance(o, dict):
+            for k, v in o.items():
+                if not (len(path) == 0 and k in skip):
+                    walk(v, path + (str(k),))
+        elif isinstance(o, list):
+            for i, v in enumerate(o):
+                walk(v, path + (str(i),))
+        elif isinstance(o, str) and len(o.strip()) >= 20 and " " in o.strip():   # a phrase, not a name or a path (those are words the template may use)
+            leaves.setdefault(o.strip(), ".".join(path))
+    walk(reg)
+    marks = {tok: f"@@{i}@@" for i, tok in enumerate(leaves)}
+
+    def perturb(o, top=True):
+        if isinstance(o, dict):
+            return {k: (v if top and k in skip else perturb(v, False)) for k, v in o.items()}
+        if isinstance(o, list):
+            return [perturb(v, False) for v in o]
+        return marks.get(o.strip(), o) if isinstance(o, str) else o
+    fails = []
+    typed = rs.render_skill(perturb(reg), sha)
+    for tok, where in leaves.items():
+        if tok in typed:
+            fails.append(f"C27 hardcoded: render_skill.py writes '{tok[:60]}' ({where}) into SKILL.md itself; read it from pcp.yaml")
+    disk = (root / SKILL_DIR / "SKILL.md").read_text() if (root / SKILL_DIR / "SKILL.md").exists() else ""
+    fresh = set(rs.render_skill(reg, sha).splitlines())
+    for n, ln in enumerate(disk.splitlines(), 1):
+        if ln not in fresh:
+            hit = next(((tok, where) for tok, where in leaves.items() if tok in ln), None)
+            if hit:
+                fails.append(f"C27 hardcoded: SKILL.md line {n} holds '{hit[0][:60]}' ({hit[1]}) typed in by hand; edit pcp.yaml and run render_skill.py")
+    return fails
+
+
 def hardcoded_check(root=None):
     """C27: the page, the setup and the wording come from pcp.yaml, not from the scripts. Fails when
       - talyx_pdf.py holds a CSS number, a colour or a ladder of its own (every one is in layout.json, written from pcp.yaml),
@@ -2992,6 +3075,7 @@ def hardcoded_check(root=None):
                 if name not in ph:
                     fails.append(f"C27 hardcoded: round {r['round']} uses {{{name}}}, which pcp.yaml placeholders does not declare")
     fails += size_floor_check(here)
+    fails += skill_literals(here)
     csv = here / "skills/pre-call-prep/assets/intake-template.csv"
     if csv.exists():
         cols = csv.read_text().splitlines()[0].split(",")
@@ -3144,6 +3228,126 @@ def parity(root=None, strict=False, update_lock=False, approve=None, reg=None):
                        changed_ids=stat["changed"], removed_ids=stat["removed"], locked=len(now) - 1)
 
 
+# ---------------------------------------------------------------- skill (C29): the procedure is lean, nothing is lost ---------------
+SKILL_DIR = "skills/pre-call-prep"
+LOAD_LINE = re.compile(r"^\*\*Load:\*\*(.*)$", re.M)
+CONFIG_LINE = re.compile(r"^\*\*Config:\*\* `([^`]+)` keys (.*?) -- ", re.M)
+
+
+def _norm(s):
+    return re.sub(r"\s+", " ", str(s))
+
+
+def skill_sections(md):
+    """[(heading, body)] of SKILL.md's `## ` sections: each is a step (or the checks, the render)."""
+    return [(s.split("\n", 1)[0][3:].strip(), s) for s in re.split(r"(?m)^(?=## )", md)[1:]]
+
+
+def skill_loads(md):
+    """Per step: the files its **Load:** line names, in backticks after the label or a semicolon."""
+    out = {}
+    for head, body in skill_sections(md):
+        paths = []
+        for ln in LOAD_LINE.findall(body):
+            paths += re.findall(r"(?:^|;)\s*`([^`]+)`", ln)
+        out[head] = paths
+    return out
+
+
+def item_reach(pid, value, corpus, scopes, names=None):
+    """How a 2.1.0 baseline item is reached now: 'config' (a Config line names its key), 'command' (an eval or renderer command the
+    loaded text names), 'text' (every string and number of its current value is in SKILL.md or a loaded reference), 'trivial' (nothing
+    to find: a boolean or an empty value), or None."""
+    import fnmatch
+    if any(fnmatch.fnmatch(pid, pat) and pid in ids for ids, pat in scopes):
+        return "config"
+    if pid.startswith("eval.subcommand."):
+        return "command" if f"eval.py {pid.split('.')[-1]}" in corpus else None
+    if pid.startswith("eval.check_flag."):
+        return "command" if f"--{pid.split('.', 2)[-1]}" in corpus else None
+    if pid.startswith("renderer.flag."):
+        return "command" if pid.split(".", 2)[-1] in corpus else None
+    leaves, stack = [], [value]
+    while stack:
+        v = stack.pop()
+        if isinstance(v, dict):
+            stack += list(v.values())
+        elif isinstance(v, list):
+            stack += v
+        elif isinstance(v, str):
+            leaves.append(re.sub(r"\{(deliverable|profile|script|collection)\}", lambda m: (names or {}).get(m.group(1), m.group(0)), v))
+        elif isinstance(v, (int, float)) and not isinstance(v, bool):
+            leaves.append(v)
+    if not leaves:
+        return "trivial"
+    norm = _norm(corpus)
+    for v in leaves:
+        if isinstance(v, str):
+            if _norm(v) not in norm:
+                return None
+        elif not re.search(r"(?<![\w.])" + re.escape(str(v)) + r"(?![\w])", norm):
+            return None
+    return "text"
+
+
+def skill_check(root=None, reg=None, skill_text=None):
+    """C29: SKILL.md holds the procedure and nothing is lost.
+      - SKILL.md is at most skill.max_chars (bytes, as `wc -c` counts them);
+      - every step (each `## ` section) opens with a **Load:** line naming files that exist, and every reference file of
+        skill.files is loaded by some step;
+      - every one of the 2.1.0 baseline's items is reached: its current value is in SKILL.md or in a file a step loads, or a
+        **Config:** line of a step names its key in pcp.json. Reported as reachable n/N.
+    Returns (failures, summary)."""
+    root = pathlib.Path(root or HERE)
+    reg = reg or R
+    sk, sd = reg["skill"], root / SKILL_DIR
+    md = skill_text if skill_text is not None else (sd / "SKILL.md").read_text()
+    fails = []
+    size = len(md.encode())
+    if size > sk["max_chars"]:
+        fails.append(f"C29 skill: SKILL.md is {size} characters; the cap is {sk['max_chars']}. Move rules and tables to a reference (pcp.yaml skill)")
+    loads, corpus, named = skill_loads(md), md, set()
+    for head, paths in loads.items():
+        if not paths:
+            fails.append(f"C29 skill: step '{head}' names no file it loads; open it with a **Load:** line")
+        for rel in paths:
+            named.add(rel)
+            f = sd / rel
+            if not f.exists():
+                fails.append(f"C29 skill: step '{head}' loads {rel}, which does not exist in {SKILL_DIR}/")
+            elif rel.endswith(".md"):
+                corpus += "\n" + f.read_text()
+    for fid, f in sk["files"].items():
+        if f["path"] not in named:
+            fails.append(f"C29 skill: {f['path']} is loaded by no step of SKILL.md")
+    scopes = []   # (the keys the file really holds, a pattern the Config line names): a line cannot claim a key its file lacks
+    import fnmatch
+    for file, keys in CONFIG_LINE.findall(md):
+        if not (sd / file).exists():
+            fails.append(f"C29 skill: a Config line names {file}, which does not exist in {SKILL_DIR}/")
+            continue
+        if (root / file).exists() and (root / file).read_bytes() != (sd / file).read_bytes():
+            fails.append(f"C29 skill: {SKILL_DIR}/{file} differs from {file}; run build/adapters.py to copy it")
+        ids = set(_flatten(json.loads((sd / file).read_text())))
+        for pat in re.findall(r"`([^`]+)`", keys):
+            if not any(fnmatch.fnmatch(i, pat) for i in ids):
+                fails.append(f"C29 skill: a Config line names the keys '{pat}' of {file}, which holds none")
+            scopes.append((ids, pat))
+    base = json.loads((root / "evals/baseline-2.1.0.json").read_text())["items"]
+    live = _live_items(root, reg)
+    how, lost = {}, []
+    for pid in base:
+        r = item_reach(pid, live[pid], corpus, scopes, reg["names"]) if pid in live else None
+        if r:
+            how[r] = how.get(r, 0) + 1
+        else:
+            lost.append(pid)
+    if lost:
+        fails.append(f"C29 skill: {len(lost)} of {len(base)} baseline items are in neither SKILL.md nor a file a step loads: " + ", ".join(lost[:12]) + (" ..." if len(lost) > 12 else ""))
+    return fails, dict(size=size, steps=len(loads), steps_named=sum(1 for p in loads.values() if p), total=len(base), reachable=len(base) - len(lost),
+                       how=how, lost=lost, max=sk["max_chars"], target=sk["target_chars"])
+
+
 # ---------------------------------------------------------------- chat (S4-10) ----------------------------------
 CHAT_LABEL = "Intelligence Brief (in chat"
 
@@ -3280,6 +3484,7 @@ def main():
     asm.add_argument("folder"); asm.add_argument("--profile", default=str(pathlib.Path.home() / ".pcp/profile.yaml"))
     asm.add_argument("--depth", choices=["fast", "standard", "deep"]); asm.add_argument("--check", action="store_true", help="fail unless brief.md and script.md are exactly what assemble builds")
     sub.add_parser("hardcoded", help="C27: no value the registry owns is hard-coded in the render scripts")
+    sub.add_parser("skill", help="C29: SKILL.md is at most skill.max_chars, every step names the files it loads, every 2.1.0 baseline item is reachable")
     pr = sub.add_parser("parity", help="C28: the no-drift guard: nothing of the 2.1.0 baseline is removed or weakened without an approved decision")
     pr.add_argument("--strict", action="store_true", help="also fail every decision that is still open")
     pr.add_argument("--update-lock", action="store_true", help="write evals/schema.lock.json from the live registry (after an approved decision)")
@@ -3319,7 +3524,7 @@ def main():
         if f is None:
             print("pdf: no pdftotext or pypdf to read the PDF -- not run"); sys.exit(2)
         print(f"pdf {a.pdf}: {len(f)} failures"); [print(" -", x) for x in f]; sys.exit(1 if f else 0)
-    if a.cmd in ("parity", "hardcoded") and not (HERE / "render_skill.py").exists():
+    if a.cmd in ("parity", "hardcoded", "skill") and not (HERE / "render_skill.py").exists():
         sys.exit(f"{a.cmd}: a maintainer check; it needs the plug-in checkout (render_skill.py, evals/baseline-2.1.0.json), not the copy inside a skill folder")
     if a.cmd == "parity":
         if a.approve_locks and not (a.by and a.source):
@@ -3329,6 +3534,12 @@ def main():
               f"of the {s['changed'] + s['removed']}: {s['approved']} approved, {s['open']} open, {s['unapproved']} unapproved; {s['locked']} schema sections locked")
         if a.list:
             print("changed:", *s["changed_ids"], sep="\n  "); print("removed:", *s["removed_ids"], sep="\n  ")
+        print(*[" - " + x for x in f], f"{len(f)} failures", sep="\n")
+        sys.exit(1 if f else 0)
+    if a.cmd == "skill":
+        f, s = skill_check()
+        print(f"skill: SKILL.md {s['size']} characters (cap {s['max']}, target {s['target']}); {s['steps_named']} of {s['steps']} steps name the files they load; "
+              f"reachable {s['reachable']}/{s['total']} baseline items ({', '.join(f'{k} {v}' for k, v in sorted(s['how'].items()))})")
         print(*[" - " + x for x in f], f"{len(f)} failures", sep="\n")
         sys.exit(1 if f else 0)
     if a.cmd == "hardcoded":
