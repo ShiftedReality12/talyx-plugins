@@ -873,6 +873,25 @@ def self_test(require_pdf=False):
             print(f"tripped: C29 by {case}")
         else:
             print(f"FAIL C29 must trip on {case} (wanted '{want}'; got {f[:2]})"); ok = False
+    # ---- --latest finds a session's subagent transcripts too (a background collection job keeps its searches there)
+    with tempfile.TemporaryDirectory() as td:
+        import os
+        cfg, work = pathlib.Path(td) / "cfg", pathlib.Path(td) / "work"
+        work.mkdir()
+        proj = cfg / "projects" / re.sub(r"[^A-Za-z0-9]", "-", str(work.resolve()))
+        (proj / "sess1" / "subagents").mkdir(parents=True)
+        (proj / "sess1.jsonl").write_text("{}\n")
+        (proj / "sess1" / "subagents" / "agent-a.jsonl").write_text("{}\n")
+        old = os.environ.get("CLAUDE_CONFIG_DIR")
+        os.environ["CLAUDE_CONFIG_DIR"] = str(cfg)
+        try:
+            found = [p.name for p in find_history(host="claude", cwd=work)]
+        finally:
+            os.environ.pop("CLAUDE_CONFIG_DIR") if old is None else os.environ.update(CLAUDE_CONFIG_DIR=old)
+        if found != ["sess1.jsonl", "agent-a.jsonl"]:
+            print(f"FAIL --latest must return the session's file and its subagent transcript, under $CLAUDE_CONFIG_DIR (got {found})"); ok = False
+        else:
+            print("passes: battery --latest reads the session file and its subagent transcripts, under $CLAUDE_CONFIG_DIR")
     # ---- gates: every 2.1.0 gate is at least as strict now; a loosened gate is caught by the table itself
     rows_g, fails_g = gates_table()
     if fails_g:
@@ -1974,20 +1993,26 @@ def read_history(lines):
     return ev, host or "Claude Code"
 
 
-def find_history(host=None, cwd=None):
-    """The newest history file this host keeps for the current session (--latest): Claude Code's project folder for the
-    working folder, or the Codex rollout whose name carries $CODEX_THREAD_ID (else the newest). Returns a path or None."""
+def find_history(host=None, cwd=None, home=None):
+    """The history files this host keeps for the current session (--latest), the run's own first: Claude Code's project folder for
+    the working folder (under $CLAUDE_CONFIG_DIR when set, else ~/.claude) plus the transcripts of the subagents that session started
+    (<session>/subagents/*.jsonl: a background collection job's searches are there, not in the main file), or the Codex rollout whose
+    name carries $CODEX_THREAD_ID (else the newest). Returns a list of paths, [] when there is none."""
     import os
-    home = pathlib.Path.home()
+    home = pathlib.Path(home) if home else pathlib.Path.home()
     tid = os.environ.get("CODEX_THREAD_ID", "")
     if host in (None, "codex") and (tid or host == "codex"):
         files = sorted((home / ".codex/sessions").glob("**/rollout-*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
         hit = [p for p in files if tid and tid in p.name]
         if hit or (host == "codex" and files):
-            return (hit or files)[0]
+            return [(hit or files)[0]]
+    root = pathlib.Path(os.environ["CLAUDE_CONFIG_DIR"]) if os.environ.get("CLAUDE_CONFIG_DIR") else home / ".claude"
     folder = re.sub(r"[^A-Za-z0-9]", "-", str(pathlib.Path(cwd or os.getcwd()).resolve()))
-    files = sorted((home / ".claude/projects" / folder).glob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True) if (home / ".claude/projects" / folder).is_dir() else []
-    return files[0] if files else None
+    files = sorted((root / "projects" / folder).glob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True) if (root / "projects" / folder).is_dir() else []
+    if not files:
+        return []
+    main = files[0]
+    return [main] + sorted((main.parent / main.stem / "subagents").glob("*.jsonl"), key=lambda p: p.stat().st_mtime)
 
 
 def _content_words(t):
@@ -3833,7 +3858,7 @@ def main():
             found = find_history()
             if not found:
                 sys.exit("history: no history file found for this session. Pass it: " + HOST_FILES)
-            files = [str(found)]
+            files = [str(f) for f in found]
         saved = ""
         if a.profile and pathlib.Path(a.profile).exists():
             import yaml
