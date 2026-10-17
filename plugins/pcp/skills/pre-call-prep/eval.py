@@ -3338,9 +3338,14 @@ def item_reach(pid, value, corpus, scopes, names=None):
     if not leaves:
         return "trivial"
     norm = _norm(corpus)
+    ids = [s for s in pid.split(".") if re.fullmatch(r"[BPQ]\d+", s)]   # a block or question id: its number must sit on one line with it
     for v in leaves:
         if isinstance(v, str):
             if _norm(v) not in norm:
+                return None
+        elif ids:
+            if not any(all(re.search(r"(?<![\w-])" + i + r"(?![\w-])", ln) for i in ids) and re.search(r"(?<![\w.])" + re.escape(str(v)) + r"(?![\w])", ln)
+                       for ln in corpus.splitlines()):
                 return None
         elif not re.search(r"(?<![\w.])" + re.escape(str(v)) + r"(?![\w])", norm):
             return None
