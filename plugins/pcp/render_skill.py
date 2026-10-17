@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""render_skill.py -- pcp.yaml -> SKILL.md, commands/pcp.md, the Socratic reference, INVENTORY.md and pcp.json.
+"""render_skill.py -- pcp.yaml -> SKILL.md (the procedure), the references each step loads, commands/pcp.md, INVENTORY.md, pcp.json and format/layout.json.
 
 The ONLY writer of those files. The Markdown ones carry a header with the registry sha256; eval.py
 `concordance` re-renders to memory and diffs, so a hand edit to any of them fails the gate. pcp.json is
@@ -61,7 +61,8 @@ def description(R):
             f"  to a meeting, or for notes on a meeting that has already happened.")
 
 
-def render_skill(R, sha):
+def _ctx(R):
+    """The values the section texts below fill in: names, the setup tables, the families table, the rubric, the checks."""
     n, cal, pb = R["names"], R["calibration"], R["page_budget"]
     qs = {q["id"]: q for q in cal["questions"]}
     q_lines = []
@@ -79,17 +80,35 @@ def render_skill(R, sha):
     beats = "\n".join(f"- **{k}**: {' -> '.join(v)}" for k, v in R["script"]["beats_by_format"].items())
     checks = "\n".join(f"| {c['id']} | {c['name']} | `{c['cmd']}` | {c['passes_when']} |" for c in R["checks"] if "cmd" in c)
     excl = R["exclusions"]
+    return n, cal, pb, qs, q_lines, calls, fam_lines, dims, tiers, table, beats, checks, excl
 
-    stages = []
-    for s in R["stages"]:
-        block = [f"## Stage {s['id'][1]}: {fill(R, s['name'])}", "", "**Input contract** (declared before behaviour):", "",
-                 _inputs(s["inputs"]), "", _context(s["context"]), ""]
-        if s.get("outputs"):
-            block += ["**Outputs:** " + "; ".join(f"`{o['name']}` ({', '.join(o.get('fields', [])) or o.get('note', '')})" for o in s["outputs"]), ""]
-        block += ["**Rows:**", "", _rows(R, s["rows"]), ""]
-        stages.append("\n".join(block))
 
-    # frontmatter must be the first bytes of the file or no host loads the skill -- the header goes after it
+def stage_block(R, s):
+    """A stage as the full skill prints it: its input contract, context, outputs and every row with its test."""
+    block = [f"## Stage {s['id'][1]}: {fill(R, s['name'])}", "", "**Input contract** (declared before behaviour):", "",
+             _inputs(s["inputs"]), "", _context(s["context"]), ""]
+    if s.get("outputs"):
+        block += ["**Outputs:** " + "; ".join(f"`{o['name']}` ({', '.join(o.get('fields', [])) or o.get('note', '')})" for o in s["outputs"]), ""]
+    block += ["**Rows:**", "", _rows(R, s["rows"]), ""]
+    return "\n".join(block)
+
+
+def t_chat(R):
+    """The plain-chat paragraph: what a host with no shell or code tool does."""
+    n = R["names"]
+    return f"""**No shell or code tool (plain chat)?** Run the same stages anyway; never stop or refuse for lack of tools.
+Research with the host's own web search and fetch tools. Keep claims, coverage and the behavioral read as the
+records below, in your working notes, not in the reply: say one short status line, then nothing until a question or
+the brief itself (S2-10). Apply the checks yourself. Then deliver the full {n['deliverable']} in chat
+exactly as S4-10 says (label, page markers, every block, the ledger, the {n['script']}). Profile answers
+given in the message stand in for the saved setup file.
+
+"""
+
+
+def p_head(R, sha):
+    """Frontmatter and the opening paragraphs (the frontmatter must be the first bytes of the file or no host loads the skill)."""
+    n = R["names"]
     return f"""---
 name: pre-call-prep
 description: >
@@ -104,24 +123,44 @@ Every stage declares its inputs before its behaviour, reads only its listed cont
 that each carry a falsification test. Every fact traces to a source. Nothing is invented.
 The deliverable is one 3-page PDF, the {n['deliverable']}. Nothing else is emitted.
 
-**No shell or code tool (plain chat)?** Run the same stages anyway; never stop or refuse for lack of tools.
-Research with the host's own web search and fetch tools. Keep claims, coverage and the behavioral read as the
-records below, in your working notes, not in the reply: say one short status line, then nothing until a question or
-the brief itself (S2-10). Apply the checks yourself. Then deliver the full {n['deliverable']} in chat
-exactly as S4-10 says (label, page markers, every block, the ledger, the {n['script']}). Profile answers
-given in the message stand in for the saved setup file.
+{t_chat(R)}"""
 
-## How PCP thinks (never in the output)
+
+def t_concepts(R):
+    """How PCP thinks."""
+    return f"""## How PCP thinks (never in the output)
 
 {chr(10).join('- ' + fill(R, c) for c in R['concepts'])}
 
-**Sources never cited:** {', '.join(R['source_quality']['exclude'])}. **Weak (never C1/C2, never the only support on page 1):** {', '.join(R['source_quality']['weak'])}.
+"""
 
-**Plain words.** {R['plain_words']['rule']} Never write a word banned: {', '.join(R['plain_words']['banned'])}, or an internal id
+
+def t_source_lists(R):
+    """The domains never cited and the weak ones."""
+    return f"""**Sources never cited:** {', '.join(R['source_quality']['exclude'])}. **Weak (never C1/C2, never the only support on page 1):** {', '.join(R['source_quality']['weak'])}.
+
+"""
+
+
+def t_plain_words(R):
+    """The plain-words rule, its banned and allowed lists."""
+    n = R["names"]
+    return f"""**Plain words.** {R['plain_words']['rule']} Never write a word banned: {', '.join(R['plain_words']['banned'])}, or an internal id
 (C1-C4, F1-F12, row ids). Allowed only inside these phrases: {', '.join(R['plain_words']['allowed'])}.
 Use "source types", not families; "the person you're meeting", not target. Call the deliverable the {n['deliverable']}, nothing else.
 
-## Stage 0: Setup (once)
+"""
+
+
+def p_concepts(R):
+    """How PCP thinks, the sources never cited and the plain words."""
+    return t_concepts(R) + t_source_lists(R) + t_plain_words(R)
+
+
+def p_setup_ask(R):
+    """Stage 0: how the setup questions are asked."""
+    n, cal, pb, qs, q_lines, calls, fam_lines, dims, tiers, table, beats, checks, excl = _ctx(R)
+    return f"""## Stage 0: Setup (once)
 
 If `{cal['profile_path']}` is missing or invalid, or `{cal['reask_flag']}` is passed, ask these questions with
 `AskUserQuestion` -- {calls}, first option recommended -- (the host's native question tool: the structured question tool in
@@ -131,19 +170,42 @@ ChatGPT, Codex and Grok), asking only those the saved profile has no answer for.
 (`pcp_profile_format: 1`, answers under `profiles: <name>: answers: Qn: {{value, defaulted}}`, plus `context`
 and `linkedin` when set) and continue.
 
-| # | Chip | Question | Options | Sets |
+"""
+
+
+def p_setup_table(R):
+    """The setup questions table."""
+    n, cal, pb, qs, q_lines, calls, fam_lines, dims, tiers, table, beats, checks, excl = _ctx(R)
+    return f"""| # | Chip | Question | Options | Sets |
 |---|---|---|---|---|
 {chr(10).join(q_lines)}
 
-{_rows(R, cal['rules'])}
+"""
 
-{chr(10).join(stages)}
-## Asking questions
+
+def p_setup_rules(R):
+    """The calibration rows with their tests."""
+    n, cal, pb, qs, q_lines, calls, fam_lines, dims, tiers, table, beats, checks, excl = _ctx(R)
+    return f"""{_rows(R, cal['rules'])}
+
+"""
+
+
+def p_asking(R):
+    """Asking questions."""
+    n, cal, pb, qs, q_lines, calls, fam_lines, dims, tiers, table, beats, checks, excl = _ctx(R)
+    return f"""## Asking questions
 
 When a question is needed -- of the user, or for the room -- read `references/socratic-questions.md` first.
 {R['socratic']['ask_user']['how']['tool']} {R['socratic']['ask_user']['how']['wait']}
 
-## Records (C23)
+"""
+
+
+def p_records(R):
+    """The three records."""
+    n, cal, pb, qs, q_lines, calls, fam_lines, dims, tiers, table, beats, checks, excl = _ctx(R)
+    return f"""## Records (C23)
 
 Keep three records while you work, in these files beside the brief (a host with no files keeps the same fields in its
 working notes). Compose the brief from them alone (S4-12), and run `python3 eval.py records <folder> --depth <depth> --brief brief.md`
@@ -153,7 +215,13 @@ before you say the run is done.
 |---|---|---|
 {chr(10).join(f"| {k} | `{v['file']}` | {', '.join(v['fields'])}{' -- ' + v['note'] if v.get('note') else ''} |" for k, v in R['records'].items())}
 
-## Source families
+"""
+
+
+def t_families(R):
+    """The source types table and the placeholders their queries fill."""
+    n, cal, pb, qs, q_lines, calls, fam_lines, dims, tiers, table, beats, checks, excl = _ctx(R)
+    return f"""## Source families
 
 Enabled per profile: `depth` filters the column, `target.kind` filters `kinds`, `socmint.scope` filters F6
 to `{', '.join(R['research']['socmint_networks']['professional'])}` (professional) or the wider list (social) or none.
@@ -165,24 +233,61 @@ FULL status needs >= 1 C1/C2 claim in {R['research']['full_threshold']} families
 
 Placeholders in the query templates and rounds: {'; '.join(f"`{{{k}}}` = {v}" for k, v in R['placeholders'].items())}.
 
-Intake columns (assets/intake-template.csv) and what each sets:
+"""
+
+
+def t_intake_columns(R):
+    """The intake CSV's columns and what each sets."""
+    return f"""Intake columns (assets/intake-template.csv) and what each sets:
 
 | Column | Sets |
 |---|---|
 {chr(10).join(f"| {k} | {v} |" for k, v in R['intake_columns'].items())}
 
-Registers by domain: {'; '.join(f"{k}: " + ', '.join(r['name'] for r in v) for k, v in R['registers'].items() if v) or 'none'}.
+"""
+
+
+def t_registers(R):
+    """Registers by domain and the exclusions."""
+    excl = R["exclusions"]
+    return f"""Registers by domain: {'; '.join(f"{k}: " + ', '.join(r['name'] for r in v) for k, v in R['registers'].items() if v) or 'none'}.
 
 **Exclusions (dropped before the writer, counted in coverage):** {', '.join(excl['base'])}.
 By jurisdiction: {'; '.join(f"{k}: {', '.join(v)}" for k, v in excl['by_jurisdiction'].items() if v)}.
 
-{osint_section(R)}
+"""
+
+
+def p_sources(R):
+    """Source types, placeholders, intake columns, registers, exclusions."""
+    return t_families(R) + t_intake_columns(R) + t_registers(R)
+
+
+def t_osint(R):
+    """The search rounds, from the registry."""
+    return f"""{osint_section(R)}
 The round plan with its reasons: `references/osint-search.md`.
 
-**LinkedIn status (S2-7), in B4's last line and the Coverage row:** {' or '.join(f"`LinkedIn: {r}`" for r in R['linkedin']['read'].values())}, or
+"""
+
+
+def t_linkedin(R):
+    """The LinkedIn status lines."""
+    return f"""**LinkedIn status (S2-7), in B4's last line and the Coverage row:** {' or '.join(f"`LinkedIn: {r}`" for r in R['linkedin']['read'].values())}, or
 `LinkedIn: {R['linkedin']['not_read']}: <reason>` with one of these reasons, word for word: {'; '.join(R['linkedin']['reasons'])}.
 
-## {n['profile']} (six dimensions)
+"""
+
+
+def p_rounds(R):
+    """The search rounds and the LinkedIn status lines."""
+    return t_osint(R) + t_linkedin(R)
+
+
+def p_profile(R):
+    """The behavioral profile: dimensions and tiers."""
+    n, cal, pb, qs, q_lines, calls, fam_lines, dims, tiers, table, beats, checks, excl = _ctx(R)
+    return f"""## {n['profile']} (six dimensions)
 
 Tiers: high = {tiers['high']['min_observations']} observations, {tiers['high']['corroborated_across_sources']} sources, a direct quote or action;
 medium = {tiers['medium']['min_observations']} observations, {tiers['medium']['corroborated_across_sources']} source; low = role-inferred only (renders as "No read").
@@ -193,7 +298,13 @@ medium = {tiers['medium']['min_observations']} observations, {tiers['medium']['c
 
 What they may want (depth deep only): <= {R['rubric']['ach']['max_hypotheses']} hypotheses about what they want from this meeting, each with the claim that would disprove it.
 
-## The PDF: pages 1-2, the {n['deliverable']}
+"""
+
+
+def p_brief(R):
+    """The brief blocks."""
+    n, cal, pb, qs, q_lines, calls, fam_lines, dims, tiers, table, beats, checks, excl = _ctx(R)
+    return f"""## The PDF: pages 1-2, the {n['deliverable']}
 
 `brief.md` starts with `# Full Name`, then the identity line (`**Organization** | Role, since year | City, if public`),
 then the meta line (`Meeting: ... | Prepared for: ... | Depth: ... | Sources: <types> of 12 source types, <the ledger's fact count> cited | Status FULL or LIMITED | Prepared Mon D, YYYY`).
@@ -205,7 +316,13 @@ Then one `## Bn Title` per block, in order. Word budgets are the page budget; th
 
 Domain vocabulary: {'; '.join(f"{k}: {', '.join(v)}" for k, v in R['brief']['vocab_by_domain'].items() if v)}.
 
-## The PDF: page 3, the {fill(R, R['script']['title'])}
+"""
+
+
+def p_script(R):
+    """The meeting script blocks."""
+    n, cal, pb, qs, q_lines, calls, fam_lines, dims, tiers, table, beats, checks, excl = _ctx(R)
+    return f"""## The PDF: page 3, the {fill(R, R['script']['title'])}
 
 `script.md` starts with `# {fill(R, R['script']['title'])}`, then one line: *{R['script']['subtitle']} · Full Name, Organization · Prepared Mon D, YYYY*.
 Then one `## Pn Title` per section, in order; a section whose Prints when is not met is left out, not blank.
@@ -220,7 +337,13 @@ Beats by meeting format:
 {R['forms']['P8']['never']['label']} {'; '.join(f'"{p}"' for p in R['guardrails']['never_say'])}.
 Forbidden claims by domain (P8 quotes the saved domain's): {'; '.join(f"{k}: " + ', '.join(f'"{x}"' for x in v) for k, v in R['guardrails']['forbidden_claims_by_domain'].items() if v)}.
 
-## fields.json: what you fill (S4-13)
+"""
+
+
+def p_fields(R):
+    """fields.json: what the model fills."""
+    n, cal, pb, qs, q_lines, calls, fam_lines, dims, tiers, table, beats, checks, excl = _ctx(R)
+    return f"""## fields.json: what you fill (S4-13)
 
 You never write brief.md or script.md. Fill `fields.json` -- the keys below, per block; text cites a claim as `[c<id>]` (claims.jsonl),
 the assembler numbers the ledger -- then run `python3 eval.py assemble <folder>`. A key marked optional may be left out; `missing` prints
@@ -230,7 +353,13 @@ as shown. Labels print exactly as the forms table in pcp.yaml says.
 |---|---|---|
 {forms_table(R)}
 
-## Checks (all pass before render)
+"""
+
+
+def t_checks_intro(R):
+    """The checks: how to run them."""
+    n, cal, pb, qs, q_lines, calls, fam_lines, dims, tiers, table, beats, checks, excl = _ctx(R)
+    return f"""## Checks (all pass before render)
 
 Run `python3 eval.py checks brief.md script.md --target-nouns "<Full Name>,<surname>,<Organization>,<their key programmes>" --experience <{qs['Q9']['id']}: {', '.join(o['value'] for o in qs['Q9']['options'])}> --authority <caller.authority_level: high, medium>`
 and `python3 eval.py duf brief.md script.md`; rewrite until both are clean. Before the first fit pass, copy the draft to
@@ -241,11 +370,28 @@ so no host is "unavailable". Fix what it reports: open a cited page you never op
 keep the rounds out of the reply; say in the reply what cannot be fixed.
 Check the links with `python3 eval.py links brief.md` (S2-8): replace a dead link or drop its fact.
 
-| Id | Check | Command | Passes when |
+"""
+
+
+def t_checks_table(R):
+    """The checks table: id, name, command, passes when."""
+    n, cal, pb, qs, q_lines, calls, fam_lines, dims, tiers, table, beats, checks, excl = _ctx(R)
+    return f"""| Id | Check | Command | Passes when |
 |---|---|---|---|
 {checks}
 
-## Render
+"""
+
+
+def p_checks(R):
+    """The checks."""
+    return t_checks_intro(R) + t_checks_table(R)
+
+
+def p_render(R):
+    """The render command."""
+    n, cal, pb, qs, q_lines, calls, fam_lines, dims, tiers, table, beats, checks, excl = _ctx(R)
+    return f"""## Render
 
 ```
 python3 format/talyx_pdf.py --style brief --brief brief.md --script script.md \\
@@ -260,16 +406,221 @@ filler) and the script starts on page {pb['brief_pages'] + 1}. Then `python3 eva
 It uses Playwright's Chromium if installed, else the Chrome, Edge or Chromium already on the computer. If it
 reports that neither is there, run `python3 format/talyx_pdf.py --setup` once and render again.
 
-## Debrief and ratchet
+"""
+
+
+def p_debrief(R):
+    """Debrief and ratchet."""
+    n, cal, pb, qs, q_lines, calls, fam_lines, dims, tiers, table, beats, checks, excl = _ctx(R)
+    return f"""## Debrief and ratchet
 
 After the call, `evals/debrief_template.yaml` (four fields). `python3 eval.py improve` proposes row diffs to
 `pcp.yaml`; `python3 eval.py ratchet` lands them only if every frozen target holds its floor. The floor is the
 best ever seen and only rises.
 
-## About
+"""
+
+
+def p_about(R):
+    """About."""
+    n, cal, pb, qs, q_lines, calls, fam_lines, dims, tiers, table, beats, checks, excl = _ctx(R)
+    return f"""## About
 
 Made by Talyx AI, https://talyx.ai. Free to use under the licence in the plug-in's `LICENSE` file.
 """
+
+
+def render_skill_full(R, sha):
+    """The whole of the plug-in as one document, every section in order: the chat apps' knowledge file (build/adapters.py) reads this."""
+    return (p_head(R, sha) + p_concepts(R) + p_setup_ask(R) + p_setup_table(R) + p_setup_rules(R)
+            + "\n".join(stage_block(R, s) for s in R["stages"]) + "\n"
+            + p_asking(R) + p_records(R) + p_sources(R) + p_rounds(R) + p_profile(R) + p_brief(R) + p_script(R) + p_fields(R)
+            + p_checks(R) + p_render(R) + p_debrief(R) + p_about(R))
+
+
+# ---- the lean skill: the procedure in SKILL.md, everything else in references/*.md (pcp.yaml `skill`) ----------------------
+
+def _entry(R, x):
+    """One item of a Load list as (path, holds, when): a file id of skill.files, or a plug-in path the scripts read."""
+    f = x if isinstance(x, dict) else {"file": x}
+    reg = R["skill"]["files"].get(f["file"])
+    return (reg["path"], reg["holds"], f.get("when")) if reg else (f["file"], f.get("holds"), f.get("when"))
+
+
+def load_line(R, load):
+    """`**Load:** <path> (what it holds); ...` -- the line a step opens with, naming each file it reads."""
+    parts = []
+    for x in load:
+        path, holds, when = _entry(R, x)
+        parts.append(f"`{path}`" + (f" ({holds})" if holds else "") + (f", only when {when}" if when else ""))
+    return "**Load:** " + "; ".join(parts) + "."
+
+
+def config_line(R, step):
+    """`**Config:** <file> -- keys ...` for a step that may read keys from pcp.json, or ''."""
+    rows = [c for c in R["skill"]["config"] if c["step"] == step]
+    return "".join(f"**Config:** `{c['file']}` keys " + ", ".join(f"`{k}`" for k in c["keys"]) + f" -- {c['why']}.\n\n" for c in rows)
+
+
+def step_load(R, step):
+    s = next(x for x in R["skill"]["steps"] if x["id"] == step)
+    return load_line(R, s["load"]) + "\n\n" + config_line(R, step)
+
+
+def setup_table_full(R):
+    """The setup questions as the reference prints them: every option with its value and description, what each answer sets,
+    and what consumes it (the popup tool shows the descriptions; the saved value is the second word)."""
+    lines = ["| # | Chip | Question | Options: label [value]: description | Sets | Used by |", "|---|---|---|---|---|---|"]
+    for q in R["calibration"]["questions"]:
+        opts = " · ".join(f"{i}. {o['label']} [{o['value']}]: {o['description']}" for i, o in enumerate(q["options"], 1)) if q["options"] else "free text"
+        sets = "; ".join(f"{k}: {v}" for k, v in q["sets"].items())
+        lines.append(f"| {q['id']} | {q['header']} | {q['question']} | {opts} | {sets} | {', '.join(q.get('consumed_by', []))} |")
+    return "\n".join(lines) + "\n\n"
+
+
+def registers_full(R):
+    """Registers by domain with their addresses, and the exclusions."""
+    regs = "; ".join(f"{k}: " + ", ".join(f"{r['name']} ({r['url']})" for r in v) for k, v in R["registers"].items() if v) or "none"
+    base = t_registers(R)
+    return base.replace(base.split("\n\n", 1)[0], f"Registers by domain: {regs}.", 1)
+
+
+def instrument(R):
+    """The metric, its controls and the commands of eval.py (parsed from the script, the one source of its commands)."""
+    ev = (HERE / "eval.py").read_text()
+    cmds = ", ".join(f"`eval.py {c}`" for c in re.findall(r'sub\.add_parser\("([\w-]+)"', ev))
+    verbs = next(c["method_verbs"] for c in R["checks"] if "method_verbs" in c)
+    e = R["eval"]
+    return ("## The metric and the commands\n\n" + "\n".join(f"- **{k}:** {v}" for k, v in e.items())
+            + f"\n- **Method verbs (C8):** {', '.join(verbs)}\n\nCommands of `eval.py`: {cmds}.\n\n")
+
+
+def renderer_flags(R):
+    """Every flag format/talyx_pdf.py takes, parsed from the script."""
+    flags = sorted(set(re.findall(r'add_argument\("(--[\w-]+)"', (HERE / "format/talyx_pdf.py").read_text())))
+    return ", ".join(f"`{f}`" for f in flags)
+
+
+def rows_lean(R, rows):
+    """A stage's rows as the procedure prints them: the rule as written, or its stub and where the full rule is. No tests (checks.md)."""
+    moved = R["skill"]["rows_in_reference"]
+    out = []
+    for r in rows:
+        if r["id"] in moved:
+            m = moved[r["id"]]
+            out.append(f"- **{r['id']}** {m['stub']} Full rule: `{R['skill']['files'][m['file']]['path']}`.")
+        else:
+            out.append(f"- **{r['id']}** {fill(R, r['text'])}")
+    return "\n".join(out)
+
+
+def rows_full(R, rows, ids):
+    """The full text of the named rows (no tests), for the reference that holds them."""
+    by = {r["id"]: r for r in rows}
+    return "\n".join(f"- **{i}** {fill(R, by[i]['text'])}" for i in ids)
+
+
+def moved_ids(R, fid):
+    return [i for i, m in R["skill"]["rows_in_reference"].items() if m["file"] == fid]
+
+
+def all_rows(R):
+    return R["calibration"]["rules"] + [r for s in R["stages"] for r in s["rows"]]
+
+
+def lean_stage(R, s):
+    """A stage of the lean skill: Load line, input contract, context, outputs, rows."""
+    block = [f"## Stage {s['id'][1]}: {fill(R, s['name'])}", "", step_load(R, s["id"]).rstrip("\n"), "",
+             "**Input contract** (declared before behaviour):", "", _inputs(s["inputs"]), "", _context(s["context"]), ""]
+    if s.get("outputs"):
+        block += ["**Outputs:** " + "; ".join(f"`{o['name']}` ({', '.join(o.get('fields', [])) or o.get('note', '')})" for o in s["outputs"]), ""]
+    block += ["**Rows:**", "", rows_lean(R, s["rows"]), ""]
+    if s["id"] == "S5":
+        block += [p_debrief(R).split("\n\n", 1)[1].rstrip("\n"), ""]
+    return "\n".join(block)
+
+
+def lean_head(R, sha):
+    """Frontmatter (the first bytes of the file) and the opening: what this file is and how a step loads its files."""
+    n = R["names"]
+    return f"""---
+name: pre-call-prep
+description: >
+  {description(R)}
+---
+{R['render_header'].format(sha=sha)}
+
+# Pre-call prep (v{R['registry_version']})
+
+Stages, dependency-ordered: **setup once -> intake -> {n['collection'].lower()} -> {n['profile'].lower()} -> {n['deliverable']} -> debrief.**
+This file is the procedure: for each step, what to do, where to stop and what must pass. Each step's **Load** line names the files
+it reads: load them before the step, because they hold the tables, rules and wording this file leaves out. A **Config** line names
+the keys a step may read from `pcp.json` (pcp.yaml as JSON); the scripts read it, so never edit or retype it.
+Every fact traces to a source. Nothing is invented. The deliverable is one 3-page PDF, the {n['deliverable']}. Nothing else is emitted.
+
+**No shell or code tool (plain chat)?** Run the same stages anyway; never stop or refuse for lack of tools. Keep claims, coverage
+and the behavioral read in your working notes, not in the reply: one short status line, then nothing until a question or the
+brief itself (S2-10). Deliver the full {n['deliverable']} in the chat as `{R['skill']['files']['in_chat']['path']}` says.
+
+Made by Talyx AI, https://talyx.ai. Free to use under the licence in the plug-in's `LICENSE` file.
+
+"""
+
+
+def lean_stage0(R):
+    """Stage 0: the ask step, the calibration rows (the long ones as stubs)."""
+    ask = p_setup_ask(R).split("\n\n", 1)
+    return (ask[0] + "\n\n" + step_load(R, "S0") + ask[1] + "**Rows:**\n\n" + rows_lean(R, R["calibration"]["rules"]) + "\n\n")
+
+
+def lean_checks(R):
+    """The checks step: how to run them; the table is in the reference."""
+    ck = R["skill"]["checks_step"]
+    intro = t_checks_intro(R).split("\n\n", 1)
+    return f"## {ck['title']}\n\n" + load_line(R, ck["load"]) + "\n\n" + intro[1]
+
+
+def lean_render(R):
+    rd = R["skill"]["render_step"]
+    body = p_render(R).split("\n\n", 1)
+    return (f"## {rd['title']}\n\n" + load_line(R, rd["load"]) + "\n\n" + config_line(R, "render") + body[1].rstrip("\n")
+            + f"\n\nEvery flag the renderer takes: {renderer_flags(R)}.\n")
+
+
+def render_skill(R, sha):
+    """SKILL.md: the procedure. Everything the steps load is in the references (render_refs)."""
+    st = {s["id"]: s for s in R["stages"]}
+    return (lean_head(R, sha) + lean_stage0(R) + "\n".join(lean_stage(R, st[i]) for i in ("S1", "S2", "S3", "S4")) + "\n"
+            + lean_checks(R) + lean_render(R).rstrip("\n") + "\n\n" + lean_stage(R, st["S5"]))
+
+
+def ref_head(R, sha, fid):
+    f = R["skill"]["files"][fid]
+    steps = ", ".join(f"Stage {x['id'][1]}" for x in R["skill"]["steps"] if any((y if isinstance(y, str) else y["file"]) == fid for y in x["load"]))
+    return f"{R['render_header'].format(sha=sha)}\n\n# {f['title']}\n\nLoaded by {steps or 'the checks step'} of SKILL.md.\n\n"
+
+
+def rule_tests(R):
+    """The test that makes each rule fail, for every row (SKILL.md prints the rule, not its test)."""
+    rows = "\n".join(f"| {r['id']} | {r['test']} |" for r in all_rows(R))
+    return f"## Rule tests\n\nEach rule fails when:\n\n| Row | Fails when |\n|---|---|\n{rows}\n\n"
+
+
+def render_refs(R, sha):
+    """{path: text} of the generated references a step loads (the Socratic and search-round references have their own renderers)."""
+    F = R["skill"]["files"]
+    moved = lambda fid: ("## Rules moved out of SKILL.md\n\nThe full text of the rows SKILL.md summarises; the rule is this text.\n\n"
+                         + rows_full(R, all_rows(R), moved_ids(R, fid)) + "\n\n") if moved_ids(R, fid) else ""
+    out = {
+        "setup": ref_head(R, sha, "setup") + t_concepts(R) + "## Setup questions\n\n" + setup_table_full(R) + p_asking(R) + moved("setup")
+                 + "## Intake\n\n" + t_intake_columns(R),
+        "collection": ref_head(R, sha, "collection") + t_families(R) + registers_full(R) + t_source_lists(R) + p_records(R) + t_linkedin(R) + moved("collection"),
+        "profile": ref_head(R, sha, "profile") + f"Rubric version {R['rubric']['version']}.\n\n" + p_profile(R),
+        "brief": ref_head(R, sha, "brief") + t_plain_words(R) + p_brief(R) + p_script(R) + p_fields(R) + moved("brief"),
+        "checks": ref_head(R, sha, "checks") + t_checks_table(R).replace("| Id | Check", "## Checks\n\n| Id | Check", 1) + rule_tests(R) + instrument(R),
+        "in_chat": ref_head(R, sha, "in_chat") + "## Plain chat\n\n" + t_chat(R) + moved("in_chat"),
+    }
+    return {F[k]["path"]: v for k, v in out.items()}
 
 
 def battery_rounds(R, depth):
@@ -420,13 +771,13 @@ argument-hint: "[intake.csv | \\"Full Name, Organisation\\"] [--recalibrate] [--
 
 Input from the user: `$ARGUMENTS`
 
-First load the `pre-call-prep` skill in this plug-in (Skill tool, or read `skills/pre-call-prep/SKILL.md`) -- the block schema, titles and budgets live there, not here. Never write a brief without it. Then follow it exactly, in stage order:
+First load the `pre-call-prep` skill in this plug-in (Skill tool, or read `skills/pre-call-prep/SKILL.md`) and the references each step of it loads -- the block schema, titles and budgets live there, not here. Never write a brief without it. Then follow it exactly, in stage order:
 
 0. **Setup** -- ask the questions with `AskUserQuestion` ({calls_txt}), only those `{R['calibration']['profile_path']}` has no answer for (all with `--recalibrate`), a typed list only where the host has no question tool; read files given with `--context`.
 1. **Intake** -- resolve `$ARGUMENTS` (CSV path, `"Name, Org"`, or ask). Never start without a full name and an organisation. Confirm the meeting objective: say it back in the one status line, and ask only as `references/socratic-questions.md` says.
 2. **{n['collection']}** -- run the enabled source types in the search rounds of `references/osint-search.md` (LinkedIn only as its search results show it; never a browser); write `claims.jsonl` and the coverage ledger. Drop excluded claims before writing.
 3. **{n['profile']}** -- read six dimensions from claim ids only; set the evidence tier.
-4. **{n['deliverable']}** -- fill `fields.json` (SKILL.md lists its keys) and run `python3 eval.py assemble <folder>` -- it builds `brief.md` (B1-B10) and `script.md` (P1-P9) from the schema, never write them yourself; run `python3 eval.py checks brief.md script.md --target-nouns \"<name>,<org>\" --experience <Q9> --authority <caller.authority_level>` and `python3 eval.py duf brief.md script.md`; rewrite until clean; render with `format/talyx_pdf.py --style brief --brief-pages {pb['brief_pages']} --max-pages {pb['total_pages']}` and check it with `python3 eval.py pdf <the PDF> brief.md`. Deliver the PDF path and the run line (date · depth · status · facts · searches, from the ledger's Run row). Delete `brief.md`/`script.md` after a clean render.
+4. **{n['deliverable']}** -- fill `fields.json` (`references/brief.md` lists its keys) and run `python3 eval.py assemble <folder>` -- it builds `brief.md` (B1-B10) and `script.md` (P1-P9) from the schema, never write them yourself; run `python3 eval.py checks brief.md script.md --target-nouns \"<name>,<org>\" --experience <Q9> --authority <caller.authority_level>` and `python3 eval.py duf brief.md script.md`; rewrite until clean; render with `format/talyx_pdf.py --style brief --brief-pages {pb['brief_pages']} --max-pages {pb['total_pages']}` and check it with `python3 eval.py pdf <the PDF> brief.md`. Deliver the PDF path and the run line (date · depth · status · facts · searches, from the ledger's Run row). Delete `brief.md`/`script.md` after a clean render.
 5. **After the call** -- offer the four-field template in `evals/debrief_template.yaml`; never ask for more.
 
 Say what was NOT found before what was.
@@ -543,9 +894,12 @@ def main():
     ap.add_argument("--check", action="store_true")
     a = ap.parse_args()
     R, sha = load()
-    targets = {HERE / "skills/pre-call-prep/SKILL.md": render_skill(R, sha),
+    skill_md = render_skill(R, sha)
+    refs = {HERE / "skills/pre-call-prep" / path: text for path, text in render_refs(R, sha).items()}
+    targets = {HERE / "skills/pre-call-prep/SKILL.md": skill_md,
                HERE / "skills/pre-call-prep/references/socratic-questions.md": render_socratic(R, sha),
                HERE / "skills/pre-call-prep/references/osint-search.md": render_osint(R, sha),
+               **refs,
                HERE / "commands/pcp.md": render_command(R, sha),
                HERE / "INVENTORY.md": render_inventory(R, sha),
                HERE / "pcp.json": json.dumps(R, ensure_ascii=False, separators=(",", ":"), default=str) + "\n",
@@ -562,7 +916,7 @@ def main():
     if leaked:
         print("INTERNAL FAIL -- consumer-facing files carry internal notes:", ", ".join(leaked))
         sys.exit(1)
-    inv = inventory_problems(R, targets[HERE / "INVENTORY.md"], targets[HERE / "skills/pre-call-prep/SKILL.md"])
+    inv = inventory_problems(R, targets[HERE / "INVENTORY.md"], skill_md + "\n".join(refs.values()))
     if inv:
         print("INVENTORY FAIL --", *inv, sep="\n  ")
         sys.exit(1)

@@ -55,7 +55,7 @@ Three files. Everything else is generated or frozen.
 | File | Role |
 |---|---|
 | `pcp.yaml` | The registry: every name, question, parameter, source family, rubric band, page budget, instruction row (with its falsification test) |
-| `render_skill.py` | Renders `skills/pre-call-prep/SKILL.md`, its `references/socratic-questions.md`, `commands/pcp.md`, `INVENTORY.md` (every printed part and its status) and `pcp.json` (the registry as JSON, so the scripts need no YAML library) from the registry. The only writer. |
+| `render_skill.py` | Renders `skills/pre-call-prep/SKILL.md` (the procedure, under 30,000 characters), the `references/*.md` each step of it loads (setup, collection, profile, brief, checks, in-chat, the search rounds, the Socratic questions), `commands/pcp.md`, `INVENTORY.md` (every printed part and its status) and `pcp.json` (the registry as JSON, so the scripts need no YAML library) from the registry. The only writer. |
 | `eval.py` | The instrument: `duf` (decision-useful facts per page), `checks` (C1-C16 on the Markdown; `--plain` also on a PDF), `pdf` (the rendered PDF: 3 pages, script on page 3, links, plain words), `concordance`, `self-test`, `ratchet`, `improve` |
 
 `format/talyx_pdf.py` is the portable house-style renderer (also exposed as the `talyx-pdf` skill).

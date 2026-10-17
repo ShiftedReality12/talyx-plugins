@@ -203,7 +203,7 @@ def chat_knowledge():
     raw = (PLUGIN / "pcp.yaml").read_bytes()
     R = yaml.safe_load(raw)
     C = _chat_registry(R)
-    text = rs.render_skill(C, hashlib.sha256(raw).hexdigest()[:12])
+    text = rs.render_skill_full(C, hashlib.sha256(raw).hexdigest()[:12])
     text = text[text.index("\n---\n") + 5:]   # a knowledge file has no skill frontmatter
     n = R["names"]
     text = text.replace(f"The deliverable is one 3-page PDF, the {n['deliverable']}.", f"The deliverable is one document: the {n['deliverable']}, then the {n['script']}.")

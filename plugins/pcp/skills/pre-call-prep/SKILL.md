@@ -9,36 +9,25 @@ description: >
   before a meeting, talking points, or shares an intake list. Do not use for general research unrelated
   to a meeting, or for notes on a meeting that has already happened.
 ---
-<!-- GENERATED from pcp.yaml (sha256:2b9ed02ecfe7) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:2e44ead61a4c) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
 Stages, dependency-ordered: **setup once -> intake -> intelligence collection -> behavioral profile -> Intelligence Brief -> debrief.**
-Every stage declares its inputs before its behaviour, reads only its listed context, and follows rows
-that each carry a falsification test. Every fact traces to a source. Nothing is invented.
-The deliverable is one 3-page PDF, the Intelligence Brief. Nothing else is emitted.
+This file is the procedure: for each step, what to do, where to stop and what must pass. Each step's **Load** line names the files
+it reads: load them before the step, because they hold the tables, rules and wording this file leaves out. A **Config** line names
+the keys a step may read from `pcp.json` (pcp.yaml as JSON); the scripts read it, so never edit or retype it.
+Every fact traces to a source. Nothing is invented. The deliverable is one 3-page PDF, the Intelligence Brief. Nothing else is emitted.
 
-**No shell or code tool (plain chat)?** Run the same stages anyway; never stop or refuse for lack of tools.
-Research with the host's own web search and fetch tools. Keep claims, coverage and the behavioral read as the
-records below, in your working notes, not in the reply: say one short status line, then nothing until a question or
-the brief itself (S2-10). Apply the checks yourself. Then deliver the full Intelligence Brief in chat
-exactly as S4-10 says (label, page markers, every block, the ledger, the Meeting script). Profile answers
-given in the message stand in for the saved setup file.
+**No shell or code tool (plain chat)?** Run the same stages anyway; never stop or refuse for lack of tools. Keep claims, coverage
+and the behavioral read in your working notes, not in the reply: one short status line, then nothing until a question or the
+brief itself (S2-10). Deliver the full Intelligence Brief in the chat as `references/in-chat.md` says.
 
-## How PCP thinks (never in the output)
-
-- Work the intelligence cycle: direction (setup and the meeting objective) -> collection -> processing (each fact gets a source, tag, grade and date; excluded topics are dropped) -> analysis -> the Intelligence Brief -> feedback (the debrief).
-- Collection is public-source OSINT (and SOCMINT for the person's public social footprint): first each source type's own query (the base pass), then open sources found by targeted web search in rounds, each refined from the last (osint), the person's public social footprint, LinkedIn only as its public search results show it (never a browser session), and the user's own files and answers (a LinkedIn profile they save is one).
-- Behavioral profile is human-source analysis from public evidence: each row is a cited observation and the caller's move. It never labels the person's character.
-- Keep what was read apart from what was inferred (the grade). Check the one assumption the Take rests on (Strongest case against). On deep runs, weigh competing explanations of what they want.
-
-**Sources never cited:** goodfest.westfield.com, peoplefinders.com, spokeo.com, whitepages.com, beenverified.com, radaris.com, truthfinder.com, mylife.com. **Weak (never C1/C2, never the only support on page 1):** thefabulous.co, mexc.com, medium.com, substack.com, quora.com, reddit.com, wikipedia.org, crunchbase.com, zoominfo.com, rocketreach.co, signalhire.com, contactout.com, theorg.com, famousbirthdays.com, celebsages.com, wealthygorilla.com, idcrawl.com.
-
-**Plain words.** Nothing the user reads -- the PDF, replies, setup questions, the listing -- uses military, intelligence-trade or technical jargon, or a grade or rule code (C3, S2-9): say 'a single, weaker source'. The closing reply too: after the call, offer 'after-call notes' (four fields), never a debrief. Their own quoted words are exempt. Never write a word banned: OSINT, SOCINT, SOCMINT, HUMINT, human intelligence, SIGINT, intelligence cycle, tradecraft, collection plan, competing hypotheses, ACH, target package, asset, source handling, exploitation, debrief, kill chain, dossier, duf_pp, claims.jsonl, read.json, source families, scrape, scraped, scraping, crawl, LLM, or an internal id
-(C1-C4, F1-F12, row ids). Allowed only inside these phrases: asset manager, asset managers, asset management, asset & wealth management, asset and wealth management, asset class, asset classes, asset allocation, asset owner, asset owners, asset-light, asset-heavy, asset-backed, asset-based, asset-liability, asset and liability, asset base, asset quality, asset growth, asset mix, asset value, asset values, net asset value, asset price, asset prices, asset sale, asset sales, asset purchase, asset purchases, asset deal, asset finance, asset servicing, asset gathering, real asset, alternative asset, digital asset, fixed asset, financial asset, hard asset, single-asset, multi-asset.
-Use "source types", not families; "the person you're meeting", not target. Call the deliverable the Intelligence Brief, nothing else.
+Made by Talyx AI, https://talyx.ai. Free to use under the licence in the plug-in's `LICENSE` file.
 
 ## Stage 0: Setup (once)
+
+**Load:** `references/setup.md` (how PCP thinks, the setup questions and rules CAL-1 to CAL-5, the intake columns); `references/socratic-questions.md` (when to ask the user, and the questions written for the room).
 
 If `~/.pcp/profile.yaml` is missing or invalid, or `--recalibrate` is passed, ask these questions with
 `AskUserQuestion` -- Q1+Q2+Q3+Q4 · Q5+Q6+Q7+Q9 · Q8 (free text), first option recommended -- (the host's native question tool: the structured question tool in
@@ -48,30 +37,17 @@ Type the questions in the reply, numbered, options numbered, only when the host 
 (`pcp_profile_format: 1`, answers under `profiles: <name>: answers: Qn: {value, defaulted}`, plus `context`
 and `linkedin` when set) and continue.
 
-| # | Chip | Question | Options | Sets |
-|---|---|---|---|---|
-| Q1 | Your role | Who is making the call? | 1. Founder / principal (Recommended) · 2. Sales / BD · 3. Advisor / relationship manager · 4. Investor / allocator | caller.role, caller.authority_level |
-| Q2 | Domain | Where do your targets mostly live? | 1. General professional (Recommended) · 2. Wealth management · 3. Private equity / VC · 4. Enterprise / SaaS | domain |
-| Q3 | Target kind | Who do you usually prep for? | 1. A person (Recommended) · 2. A company or team · 3. A deal or transaction · 4. Mixed | target.kind_default |
-| Q4 | Meeting | What is the typical call? | 1. First intro (cold or warm) (Recommended) · 2. Discovery / qualification · 3. Pitch / close · 4. Relationship / renewal | meeting.format_default |
-| Q5 | Depth | Research depth versus speed? | 1. Standard -- 12 source types, about 8 minutes (Recommended) · 2. Fast -- 6 source types, about 3 minutes · 3. Deep -- every source type + what they may want | research.depth |
-| Q6 | Social | Public social footprint -- how far? | 1. Professional only (Recommended) · 2. Plus public X / Bluesky / Substack · 3. None | socmint.scope |
-| Q7 | Compliance | Jurisdiction and compliance posture? | 1. US (Recommended) · 2. UK / EU (GDPR strict) · 3. Regulated sales (FINRA / FCA style) · 4. APAC | jurisdiction |
-| Q9 | Experience | How long have you been running meetings like this? | 1. Experienced (Recommended) · 2. Newer -- under two years · 3. Top producer | caller.experience |
-| Q8 | Your offer | In one line -- what do you offer, and what does a win in this meeting look like? If you have files about your business (a deck, a one-page summary, case studies -- PDF, Word, Markdown, text or CSV), add their paths and PCP will use them. (free text) | free text | caller.offer_one_line, meeting.win_definition, context.files |
+**Rows:**
 
-- **CAL-1** Ask only the questions with no saved answer in ~/.pcp/profile.yaml -- all of them the first time, all again with --recalibrate. Otherwise read it silently.  
-  _Fails when:_ A profile with Q1-Q8 answered and no Q9 -- the run asks Q9 only. A complete profile -- it asks nothing.
-- **CAL-2** A skipped answer takes the first (Recommended) option and is stored with defaulted:true; the masthead's Prepared for and Depth show the saved answers.  
-  _Fails when:_ Skip Q5 -- profile shows research.depth standard, defaulted true; the masthead reads "Depth standard".
-- **CAL-3** The improve loop may PROPOSE a profile change (one line, with the debrief evidence) but never applies one without a yes.  
-  _Fails when:_ Three debriefs with facts_used > 80% must produce a proposal, and the profile must be unchanged until answered.
-- **CAL-4** Files named in Q8 (or later with --context <path>) are read once; their paths and a summary of at most 150 words go in the profile under context. Facts taken from them are tagged Yours, never presented as public. Supported: .pdf .docx .md .txt .csv. Any other file gets one line naming the supported types, and the profile is left unchanged.  
-  _Fails when:_ Give a one-page file -- the profile holds its path and summary, and a fact from it prints with tag Yours. Give a .pptx -- one line names the supported types and profile.yaml's sha256 is unchanged.
-- **CAL-5** Questions use the host's native popup question tool (AskUserQuestion in Claude Code and Cowork; the structured question tool in ChatGPT, Codex and Grok): setup in calls of four, first option recommended, and every Socratic question the same way. A typed numbered list is the fallback only for a host with no such tool, or after a tool call that came back with no answer. Say in one line of the reply that you are asking and what skip does, then stop until the answer or the user's next message; do no research meanwhile. The saved offer (Q8) and domain (Q2) are checked against what the user asks for in this run: when the request names a different business, offer or domain, ask which to use before any search (the offer-conflict trigger, S1-4); use the answer for this run only unless the user says to change the saved one; on skip, use the saved one and say so in the Coverage row.  
-  _Fails when:_ A run on a host with a question tool whose reply types 'Reply with one number per line, such as 1, 4, 1, 1' fails eval.py battery (C22); a popup with no line of the reply before it, or one the run did not wait for (searches before the user's answer), or one that came back empty and was not re-asked in the reply, fails it too. A saved offer 'transaction advisory' and a request about AI meeting prep -- eval.py offer-conflict exits 1 and the run asks first.
+- **CAL-1** Ask only the questions with no saved answer in ~/.pcp/profile.yaml -- all of them the first time, all again with --recalibrate. Otherwise read it silently.
+- **CAL-2** A skipped answer takes the first (Recommended) option and is stored with defaulted:true; the masthead's Prepared for and Depth show the saved answers.
+- **CAL-3** The improve loop may PROPOSE a profile change (one line, with the debrief evidence) but never applies one without a yes.
+- **CAL-4** Files named in Q8 (or later with --context <path>) are read once; their paths and a summary of at most 150 words go in the profile under context. Facts taken from them are tagged Yours, never presented as public. Supported: .pdf .docx .md .txt .csv. Any other file gets one line naming the supported types, and the profile is left unchanged.
+- **CAL-5** Ask every question with the host's native popup tool, and nothing else works until it is answered: say in one line of the reply what skip does, then stop. A typed list only where the host has no tool or the popup came back empty. Before any search, check the saved offer and domain against what this run asks for. Full rule: `references/setup.md`.
 
 ## Stage 1: Intake
+
+**Load:** `references/socratic-questions.md` (when to ask the user, and the questions written for the room).
 
 **Input contract** (declared before behaviour):
 
@@ -86,16 +62,16 @@ and `linkedin` when set) and continue.
 
 **Rows:**
 
-- **S1-1** Do not start research without a full name and an organisation.  
-  _Fails when:_ Run with a name only -- the run must ask, not search.
-- **S1-2** Two or more people match the name: stop and ask which one. Wrong-person research is worse than none.  
-  _Fails when:_ Seed an ambiguous name -- the run must present the candidates and stop.
-- **S1-3** Up to 8 targets per run; research targets in parallel, write briefs in turn.  
-  _Fails when:_ A 9-row CSV must be refused with the count.
-- **S1-4** Ask the user only as references/socratic-questions.md says: when a trigger fires, at most 2 questions after setup, in one message, each skippable, asked with the native question tool and waited for (CAL-5). The offer-conflict trigger fires before the first search: run eval.py offer-conflict --saved '<Q8 offer>' --request '<what the user asked for>' (exit 1 = ask).  
-  _Fails when:_ An intake with an objective and no relationship -- the run asks nothing before collection. A request about AI meeting prep with a saved transaction-advisory offer -- the run asks which offer to use before its first search (eval.py battery --profile fails C22 otherwise).
+- **S1-1** Do not start research without a full name and an organisation.
+- **S1-2** Two or more people match the name: stop and ask which one. Wrong-person research is worse than none.
+- **S1-3** Up to 8 targets per run; research targets in parallel, write briefs in turn.
+- **S1-4** Ask the user only as references/socratic-questions.md says: when a trigger fires, at most 2 questions after setup, in one message, each skippable, asked with the native question tool and waited for (CAL-5). The offer-conflict trigger fires before the first search: run eval.py offer-conflict --saved '<Q8 offer>' --request '<what the user asked for>' (exit 1 = ask).
 
 ## Stage 2: Intelligence collection
+
+**Load:** `references/collection.md` (the source types and their query templates, placeholders, registers, exclusions, source quality, the three records, LinkedIn status, rules S2-7, S2-9 and S2-11); `references/osint-search.md` (the search rounds, their queries, operators per host, the identity lock).
+
+**Config:** `pcp.json` keys `families.*.weight`, `families.*.kinds`, `families.*.socmint`, `retention.*` -- the ratchet and duf weigh and filter source types by weight and kind; retention is the jurisdiction's rule for claims.jsonl.
 
 **Input contract** (declared before behaviour):
 
@@ -111,30 +87,21 @@ and `linkedin` when set) and continue.
 
 **Rows:**
 
-- **S2-1** Public sources found by targeted web search in rounds (osint), plus what the user gives: their files and answers (tag Yours), a LinkedIn profile they save among them (S2-7). LinkedIn itself only as its public search results show it; never a signed-in or automated browser. No paid data the user has not supplied; nothing collected in bulk. A page behind a login wall is a failed URL: list it in coverage.failed_urls and cite another source.  
-  _Fails when:_ A run with no files and no answers holds only Direct, Search and LinkedIn facts, and its transcript requests no linkedin.com page the user did not give; a page that returns a login wall is in coverage.failed_urls.
-- **S2-2** Every claim carries url (or the file name, for Yours), retrieved_at, published (the source's own publication or event date; none when the source is undated), tag Direct|Search|LinkedIn|Yours, grade Measured|Derived|Inference|Not determined, and confidence C1 (primary, dated) | C2 (reputable secondary) | C3 (single weak source) | C4 (inferred).  
-  _Fails when:_ A claim missing any field is dropped by eval.py duf and counted as dropped.
-- **S2-3** A claim that hits an exclusion is dropped BEFORE the writer sees it and counted in coverage.excluded; the ledger's Left out on purpose row names the topic, never the fact.  
-  _Fails when:_ Seed a claim tagged exclusion health -- it must not appear in any output file.
-- **S2-4** Coverage is a required output: families_attempted/families_total and hits per family. A run without coverage is not a run.  
-  _Fails when:_ Disable WebFetch -- coverage must show 0/N attempted and status LIMITED, never FULL.
-- **S2-5** Status FULL requires >= 1 C1/C2 claim in >= research.full_threshold[depth] families; else LIMITED, stamped in the masthead.  
-  _Fails when:_ Remove all C1/C2 claims from one family below threshold -- status flips to LIMITED.
-- **S2-6** Run the counter-evidence family last: search for what would contradict the strategic read.  
-  _Fails when:_ With depth standard or deep, coverage must show family F12 attempted.
-- **S2-7** LinkedIn is read the way the rest of the record is: by targeted web search in rounds (osint; references/osint-search.md), from the result text the host's search tool returns. Never sign in, and never open or drive a browser session (osint.never). A LinkedIn address the user gives (the intake's LinkedIn URL column, or in their message) is read once with the host's plain page fetch: it is theirs, so no identity lock; a login wall or a refusal is a failed URL (coverage.failed_urls) and the run goes on from search results. A profile the user saves (PDF or copied text) is read as their file. Any other linkedin.com page is never requested. With social scope none, or when the user says not to, run no LinkedIn query: 'not read: scope none' or 'not read: you declined'. A LinkedIn search result is used only once it passes the identity lock (osint.identity_lock); when none passes: 'not read: no matching profile'. Its facts are graded as osint.grading says: tag LinkedIn, C3, cited [linkedin.com, search result](the URL the result lists) -- a profile, post or article alike, since none is opened -- dated 'seen <today>', and 'per their LinkedIn' in a sentence that rests on it alone. When the user gives the person's LinkedIn profile saved as a PDF or copied text, read it as their file (tag Yours, cited by the file name; 'read from your file'); a given link read in full is tag LinkedIn, cited [linkedin.com: the link you gave](the address), status 'read from the link you gave'; the run never waits for either. Every run states LinkedIn's status, the same in two places, B4's last line and the Coverage row: '**LinkedIn:** read from search results' or 'read from your file', or '**LinkedIn:** not read: <reason>', the reason one of linkedin.reasons word for word; not read: no fact is tagged LinkedIn. An unread LinkedIn is stated in Coverage only, never as a Still open question.  
-  _Fails when:_ A run on a public executive requests no linkedin.com URL the user did not give and calls no browser tool (its transcript shows search calls only, for LinkedIn); the profile's search result is a ledger row cited to linkedin.com/in, and B4 and Coverage read 'LinkedIn: read from search results'. A LinkedIn post cited as [linkedin.com](...) fails C16. The identity-lock example reads 'not read: no matching profile'. A brief that says 'read in your browser' fails C16 (fixtures linkedin_search.md, linkedin_browser.md, linkedin_declined.md, linkedin_missing.md, linkedin_declined_with_row.md).
-- **S2-8** Source quality: prefer the primary source (the organisation, filings, the person's own words). Never cite a source_quality.exclude domain (people-search and unreachable sites); a source_quality.weak domain is at most C3 and never the only support for a fact on page 1. Cite a fact only where the ledger row says it: hypotheticals (Reverses if, Stop if) carry no citation. Before render, check every link: dead links are replaced or the fact is dropped; blocked links (the site refuses bots) are kept.  
-  _Fails when:_ A brief citing mexc.com as C2 fails C18; a Reverses if line citing the intake row fails C17; the link check reports blocked separately from dead.
-- **S2-9** Research is two passes, both mandatory. (1) The base pass -- the collection the original plug-in always ran: for every source type the depth enables (Standard and Deep 12, Fast 5), send its query template from the source-types table with its placeholders filled, and extract what its Extract column says, one claim per fact (S2-2). The target kind and social scope filter the types as the table does (a company or deal drops the person-only types and queries on {org}; scope none sends no F6 query; scope social adds X, Bluesky and Substack). F1 goes first and settles who the person is (two people match: stop and ask, S1-2); F11 is the user's own notes and needs no search; F12, the counter-evidence, goes last (S2-6). Count each source type's hits and its C1/C2 claims (S2-4, S2-5). (2) The search rounds on top (osint): refinement of the base pass, never a replacement for it -- round 1 (the identity lock, its LinkedIn query among them) to round 5, in order, each round at least the battery's queries, most with an advanced operator or the tool's domain filter, and from round 1 on they carry what the base pass and the rounds before found. Send each round's queries together, in one step, and no other search until the next round. Keep each round's line, 'Round N (name): <query> | <query> | ...', in your reasoning and in coverage.rounds only, never in the reply (S2-10). Coverage reports both passes: n of 12 source types in the base pass, and the Run row ends 'N searches (B base) in M rounds'. Neither pass replaces reading: open the page behind every result you cite (LinkedIn aside) -- before you write the ledger, check each row's link against the pages you opened, and open the rest or drop their facts -- and the fact floor (S4-11) still holds.  
-  _Fails when:_ eval.py battery <the run's history> --depth <depth> (C21) fails a run that sends no base pass (fewer searches before its rounds than the depth's source types with a query template, or a source type whose template terms no search carries), skips a round its depth enables, splits a round over several steps, sends fewer than the battery's queries in a round or too few with operators, sends round 1's LinkedIn query as typed site: where the tool has a domain filter, prints a round line, a query list or any other text in the reply between its first and last search (S2-10), prints a Run row whose counts differ from the history, or cites a page it never requested (LinkedIn aside; a page that refused the fetch was requested). eval.py checks --battery fails a Run row from Oct 16 on that does not give the base count.
-- **S2-10** Quiet research: at most one short status line per stage in the reply (at most 30 words, e.g. 'Researching <name>, <organization> for <objective>. The results go in the brief.' then 'Writing the brief.'), and nothing between: no round line, no query list, no source or progress note, no list of what was found. Search queries live in coverage.json's rounds and in your reasoning, and the Run row counts them ('N searches in M rounds'); they never appear in chat, whatever the host. A question (S1-4) or a stop for a wrong-person match is the only other text. A search call showing as a tool row in the host is the host's, not a message.  
-  _Fails when:_ eval.py battery <the run's history> (C21) fails a reply that holds a 'Round N' line or any list of queries, a message between the first and the last search, a status of over 30 words or more than five of them; a Codex run that printed all ten rounds, and a ChatGPT run that printed 'Round 1 (identity): query | query', fail it.
-- **S2-11** Run collection as a background job where the host has one, and take back only the records. Claude Code and Cowork: one Agent (Task) subagent per target, all in one message (S1-3), each in the foreground of the turn so its result is awaited; Codex: a sub-agent through the host's spawn tool, or a detached exec job; ChatGPT agent and work mode: the host's own background task. Brief each job with the intake row, the profile, the exclusions and S2-1 to S2-9; it runs rounds 1-5, opens the pages it cites, writes claims.jsonl, coverage.json and read.json (records, C23) and returns the folder and one line. The rounds then run inside the job, which the host shows as one task row. Do not narrate, poll or print a job's progress. Where the host has no background job, run the same stage in this thread, quietly (S2-10).  
-  _Fails when:_ A Claude Code run with two targets starts two Agent subagents in one message and its reply holds only status lines (eval.py battery counts a subagent's own text apart from the reply and still counts its searches); a run on a host with no job runs the stage in the thread and still passes S2-10.
+- **S2-1** Public sources found by targeted web search in rounds (osint), plus what the user gives: their files and answers (tag Yours), a LinkedIn profile they save among them (S2-7). LinkedIn itself only as its public search results show it; never a signed-in or automated browser. No paid data the user has not supplied; nothing collected in bulk. A page behind a login wall is a failed URL: list it in coverage.failed_urls and cite another source.
+- **S2-2** Every claim carries url (or the file name, for Yours), retrieved_at, published (the source's own publication or event date; none when the source is undated), tag Direct|Search|LinkedIn|Yours, grade Measured|Derived|Inference|Not determined, and confidence C1 (primary, dated) | C2 (reputable secondary) | C3 (single weak source) | C4 (inferred).
+- **S2-3** A claim that hits an exclusion is dropped BEFORE the writer sees it and counted in coverage.excluded; the ledger's Left out on purpose row names the topic, never the fact.
+- **S2-4** Coverage is a required output: families_attempted/families_total and hits per family. A run without coverage is not a run.
+- **S2-5** Status FULL requires >= 1 C1/C2 claim in >= research.full_threshold[depth] families; else LIMITED, stamped in the masthead.
+- **S2-6** Run the counter-evidence family last: search for what would contradict the strategic read.
+- **S2-7** LinkedIn only as a search result shows it, as the one address the user gives, or as a profile they saved; never sign in, never open or drive a browser. State which in the LinkedIn line and the Coverage row. Full rule: `references/collection.md`.
+- **S2-8** Source quality: prefer the primary source (the organisation, filings, the person's own words). Never cite a source_quality.exclude domain (people-search and unreachable sites); a source_quality.weak domain is at most C3 and never the only support for a fact on page 1. Cite a fact only where the ledger row says it: hypotheticals (Reverses if, Stop if) carry no citation. Before render, check every link: dead links are replaced or the fact is dropped; blocked links (the site refuses bots) are kept.
+- **S2-9** Two passes, both mandatory: the base pass (each enabled source type's own query, filled), then the rounds in references/osint-search.md; each round's queries go out together; the Run row counts both. Full rule: `references/collection.md`.
+- **S2-10** Quiet research: at most one short status line per stage in the reply (at most 30 words, e.g. 'Researching <name>, <organization> for <objective>. The results go in the brief.' then 'Writing the brief.'), and nothing between: no round line, no query list, no source or progress note, no list of what was found. Search queries live in coverage.json's rounds and in your reasoning, and the Run row counts them ('N searches in M rounds'); they never appear in chat, whatever the host. A question (S1-4) or a stop for a wrong-person match is the only other text. A search call showing as a tool row in the host is the host's, not a message.
+- **S2-11** Run collection as a background job where the host has one; take back the three records, not the pages. Full rule: `references/collection.md`.
 
 ## Stage 3: Behavioral profile
+
+**Load:** `references/profile.md` (the six dimensions with their Low, Mid and High phrases, the evidence tiers, what they may want).
 
 **Input contract** (declared before behaviour):
 
@@ -150,16 +117,14 @@ and `linkedin` when set) and continue.
 
 **Rows:**
 
-- **S3-1** Read each of the six dimensions only from observation_ids in claims.jsonl; a band with fewer observations than its tier minimum is reported as 'no read' -- never guessed from role.  
-  _Fails when:_ A target with only role-archetype claims must render every dimension as tier low and the script must contain no influence sequence.
-- **S3-2** B6's evidence tier is the highest tier at least three of the six dimensions reach (a no read counts as low). It gates page 3: low -> no Read the room (P5); high AND authority_level high -> Influence (P6). Otherwise P6 is left out.  
-  _Fails when:_ Delete one corroborating claim -- the tier must drop and P6 must disappear on re-run.
-- **S3-3** Every Your move in B6 is a rubric meaning in pcp.yaml, word for word, or No read; no band phrase is written in prose.  
-  _Fails when:_ Grep B6 for a move not in rubric.*.meaning -- the run is rewritten.
-- **S3-4** Depth deep adds what they may want: <= 3 hypotheses about what the person wants from this meeting, each with the claim that would disprove it.  
-  _Fails when:_ Depth standard -- no hypotheses table in B8; depth deep -- the table, with a disproving claim [n] per hypothesis.
+- **S3-1** Read each of the six dimensions only from observation_ids in claims.jsonl; a band with fewer observations than its tier minimum is reported as 'no read' -- never guessed from role.
+- **S3-2** B6's evidence tier is the highest tier at least three of the six dimensions reach (a no read counts as low). It gates page 3: low -> no Read the room (P5); high AND authority_level high -> Influence (P6). Otherwise P6 is left out.
+- **S3-3** Every Your move in B6 is a rubric meaning in pcp.yaml, word for word, or No read; no band phrase is written in prose.
+- **S3-4** Depth deep adds what they may want: <= 3 hypotheses about what the person wants from this meeting, each with the claim that would disprove it.
 
 ## Stage 4: Intelligence Brief
+
+**Load:** `references/brief.md` (plain words, the brief's blocks and the script's blocks with their word budgets, the fields.json keys, rules S4-4, S4-11, S4-12 and S4-13); `references/checks.md` (every check with its command, the test that makes each rule fail, the metric and the eval.py commands); `references/in-chat.md` (the brief delivered in the chat, rule S4-10), only when the host has no shell, python3 or browser engine, so no PDF can be made.
 
 **Input contract** (declared before behaviour):
 
@@ -176,257 +141,23 @@ and `linkedin` when set) and continue.
 
 **Rows:**
 
-- **S4-13** The model never writes brief.md or script.md. Fill fields.json -- one entry per field of the forms table, each claim cited as [c<id>], the ledger numbers assigned by the assembler -- then run `python3 eval.py assemble <folder>`: it builds both files from the forms table, claims.jsonl, coverage.json, read.json and the saved profile, the same structure every run, with the masthead, the behavioral profile's moves, the ledger (grade, how found, strength, date), the Coverage, Left out on purpose and Run rows computed, not typed. A problem it reports is fixed in fields.json or the records, never in the output. Check the structure with `python3 eval.py assemble --check <folder>` (C26). A host with no shell writes the in-chat brief by S4-10 and checks it with the same forms table.  
-  _Fails when:_ A brief with a block renamed, a stray label, a table header changed, a block out of order or a hand edit after assembly fails eval.py checks --schema and eval.py assemble --check (self-test: assembled fixture passes, each mutation trips).
-- **S4-1** Every fact in B1-B9 and the script cites a ledger number [n]; the ledger (B10) lists only cited facts, numbered in order of first use. A fact with no citation is a defect, not a style choice.  
-  _Fails when:_ eval.py duf reports unbound or dangling > 0 -- the run must rewrite before render.
-- **S4-2** Every sentence passes the swap test against caller.offer_one_line and the target: if another target's name would leave it true, delete it.  
-  _Fails when:_ A brief with a sentence containing no claim id and no target-specific noun fails checks.swap.
-- **S4-3** Where the host can run scripts and a browser engine (Claude Code, Claude Cowork, Codex, ChatGPT agent or work mode), render ONLY through format/talyx_pdf.py --style brief --brief-pages 2 --max-pages 3, never Markdown or HTML as the deliverable. The PDF is exactly 3 pages: the brief fills pages 1-2 (a short brief puts the evidence ledger on page 2 -- never filler) and the script is page 3. Check it with eval.py pdf. Where render is impossible, follow S4-10.  
-  _Fails when:_ On a script-capable host the output directory contains exactly one .pdf and no .md/.html after a run; eval.py pdf on it exits 0 (3 pages, the script on page 3 only, the ledger on page 2).
-- **S4-11** Fact density (the ratchet's metric, decision-useful facts per page, never drops). Standard depth aims at 18 or more distinct cited facts across the 3 pages, at least 6 per page. Spend words on facts, not framing: a line that can carry a new cited fact carries one; cut uncited connective sentences; each B2 question, B3 bullet, B5 row, B8 bullet and P3 answer rests on a different [n] where the evidence allows. Before writing Not determined for Role since, Path, The organization or Decision maker, run one targeted search of the primary source (official bio, annual report or proxy statement, newsroom); for a public company these are almost always public. The ledger's What it says stays under 8 words so each row is one line. Each No read or Not determined is a gap on the page, so evidence that fills one frees space for a fact: search two long-form interviews or earnings-call remarks for the six reads before writing No read. Keep each Still open question under 10 words. Before rendering, run eval.py duf: below 6.0 per page, replace a repeated [n], an uncited line or a filled-in-able gap with a new cited fact from the claims, then re-check fit; if the brief overflows, cut words, not facts.  
-  _Fails when:_ eval.py ratchet: every frozen target's duf_pp meets its floor at 10 pt and 3 pages.
-- **S4-12** Compose from the records, then validate before 'done'. Write brief.md and script.md from claims.jsonl, coverage.json and read.json alone (records, C23): a fact, a ledger row or a source that is not in claims.jsonl is not in the brief, and a script that carries the facts or wording itself (a compose file with the claims typed into it) is not the brief. Complete and validate the records first (eval.py records <folder> --depth <depth> --brief brief.md), then compose, then run the checks (eval.py checks, duf, pdf, links, kept, battery). The closing reply names each check and its result and says the run is done only when every one has passed; a check that could not run is named with the reason and what was done instead, never reported as 'unavailable' when the host's history file can be read (eval.py battery --latest, or pass the file: Claude Code, the newest ~/.claude/projects/<folder>/*.jsonl; Codex, the ~/.codex/sessions/**/rollout-*.jsonl that carries $CODEX_THREAD_ID; ChatGPT or the Claude app, the conversations.json of the account's data export).  
-  _Fails when:_ A run whose coverage record lacks the per-source-type counts, or whose read.json lacks a field, fails eval.py records (fixtures records_broken/); a ledger row whose page is not in claims.jsonl fails it too; eval.py battery reads a Codex rollout, a ChatGPT and a Claude app export, and Claude Code's, without 'unavailable' (self-test).
-- **S4-10** In-chat fallback. Render is impossible when the host has no shell or code tool, python3 is missing, or talyx_pdf.py exits for want of a browser engine (after one try of --setup where installs are allowed). Then deliver the full brief in the chat, never a summary: first line exactly 'Intelligence Brief (in chat: this app cannot make the PDF, so the same 3 pages follow as text)'; then the masthead lines; then the line '--- Page 1 ---' and B1-B6; '--- Page 2 ---' and B7-B10 with the same 5-column ledger (each row starts '| [n] |', the source a link or 'your request' / 'your saved setup') and its Coverage / Still open / Left out on purpose / Run rows; '--- Page 3 ---' and '# Meeting script' with P1-P9. Same blocks, order, titles, word budgets, citations [n], grades and plain-words rules as the PDF. Build the ledger from your claim list before writing the blocks, number facts in order of first use, and cite only those numbers; drop a row nobody cites. Never cite a source_quality.exclude domain. Action and Avoid in B1 each cite a fact. Every ledger row has a grade (Measured, Derived, Inference) and the source's own date 'Mon D, YYYY' ('seen Mon D, YYYY' only for an undated source). The LinkedIn line is a plain line after B4's bullets, never a bullet. Still open items are '<the exact label as printed>: <What/Who/How/When/Which/Where/If ...?>' joined by ' · ', at most 4, highest value first, each label a Not determined or No read above. Thin or no evidence never changes the shape: keep every block title and fill it with Not determined or No read; the top 4 gaps get a 'Label: question?' in Still open (S4-7). If a code tool exists, run eval.py checks on it; otherwise, before sending, check yourself, one line at a time, against these worked examples: (1) the first line is the label itself, nothing before it; (2) count B1's words: at most 60, e.g. '**Take.** Jane Doe has led Alder Grey since 2021 [1] and buys patience [3]. **Evidence:** her 2021 start [1] and her letter's 'we buy patience' [3]. **Action:** open on her letter [3]. **Avoid:** a fee-led pitch [4].' -- Evidence names the facts in words, never bare numbers; (3) P9 is one line of at most 25 words, e.g. '**Next step:** send the one-page example by Oct 17.', and nothing follows it but the Checks line -- no note, caveat or offer; (4) a hypothetical or a thing to learn carries no [n] unless the cited row says it, e.g. '**Reverses if:** she names a tooling owner.', '**Stop if:** they say tooling is settled.' and '**Capture:** who owns AI choices.'; (5) each Still open item is 'Label: question?' starting What, Who, How, When, Which, Where or If, never Does, Is, Can or Do, e.g. 'Decision maker: Who signs off?'; at most 4, each on a gap above; (6) Recent wins carries a date and a citation, e.g. '**Recent wins:** Jul 30, 2026: Azure passed $100 billion [3].', or the line is left out; (7) every sentence in B1 and B3-B8 carries a [n] or names the person or organization, e.g. 'Outside prep may look redundant to Microsoft [4].', never a bare 'Outside prep may look redundant.'; (8) block titles exactly as listed and in order, with no numbers ('## Take', '## Questions that close gaps'); only the script's sections are numbered; (9) the deliverable is only ever the Intelligence Brief, never a meeting brief, call brief, dossier or one-pager, even for the sample you bring; (10) a ledger date that is today's date is the day you read the source: write 'seen Oct 14, 2026' unless the source itself is dated today; rows from your request or your saved setup are always 'seen <today>'; (11) count every block against its budget, B9 included (at most 120 words); (12) no Left out on purpose topic appears anywhere, not even as a source name (no donations, no FEC filings); (13) every [n] in the ledger and every ledger row cited, no banned word; (14) each ledger row's What it says repeats the key words of the sentence that cites it, e.g. 'called for an AI emergency brake [3]' cites '| [3] | Called for an AI emergency brake |', not '| [3] | Oct 10 post: contain the model |'. End with 'Checks: self-reviewed, not run as code'.  
-  _Fails when:_ Run with no Bash tool: the reply holds the label, the three page markers, every B1-B10 and P1-P9 title in order, a ledger row per cited [n], and no plain_words.banned word; eval.py chat on the saved reply exits 0.
-- **S4-4** If the tightest density rung still overflows 3 pages, the run FAILS with the section word counts; it never truncates or spills. An overflow is fixed only by cutting words in the sections the renderer names -- shorter sentences, shorter 'What it says' cells, fewer adjectives; never a cited fact, a ledger row or a source -- and never --columns, --brief-pages or --max-pages, never dropping or moving a block. Before the first fit pass, copy the complete draft (brief.draft.md and script.draft.md); after the last, run eval.py kept brief.draft.md brief.md --draft-script script.draft.md --final-script script.md (C24): it must find every cited fact still in the ledger and still cited, in the brief or the script. A fact dropped for another reason (a dead link, an excluded topic) is named to the user and passed to eval.py kept with --allow <page>.  
-  _Fails when:_ Feed a 900-word section -- the engine must exit non-zero naming the section. Cut one cited fact from a draft to make it fit -- eval.py kept exits 1 and names the fact (the Codex run, Oct 16, cut 5 of 23).
-- **S4-5** The masthead's meta line carries meeting, prepared for, depth, sources, status and date; the ledger's Run row carries the run details; the footer carries only the Intelligence Brief, the person and the page numbers. The identity line is organization | role, since year | city: the city only when a source confirms it; anything unconfirmed or unknown is left out, never printed as '(not confirmed)', 'not published' or 'Not determined'.  
-  _Fails when:_ Extract page 1 text -- the meta line has all six fields; no page footer holds a metric.
-- **S4-6** A block or line prints only as its Prints when says: a line PCP cannot fill from evidence is left out, or reads Not determined where its row says so. Never filler.  
-  _Fails when:_ No recent wins found -- the Recent wins line is absent, not blank or padded.
-- **S4-7** Every Not determined -- a **Label:** line or a table cell -- and every No read in B6 is a gap; the ledger's Still open row asks at most 4 of them, highest value first, as 'Label: question?', as references/socratic-questions.md says.  
-  _Fails when:_ Write five Still open questions, or one whose label is no gap above, or none while gaps exist -- eval.py checks fails C12 (fixtures control_broken.md, gaps_table.md).
-- **S4-8** Plain words: nothing printed uses a plain_words.banned term or an internal code; the person's own quoted words are exempt.  
-  _Fails when:_ Put SOCMINT in B3 -- eval.py checks fails C11.
-- **S4-9** Experience (Q9) shapes page 3 only: new -> P1, P3 and P4 each end with a **Why:** line of at most 12 words; top -> the Hook and each objection's answer are at most 15 words; experienced -> neither.  
-  _Fails when:_ Set Q9 new -- P1, P3 and P4 each carry a Why line; set experienced -- none does. eval.py checks --experience <Q9> fails C15 otherwise (fixtures exp_new.md passes as new, exp_experienced_with_why.md fails as experienced).
-
-## Stage 5: Debrief + ratchet
-
-**Input contract** (declared before behaviour):
-
-| Input | Type | Source | Required | Fallback |
-|---|---|---|---|---|
-| `debrief.yaml` | yaml | user, after the call (60 seconds, 4 fields) | no | skip loop |
-| `ratchet.json` | json | evals/ratchet.json | yes | initialise empty |
-
-**Context contract** -- read, in this order: ratchet floors, debrief rows, the pcp.yaml rows the debrief touches. Budget: 800 words. Not read: everything else.
-
-**Rows:**
-
-- **S5-1** A change to pcp.yaml lands only if eval.py ratchet passes: every frozen target's duf_pp >= its floor AND all checks pass. The floor is the best ever seen and only rises.  
-  _Fails when:_ Lower a family weight so a target's duf_pp drops -- ratchet must exit non-zero and name the target.
-- **S5-2** Debrief fields: facts_used[claim ids], questions_landed[ids], band_accuracy{dim: hit|miss}, outcome. Nothing else is asked.  
-  _Fails when:_ The debrief template has exactly four fields.
-- **S5-3** improve proposes row diffs (family weights, question templates, band phrases) as a patch with basis: debrief_id; it never edits SKILL.md and never lands a diff itself.  
-  _Fails when:_ Run improve -- the only file written is evals/proposals/<date>.patch.
-
-## Asking questions
-
-When a question is needed -- of the user, or for the room -- read `references/socratic-questions.md` first.
-Ask with the host's native popup question tool: `AskUserQuestion` in Claude Code and Claude Cowork; the structured question tool in ChatGPT, Codex and Grok (request_user_input and its equivalents). First option recommended. Whichever way you ask, say it in one line of the reply before the call ('Two quick questions: answer in the popup, or skip and I'll use the recommended answers.'), then stop. Do no search, page open or file work until the user's next message or the tool's answer. Setup questions: a skip takes the recommended option, stored defaulted. A question from a trigger below: a skip means go on without the answer, and the gap stays Not determined. Ask each question once.
-
-## Records (C23)
-
-Keep three records while you work, in these files beside the brief (a host with no files keeps the same fields in its
-working notes). Compose the brief from them alone (S4-12), and run `python3 eval.py records <folder> --depth <depth> --brief brief.md`
-before you say the run is done.
-
-| Record | File | Fields |
-|---|---|---|
-| claims | `claims.jsonl` | id, claim, says, page, family, url, retrieved_at, published, tag, grade, confidence, exclusion_hit |
-| coverage | `coverage.json` | base, rounds, searches, attempted, families_attempted, families_total, hits_by_family, c1c2_by_family, failed_urls, excluded, dropped, linkedin, status -- hits_by_family and c1c2_by_family hold one count for each of the 12 source types (F1-F12, 0 when none); attempted lists the source types searched; failed_urls lists each URL that refused (a login wall, 404) with its status; base lists, for each source type the depth enables that has a query template, the queries its base-pass search sent; rounds lists each round with the queries it sent and any operator the search ignored; searches is the total sent, base and rounds; excluded and dropped count the claims removed (S2-2, S2-3); status is FULL or LIMITED as S2-5 says |
-| read | `read.json` | dimension, band, evidence_tier, observation_ids, meeting_meaning -- six rows, one per rubric dimension; meeting_meaning is the rubric's phrase for the band word for word, or No read; a no read has tier low and no observation_ids; the tier needs its minimum observations (rubric.tiers); the page's Evidence tier is the highest tier at least three rows reach |
-
-## Source families
-
-Enabled per profile: `depth` filters the column, `target.kind` filters `kinds`, `socmint.scope` filters F6
-to `linkedin.com/posts, linkedin.com/pulse, youtube.com, podcasts` (professional) or the wider list (social) or none.
-FULL status needs >= 1 C1/C2 claim in {'fast': 4, 'standard': 8, 'deep': 10} families (by depth).
-
-| Id | Family | Depth | SOCMINT | Query template | Extract |
-|---|---|---|---|---|---|
-| F1 | identity | fast/standard/deep | no | `"{name}" "{org}" {title}` | current role + start date, prior roles, education, credentials, boards, awards |
-| F2 | career timeline | standard/deep | no | `"{name}" {org} career OR joined OR appointed OR promoted` | dated moves; the last 24 months first |
-| F3 | org news | fast/standard/deep | no | `"{org}" news OR announces OR partnership OR acquisition OR raises {year}` | deals, leadership changes, launches, growth or contraction, anything the target led |
-| F4 | org self-description | standard/deep | no | `{org_website} about OR mission` | how the org describes itself in its own words |
-| F5 | voice | fast/standard/deep | no | `"{name}" interview OR podcast OR panel OR quoted OR keynote` | exact quotes with URL; recurring themes; the words they use for their own work |
-| F6 | public social | fast/standard/deep | yes | `"{name}" site:linkedin.com/posts OR site:x.com OR site:substack.com OR site:bsky.app` | public posts in the last 180 days; themes, tone, what they amplify; scope per profile.socmint.scope; LinkedIn per S2-7 |
-| F7 | affiliations | standard/deep | no | `"{name}" board OR trustee OR advisory OR member OR association OR alumni` | boards, associations, alumni networks, speaking circuits |
-| F8 | publications | standard/deep | no | `"{name}" author OR paper OR patent OR whitepaper OR book` | what they have published; the positions they defend in print |
-| F9 | registers | fast/standard/deep | no | `by_domain` | regulator / registry facts (see registers); C1 by definition |
-| F10 | events | standard/deep | no | `"{name}" OR "{org}" conference OR summit OR webinar {year}` | upcoming and recent appearances; a live hook for the opener |
-| F11 | shared context | standard/deep | no | `known_context only (no search)` | shared people, prior touches, mutual affiliations, the user's notes, files and answers -- all tagged Yours |
-| F12 | counter-evidence | standard/deep | no | `"{org}" lawsuit OR layoffs OR departure OR decline OR criticism -- filtered by exclusions` | what contradicts the strategic read; feeds the hypotheses; litigation stays excluded from the page |
-
-Placeholders in the query templates and rounds: `{name}` = the intake's Full Name; `{org}` = the intake's Organisation; `{title}` = the intake's Title/Role, else the role F1 finds; `{org_website}` = the intake's Organisation Website, else the organisation's own site found by F1; `{org_domain}` = org_website's host without www., e.g. microsoft.com; `{year}` = the current year, four digits; `{date_90_days_ago}` = today minus 90 days, YYYY-MM-DD; `{carry}` = a name, firm, programme, topic or gap the base pass or an earlier round found (the slots written in braces with a description, e.g. {a prior firm from round 1}).
-
-Intake columns (assets/intake-template.csv) and what each sets:
-
-| Column | Sets |
-|---|---|
-| Full Name | {name} |
-| Organisation | {org} |
-| Title/Role | {title} |
-| Meeting Date | meeting.date: the date P4's real deadline and the last-90-days window count from |
-| Meeting Objective | meeting.objective |
-| Relationship | known_context (F11, tag Yours) |
-| Relationship Length | known_context (F11, tag Yours) |
-| LinkedIn URL | linkedin.given: read once with the page fetch (S2-7); a failure goes to coverage.failed_urls |
-| Organisation Website | {org_website} |
-| Additional URL 1 | a page the user wants read: fetch it, one claim per fact, tag Direct |
-| Additional URL 2 | a page the user wants read: fetch it, one claim per fact, tag Direct |
-| Additional URL 3 | a page the user wants read: fetch it, one claim per fact, tag Direct |
-| Known Priorities | known_context (F11, tag Yours) |
-| Icebreaker Notes | known_context (F11, tag Yours) |
-| Specific Ask | meeting.win_definition: B9's ask starts from it |
-| Notes | known_context (F11, tag Yours) |
-
-Registers by domain: wealth: FINRA BrokerCheck, SEC IAPD, SEC EDGAR; pe: SEC EDGAR Form D / ADV, Companies House (UK); saas: Companies House (UK), SEC EDGAR.
-
-**Exclusions (dropped before the writer, counted in coverage):** health, family matters outside the public professional record, political giving, litigation as a talking point, home address, personal finances.
-By jurisdiction: eu: any claim older than 5 years that is not a current role, retention of claims.jsonl after render; regulated: performance claims, promissory language, comparative claims about named competitors.
-
-## Search rounds (S2-7)
-
-The rounds are mandatory (S2-9) and come on top of the base pass: every round whose source types the run's depth enables, in order, each with at least osint.battery.queries_per_round queries, most of them carrying an advanced operator or the tool's domain filter. Keep each round's line, 'Round N (name): <query> | <query> | ...', the queries as they will be sent, in your reasoning and in coverage.rounds only, never in the reply; send them together, in one step, and no other search until the next round. The queries carry what the base pass found (each source type's claims) and what the rounds before found: each round is refined from the last. A round is skipped only when the depth turns all its source types off, never for convenience; a round that finds nothing still counts, and its gap goes to Coverage.
-
-| Depth | Rounds | Queries per round, at least | Searches, at least | With an operator or a domain filter, at least |
-|---|---|---|---|---|
-| fast | 1, 3, 4 | 3 | 9 | 7 |
-| standard | 1, 2, 3, 4, 5 | 4 | 20 | 14 |
-| deep | 1, 2, 3, 4, 5 | 5 | 25 | 18 |
-
-**Operators.** Write each query as its round lists it, then send it the way the host's search takes it (osint.hosts). An operator here is site:, intitle:, inurl:, filetype:, after:, before:, OR, an exclusion (-) or the tool's domain filter; quotes alone are not one. When the results show an operator was ignored, note it in coverage.rounds and for the Coverage row, rerun once with plain quoted terms, and filter the results yourself by their URLs, titles and dates. An ignored operator leaves a gap; it never shows that nothing exists.
-
-**Claude (Claude Code and the Claude apps): the WebSearch tool** (checked: Oct 15, 2026):
-- site: goes in allowed_domains (one call per domain set) and out of the query text: typed site: is ignored (site:linkedin.com/in returned Wikipedia and wage sites; allowed_domains [linkedin.com] returned the profile). Round 1's LinkedIn query is always the domain-filtered one.
-- filetype:pdf stays in the query, and only results whose URL ends .pdf count for it: the tool ignores the operator (1 PDF in 10 results).
-- after: and before: become the month and year in the query ('October 2026'), and results dated outside the window are dropped: the tool ignores the operators.
-- intitle: stays in the query, and results without the term in their title are dropped: it is honoured only in part. inurl: and quotes work as written (checked); OR and an exclusion (-) are sent as written.
-- On a query without allowed_domains, blocked_domains takes the never-cited domains (source_quality.exclude).
-
-**ChatGPT, Grok, Perplexity, Gemini and other hosts** (checked: not tested):
-- Write each query as listed, operators included; where the search tool has a domain or recency setting, use it for site: and the date window.
-- Apply the ignored-operator rule whenever the results show an operator was dropped.
-
-**Never.** Use only the result text the host's search tool returns for linkedin.com, and the one address the user gives (read once, no sign-in): never request any other linkedin.com URL (profiles, posts or Pulse articles; an article republished elsewhere is opened there), never sign in anywhere, never open or drive a browser session (no computer use, no browser extension), and quote snippets minimally. The search provider's terms govern the query. Collect on the professional role only: the exclusions apply to every round, and a result that touches them by accident stays out of the brief.
-
-**Identity lock.** A LinkedIn result is a lead, not an identity. Use it only when (a) its headline or current role names the person and gives the organisation as their current position (not past experience or a post), and one other detail agrees with the organisation as found elsewhere (its city or region, or its web domain); or (b) a second independent source (the organisation's own site, a filing, a news article) ties that profile or that exact role to the person. A generic title (Owner, President, Founder) counts only with the organisation. A detail that contradicts (another city, another firm) rejects it. A profile URL seen only as a link on another page, with no result of its own, is a lead for the domain-filtered search, not a second profile. When two or more profiles pass, or one falls short only for want of the second detail, search each one's exact address once outside LinkedIn, in the next round's batch ('"linkedin.com/in/<slug>" -site:linkedin.com'), and use only a profile that an independent page (the organisation's site, a filing, a news article; never LinkedIn or a people-search site) presents as the person's own account, by that exact address or a post under it. None or several so tied: use none. A page that calls a profile fake rejects it; posts under a profile's own address are not independent. Never pick by guess. Example: Intake 'Mark Brown, Precision Metal Fab'. The firm's own site says Odessa, TX; the only LinkedIn result reads 'Mark Brown - Owner - Precision Metal Fab | Greater Cleveland'. The location contradicts, so nothing from it is used: '**LinkedIn:** not read: no matching profile'.
-
-**Grading.**
-- Open the page behind a result before citing it and grade the page (C1 primary and dated, C2 reputable secondary); LinkedIn is the one source cited from its search result. A page that refuses the fetch (a bot wall, 401 or 403) keeps its fact at C3, logged 'not opened': a gap, not a finding that the fact is false. A page that is gone (404 or 410) is dead: cite another source or drop the fact (S2-8).
-- A LinkedIn result: tag LinkedIn, Measured for what the result shows (text across an ellipsis is not quoted as one), C3, the source written [linkedin.com, search result](the profile URL the result lists), the date 'seen <today>'. A fact resting on it alone says so in the sentence ('per their LinkedIn'); a role seen only there never prints as confirmed current.
-- Items with one origin (a press release, a wire story, the person's own bio: shown by attribution, a link or near-identical wording) count as one source, graded by that origin; a speaker bio, a company bio and their LinkedIn are one self-reported source. Corroboration needs a second item with a different origin.
-
-| Round | Name | Source types | Goal | Queries (fill the braces; send at least the depth's count) | Then |
-|---|---|---|---|---|---|
-| 1 | identity lock | F1, F9 | one person, one current role, one profile, or a stop | `site:linkedin.com/in "{name}" "{org}"`<br>`site:{org_domain} "{name}"`<br>`"{name}" "{org}" {title}`<br>`"{name}" {title} -"{org}" (namesakes: the same name at another firm or city)`<br>`"{name}" "{org}" site:{a register for the domain, e.g. sec.gov, brokercheck.finra.org}` | Two or more people could be the one you're meeting: stop and ask (S1-2). The organisation's own site and one other source tie the person to it: identity locked. Nothing ties them: continue on the organisation and say so in Coverage. |
-| 2 | role and history | F2, F7 | dated moves, boards, how they got here | `"{name}" (intitle:bio OR inurl:bio OR inurl:leadership OR inurl:speakers OR inurl:team)`<br>`"{name}" appointed OR joined OR named OR promoted "{org}"`<br>`site:linkedin.com/in "{name}" "{a prior firm from round 1}"`<br>`"{name}" board OR trustee OR advisory`<br>`"{name}" "{a prior firm or school from round 1}"` | Each prior firm and board found here becomes a term in rounds 3 and 4. |
-| 3 | last 90 days | F3, F4, F10 | what changed for them and the organisation in the last 90 days | `"{name}" OR "{org}" announces OR appointed OR launches after:{date_90_days_ago}`<br>`site:{org_domain} (inurl:news OR inurl:press OR inurl:about OR inurl:mission) "{name}"`<br>`"{org}" results OR funding OR acquisition OR partnership after:{date_90_days_ago}`<br>`"{name}" conference OR summit OR keynote {year}`<br>`"{org}" "{a programme, deal or firm from round 2}" after:{date_90_days_ago}` | A dated event here is the opener's hook and B3's Recent wins line. |
-| 4 | their own words | F5, F6, F8 | quotes with a date and a link | `"{name}" interview OR podcast OR keynote OR panel`<br>`filetype:pdf "{name}" "{org}"`<br>`"{name}" site:youtube.com OR site:linkedin.com/pulse OR site:linkedin.com/posts`<br>`"{name}" "{a topic from rounds 2-3}"`<br>`intitle:"{name}" transcript OR remarks OR letter`<br>`"{name}" site:x.com OR site:bsky.app OR site:substack.com (only when socmint.scope is social)` | Their recurring words feed In their words and the Behavioral profile. |
-| 5 | gaps and counter-evidence | F12, F11 | only what is still Not determined, and what contradicts the read | `"{name}" OR "{org}" decides OR approves OR budget OR committee`<br>`"{org}" layoffs OR departure OR decline OR criticism (the exclusions still apply)`<br>`"{org}" "{a gap still Not determined: who decides, the gate, the timing}"`<br>`site:{org_domain} "{the gap term}" (the organisation in its own words on the open gap)`<br>`"{org}" "{the claim the Take rests on}" -"{name}" (who disagrees with the read)` | What is still open after this round becomes a Still open question in the room. |
-
-The round plan with its reasons: `references/osint-search.md`.
-
-**LinkedIn status (S2-7), in B4's last line and the Coverage row:** `LinkedIn: read from search results` or `LinkedIn: read from your file` or `LinkedIn: read from the link you gave`, or
-`LinkedIn: not read: <reason>` with one of these reasons, word for word: you declined; scope none; no matching profile.
-
-## Behavioral profile (six dimensions)
-
-Tiers: high = 3 observations, 2 sources, a direct quote or action;
-medium = 2 observations, 1 source; low = role-inferred only (renders as "No read").
-
-| Dimension | Row label (B6) | Signals | Low means | Mid means | High means |
-|---|---|---|---|---|---|
-| dominance | Pace and control | interrupts or redirects in recorded panels; directive language in posts; org-chart authority; first-person plural for the firm | Let them set the pace; ask before you propose. | Match their pace; propose once, then ask. | Lead with the outcome in one sentence; they decide fast and dislike preamble. |
-| status_sensitivity | How they take recognition | titles and awards foregrounded in bios; name-drops; curated public image; response to public recognition | Skip the flattery; substance only. | Acknowledge one specific achievement, then move on. | Open with respect for a specific, recent, public achievement; never one-up. |
-| information_appetite | Appetite for detail | length and density of their writing; data in their talks; questions they ask on panels; sources they cite | Headline and one proof point; offer detail only if asked. | Headline, two proof points, a source on request. | Bring the numbers and the sources; allow silence after a question. |
-| risk_tolerance | Appetite for risk | career moves into or out of stability; public positions on new or unproven things; language of caution vs. opportunity | Reduce risk first: references, reversibility, small first step. | Pair the upside with the safeguard in the same sentence. | Lead with the upside and the speed; do not over-hedge. |
-| ego_vulnerability | How they take disagreement | reaction to public criticism; defensiveness in interviews; credit-taking vs. credit-giving | Direct disagreement is fine; they separate idea from self. | Frame challenges as questions about the situation, not the person. | Never correct them in the room; ask a question that lets them arrive at it. |
-| competitive_drive | How they keep score | benchmarks and rankings in their language; peer references; win/loss framing | Frame around their own goals, not peers. | One peer reference is useful; more is noise. | Name what peers are doing; they will want to be ahead of it. |
-
-What they may want (depth deep only): <= 3 hypotheses about what they want from this meeting, each with the claim that would disprove it.
-
-## The PDF: pages 1-2, the Intelligence Brief
-
-`brief.md` starts with `# Full Name`, then the identity line (`**Organization** | Role, since year | City, if public`),
-then the meta line (`Meeting: ... | Prepared for: ... | Depth: ... | Sources: <types> of 12 source types, <the ledger's fact count> cited | Status FULL or LIMITED | Prepared Mon D, YYYY`).
-Then one `## Bn Title` per block, in order. Word budgets are the page budget; the renderer fails, never spills, past 3 pages.
-
-| Id | Block | Words | Prints when | Content |
-|---|---|---|---|---|
-| B1 | Take | 45 | always | One paragraph: **Take.** who they are and why this meeting matters to them now, in one sentence, every clause cited. **Evidence:** the one to three facts it rests on [n]. **Action:** the first move in the room, on the fact behind it [n]. **Avoid:** the one move that loses the meeting, on the fact that shows why [n] -- never a generic line. It adds no fact the blocks below don't cite. |
-| B2 | Questions that close gaps | 130 | always | 4 to 6 numbered questions, each <= 40 words, on the fact it rests on [n]; under each, one indented bullet: **Decides:** what the answer tells you. **Ask:** whom -- the person, or who else is in the room. Ordered by what they decide; the mix follows the meeting type (Q4). |
-| B3 | Who they are | 80 | always | Bullets, label first: **Role:** title and since when [n] (required). **Path:** the prior roles that matter, with education and credentials [n]. **The organization:** in its own words, plus one scale figure [n]. **What changed:** one to three dated items, newest first [n]. **Recent wins:** none to two dated, cited results [n]. Path, The organization and What changed read Not determined if not found; Recent wins is left out. From F1 F2 F3 F4 F9. |
-| B4 | In their words | 60 | always | 2-3 bullets, label first: **Topic, where, when:** "their exact words" [n]. None found: one line of themes from their public presence [n]; nothing at all: Not determined. Then always one last line, not a bullet: **LinkedIn:** read from search results, **LinkedIn:** read from your file, or **LinkedIn:** not read: and the reason (S2-7). From F5 F6 F8 and LinkedIn. |
-| B5 | Signals and what to do with them | 65 | always | A table: | Observable | What to do with it |, three rows in this order: their priority and the gap, in their words [n] -> why this meeting matters to them; where your offer connects (Q8) [n] -> the bridge: the outcome you offer, not the method; the trigger, why now [n] -> the urgency, never invented. From F3 F10 F11 and Q8. |
-| B6 | Behavioral profile | 110 | always | A table: | What the record shows | Your move |, six rows, one per rubric dimension, each starting with its label (Pace and control, How they take recognition, Appetite for detail, Appetite for risk, How they take disagreement, How they keep score) and a colon: the cited observation in at most 8 words [n] -> the rubric's move word for word. A dimension with no evidence is the bare label and No read (| Pace and control | No read |), never "none found". Then one line: **Evidence tier:** high, medium or low (it governs page 3). A cited observation and a move, never a verdict on their character. |
-| B7 | Who decides | 25 | always | Bullets: **Decision maker:** who signs off [n]. **The gate:** what must be true, or who must agree, before a yes [n]. **Relationship holder:** who the relationship runs through [n]. Unknown: Not determined (a gap Still open may ask). From F1 F3 F9 F11. |
-| B8 | Strongest case against | 70 | always | Up to 3 bullets: **Against:** the best evidence against your read [n]. **Reverses if:** what would flip it. **Confirm first:** each fact the brief leans on that is graded Inference or Not determined (outside the behavioral profile), marked [UNVERIFIED], with the question that settles it [n]; none: leave the bullet out. None found against: No counter-evidence found. Deep runs only, then `### What they may want from this meeting` and a table | Hypothesis and why it fits | Test: who answers, and what would disprove it |, up to 3 rows, each with the claim that would disprove it [n]. From F12; litigation stays off the page. |
-| B9 | Meeting angle | 90 | always | One label per bullet (only The ask and its Fallback share one). `### This meeting` then bullets: **Frame:** what this meeting is, in their terms; not a pitch. **Lands:** [n]. **Repels:** [n]. **What to bring:** one thing of value [n]. **The ask:** specific and bounded, who and how long [n] · **Fallback:** the smaller ask. **Stop if:** the answer that means drop the ask. `### Meeting two` then **Meeting two:** the next conversation if this one lands, on a fact from this brief. **Meeting three:** where it goes after that. `### After the meeting` then **Capture:** what to record from the room that the public record couldn't give. From Q8 and B3-B8. |
-| B10 | Evidence ledger | 420 | always | One line: {n} facts cited; status {FULL or LIMITED} at {n} of 12 source types; the strength key. A weak source never reads Strong or Solid. Dates are the sources' own; 'seen' marks the day an undated source was read. Then the table | # | What it says | Source | Grade | Date |, exactly one row per cited fact in order of first use (never grouped): [n] · the fact in at most 30 characters · [domain](url), then ' · ' and how it was found: Direct, Search, LinkedIn or Yours (a file name for your own files is Yours) · the grade Measured, Derived, Inference or Not determined, then ' · ' and the source's strength as one plain word from grading.words (Strong, Solid, Weak, Inferred; the ledger's note line keys them: 'Strong: primary, dated' ...) · the source's own date, Mon D, YYYY, or Mon YYYY when the source gives only a month (claims.jsonl published); only for an undated source, the day it was read, marked 'seen Mon D, YYYY'. The tag and the strength print on the page (C25) and stay in claims.jsonl as tag and confidence (C1-C4); the codes themselves never print. Then a label grid (empty header row) with four rows: **Coverage** -- n of 12 source types in the base pass, the rounds run (M of N), what was not found and why, and LinkedIn: read from search results, LinkedIn: read from your file, or LinkedIn: not read: and B4's reason. **Still open** -- at most 4 gaps, highest value first, each with the question that closes it in the room ('Label: question?', joined by ' · '). **Left out on purpose** -- the excluded topics, never the facts. **Run** -- date · depth · meeting type · prepared for (role) · domain · jurisdiction · status · decision-useful facts per page · N searches (B base) in M rounds (both passes as sent, S2-9). |
-
-Domain vocabulary: wealth: book, AUM, custodian, fee compression, succession, next-gen; pe: dry powder, DPI, add-on, hold period, exit; saas: ARR, NRR, champion, security review, procurement, renewal.
-
-## The PDF: page 3, the Meeting script
-
-`script.md` starts with `# Meeting script`, then one line: *Facts choose the moves; read the room, not the record · Full Name, Organization · Prepared Mon D, YYYY*.
-Then one `## Pn Title` per section, in order; a section whose Prints when is not met is left out, not blank.
-
-Beats by meeting format:
-- **intro**: open -> credibility in one line -> one insight they did not have -> ask for the second meeting
-- **discovery**: open -> situation question -> gap question -> impact question -> next-step test
-- **close**: open -> restate their words -> the outcome -> the safeguard -> the ask
-- **relationship**: open -> acknowledge what changed -> one thing of value -> one forward question
-
-| Id | Section | Words | Prints when | Content |
-|---|---|---|---|---|
-| P1 | Open | 70 | always | Bullets: **Hook:** two sentences, said aloud, on a cited fact [n] -- in italics. **Credibility:** who you are, in one line, 30 seconds [n]. **Insight:** one thing they didn't have [n]. **Rule:** how to hold the opening's rapport through the questions. |
-| P2 | Question order | 130 | always | Bullets: **Beats:** one line per beat of the meeting type (script.beats_by_format for Q4), each on the [n] it rests on. Then **Story:** **Process:** **Gate:** **History:** **Commitment:** -- B2's questions word for word, in the order the room needs. |
-| P3 | Objections: name it, then answer | 90 | always | 3 bullets: **Their likely objection:** *say it before they do, then the answer, at most 30 words* [n]. |
-| P4 | Close | 70 | always | Bullets: **Restate:** ask what would make it an easy yes, then say it back in their words. **Real deadline:** a date that actually moves [n]. **The ask:** B9's ask · **Fallback:** B9's fallback. **Follow-up:** what you promise to send, and when. |
-| P5 | Read the room (watch, do not assume) | 50 | evidence tier medium or high | Bullets: **Fast, wants the answer:** **Asks for terms and data:** **Talks about people:** **Big picture, ideas:** -- what you do, from B6. |
-| P6 | Influence, one fact behind each | 70 | evidence tier high and caller authority high; each principle only where a cited fact backs it | Bullets, only for principles a cited fact backs: **Authority:** **Reciprocity:** **Commitment:** **Social proof:** **Liking:** **Scarcity:** (real limits only; never invented urgency) [n]. |
-| P7 | If it stalls | 50 | always | 2-3 bullets: **The move:** what restarts the conversation, from a fact in this brief [n]. |
-| P8 | Guardrails | 45 | always | Bullets: **Rule:** what never to promise or claim, for the jurisdiction (Q7). **Never say:** the guardrails.never_say phrases and the domain's forbidden claims, quoted. |
-| P9 | Next step | 25 | always | One line: **Next step:** the one action and its date. |
-
-Never say: "Does that make sense?"; "Is this helpful?"; "No pressure"; "You'd know better than me"; "Just checking in".
-Forbidden claims by domain (P8 quotes the saved domain's): wealth: "guaranteed", "outperform", "beat the market"; pe: "guaranteed return", "no downside"; saas: "unlimited", "zero risk".
-
-## fields.json: what you fill (S4-13)
-
-You never write brief.md or script.md. Fill `fields.json` -- the keys below, per block; text cites a claim as `[c<id>]` (claims.jsonl),
-the assembler numbers the ledger -- then run `python3 eval.py assemble <folder>`. A key marked optional may be left out; `missing` prints
-as shown. Labels print exactly as the forms table in pcp.yaml says.
-
-| Block | Form | Keys |
-|---|---|---|
-| B1 | labels_para | `take` (Take), `evidence` (Evidence), `action` (Action), `avoid` (Avoid) |
-| B2 | questions | `b2`: 4 to 6 of `q`, `decides`, `ask` |
-| B3 | bullets | `role` (Role) else 'Not determined', `path` (Path) else 'Not determined', `organization` (The organization) else 'Not determined', `changed` (What changed) else 'Not determined', `wins` (Recent wins) optional |
-| B4 | quotes | `quotes`: list of `label`, `quote`, `cite`; or `themes`; the LinkedIn line is computed |
-| B5 | table | `b5`: 3 of `observable`, `action` (priority, offer, trigger) |
-| B6 | profile_table | `b6`: one observation per rubric dimension id (dominance, status_sensitivity, information_appetite, risk_tolerance, ego_vulnerability, competitive_drive); the moves and the tier come from read.json |
-| B7 | bullets | `decision_maker` (Decision maker) else 'Not determined', `gate` (The gate) else 'Not determined', `relationship_holder` (Relationship holder) else 'Not determined' |
-| B8 | case_against | `against`: up to 3 of `against`, `reverses_if`; `confirm_first`; deep: `hypotheses` of `hypothesis`, `test` |
-| B9 | angle | `frame` (Frame), `lands` (Lands), `repels` (Repels), `bring` (What to bring), `ask` (The ask) + `fallback`, `stop_if` (Stop if), `meeting_two` (Meeting two), `meeting_three` (Meeting three), `capture` (Capture) |
-| B10 | ledger | computed from claims.jsonl, coverage.json and `still_open` (up to 4 of `label`, `question`) |
-| P1 | bullets | `hook` (Hook), `credibility` (Credibility), `insight` (Insight), `rule` (Rule) |
-| P2 | question_order | `beats`: list; `order`: B2 question numbers for story, process, gate, history, commitment |
-| P3 | objections | `p3`: 3 of `objection`, `answer` |
-| P4 | bullets | `restate` (Restate), `deadline` (Real deadline), `ask` (The ask), `followup` (Follow-up) |
-| P5 | bullets | `fast` (Fast, wants the answer), `data` (Asks for terms and data), `people` (Talks about people), `ideas` (Big picture, ideas) |
-| P6 | bullets | `authority` (Authority) optional, `reciprocity` (Reciprocity) optional, `commitment` (Commitment) optional, `social_proof` (Social proof) optional, `liking` (Liking) optional, `scarcity` (Scarcity) optional |
-| P7 | repeat | `moves`: 2 to 3 moves |
-| P8 | guardrails | `rule`; the never-say list and the domain's forbidden claims are computed |
-| P9 | line | `next_step` |
-| masthead | -- | `target` (`name`, `org`, `role_since`, `city` only when a source confirms it), `meeting`, `prepared` (Mon D, YYYY) |
+- **S4-13** Never write brief.md or script.md. Fill fields.json (the keys are in references/brief.md) and run `python3 eval.py assemble <folder>`. Full rule: `references/brief.md`.
+- **S4-1** Every fact in B1-B9 and the script cites a ledger number [n]; the ledger (B10) lists only cited facts, numbered in order of first use. A fact with no citation is a defect, not a style choice.
+- **S4-2** Every sentence passes the swap test against caller.offer_one_line and the target: if another target's name would leave it true, delete it.
+- **S4-3** Where the host can run scripts and a browser engine (Claude Code, Claude Cowork, Codex, ChatGPT agent or work mode), render ONLY through format/talyx_pdf.py --style brief --brief-pages 2 --max-pages 3, never Markdown or HTML as the deliverable. The PDF is exactly 3 pages: the brief fills pages 1-2 (a short brief puts the evidence ledger on page 2 -- never filler) and the script is page 3. Check it with eval.py pdf. Where render is impossible, follow S4-10.
+- **S4-11** Spend words on facts, not framing: count the distinct cited facts before rendering and replace filler with a cited fact. Full rule: `references/brief.md`.
+- **S4-12** Compose from the three records alone, then run `python3 eval.py records <folder> --depth <depth> --brief brief.md` before you say the run is done. Full rule: `references/brief.md`.
+- **S4-10** No shell, no python3 or no browser engine: deliver the full brief in the chat, never a summary, exactly as references/in-chat.md says. Full rule: `references/in-chat.md`.
+- **S4-4** An overflow fails the run with the section word counts; fix it only by cutting words in the sections the renderer names, never a cited fact, a ledger row or a source, never the page settings. Full rule: `references/brief.md`.
+- **S4-5** The masthead's meta line carries meeting, prepared for, depth, sources, status and date; the ledger's Run row carries the run details; the footer carries only the Intelligence Brief, the person and the page numbers. The identity line is organization | role, since year | city: the city only when a source confirms it; anything unconfirmed or unknown is left out, never printed as '(not confirmed)', 'not published' or 'Not determined'.
+- **S4-6** A block or line prints only as its Prints when says: a line PCP cannot fill from evidence is left out, or reads Not determined where its row says so. Never filler.
+- **S4-7** Every Not determined -- a **Label:** line or a table cell -- and every No read in B6 is a gap; the ledger's Still open row asks at most 4 of them, highest value first, as 'Label: question?', as references/socratic-questions.md says.
+- **S4-8** Plain words: nothing printed uses a plain_words.banned term or an internal code; the person's own quoted words are exempt.
+- **S4-9** Experience (Q9) shapes page 3 only: new -> P1, P3 and P4 each end with a **Why:** line of at most 12 words; top -> the Hook and each objection's answer are at most 15 words; experienced -> neither.
 
 ## Checks (all pass before render)
+
+**Load:** `references/checks.md` (every check with its command, the test that makes each rule fail, the metric and the eval.py commands).
 
 Run `python3 eval.py checks brief.md script.md --target-nouns "<Full Name>,<surname>,<Organization>,<their key programmes>" --experience <Q9: experienced, new, top> --authority <caller.authority_level: high, medium>`
 and `python3 eval.py duf brief.md script.md`; rewrite until both are clean. Before the first fit pass, copy the draft to
@@ -437,36 +168,11 @@ so no host is "unavailable". Fix what it reports: open a cited page you never op
 keep the rounds out of the reply; say in the reply what cannot be fixed.
 Check the links with `python3 eval.py links brief.md` (S2-8): replace a dead link or drop its fact.
 
-| Id | Check | Command | Passes when |
-|---|---|---|---|
-| C1 | swap | `eval.py checks --swap` | no sentence in B1 or B3-B8 lacks both a [n] and a target-specific noun (headings, the tier line and Not determined lines aside) |
-| C2 | bound | `eval.py duf; eval.py records <folder> --brief brief.md` | unbound == 0, dangling == 0, and every [n] in the body is a B10 row | [n] | what it says | source | grade | date |; and every cited row's claim in claims.jsonl keeps the url, tag, date and confidence 2.1.0 required (claim_requires) |
-| C3 | quotes | `eval.py checks --quotes` | every quoted string in B4 has a [n] |
-| C4 | custom_q | `eval.py checks --custom-q` | >= 2 questions in B2 carry a [n] |
-| C5 | sections | `eval.py checks --sections` | B1-B10 and P1-P9 present in order (P5 and P6 may be left out per S3-2) |
-| C6 | budgets | `eval.py checks --budgets` | no section exceeds its words by > 15% |
-| C7 | never_say | `eval.py checks --never-say` | no never_say phrase appears outside P8 |
-| C8 | outcome | `eval.py checks --outcome` | B5 contains no method verbs from checks.method_verbs |
-| C9 | exclusions | `eval.py checks --exclusions` | no excluded topic keyword appears in the body |
-| C10 | pages | `format/talyx_pdf.py --style brief --brief-pages 2 --max-pages 3; eval.py pdf` | exactly 3 pages: the brief on pages 1-2 with the evidence ledger last on page 2, the script on page 3, page 3 of 3 in the footer, a link for every ledger row not tagged Yours; page 3's numbered sections run 1, 2, 3 ... with no gap when a section drops |
-| C11 | plain | `eval.py checks --plain` | no plain_words.banned term or internal code outside quoted words |
-| C12 | gaps | `eval.py checks --gaps` | Still open holds at most 4 items, and at least one while B1-B9 show a gap (a Not determined **Label:** line or table cell, or a No read in B6); each item is 'Label: question?', the label a gap above, the question starting What, Who, How, When, Which, Where or If |
-| C13 | conditional | `eval.py checks --conditional` | B8's hypotheses only when the meta line says Depth deep; P6 only when B6 says Evidence tier: high; P5 not at tier low; B3's Recent wins line only with a dated, cited result (never Not determined or blank) |
-| C14 | layout | `eval.py checks --layout` | the brief has exactly the 9 blocks B1-B9 before B10, and B10 is its last block: no other block and nothing after the ledger; B9 has one label per line (The ask with its Fallback excepted); nothing prints '(not confirmed)', and the identity line prints nothing unknown |
-| C15 | experience | `eval.py checks --experience <Q9>` | new: P1, P3 and P4 each have a **Why:** line of at most 12 words; experienced and top: no Why line; top: the Hook and each objection's answer are at most 15 words |
-| C16 | linkedin | `eval.py checks --linkedin` | B4 has exactly one **LinkedIn:** line: read from search results, read from your file, or not read: one of linkedin.reasons (a brief run before a linkedin.retired reason's day may give it); Coverage states the same; read from search results: a ledger row cites the linkedin.com/in profile the result showed; read from your file: no ledger row cites a linkedin.com/in profile (the file is cited); not read: no ledger row is tagged LinkedIn and Still open asks nothing about LinkedIn |
-| C17 | cites | `eval.py checks --cites (eval.py cites brief.md --fetch reads the pages too)` | every cited sentence shares content with the ledger claim it cites (2+ content words, 1 when the claim is 3 words or fewer) and every [n] is a ledger row; a hypothetical (Reverses if, Stop if) carries no citation unless the row says it |
-| C18 | quality | `eval.py checks --quality` | no ledger row cites a source_quality.exclude domain; a source_quality.weak domain is never C1 or C2; fewer than 3 ledger rows carry the run's own date unmarked (those are read dates: give the source's date, or 'seen' when it has none) |
-| C19 | render | `eval.py pdf (also eval.py render OUT.pdf)` | every page: no ink within 0.12in of a page edge, no word outside the 0.3in side margins; no page ends more than 0.5in above its footer margin; the schema's pairs (B3|B4, B5|B6, B7|B8) print side by side; page 1: the logo is whole in the top-right masthead; no block runs across a page break: page 2 opens on Who decides (B7, as in the schema) and no table prints its header row on two pages |
-| C20 | colors | `eval.py pdf (also eval.py render OUT.pdf)` | every printed character is Midnight #0F2744, black #000000 or white #FFFFFF (no gray: the page must read when printed); the hairline #E8EAED is for rules only, never text |
-| C21 | battery | `eval.py checks --battery (the Run row); eval.py battery TRANSCRIPT --depth D [--brief brief.md or OUT.pdf] (the searches)` | the Run row ends 'N searches (B base) in M rounds' (a brief run before osint.battery.since is exempt; the base count is required from osint.battery.base_since), N at least the base pass plus the depth's round floor; in the run's history (Claude Code, Codex, ChatGPT or Claude app: eval.py battery reads each) the base pass comes first, one search per source type the depth enables that has a query template, each carrying its template's terms; then the rounds, each a 'Round N (name):' line in the reasoning and the searches after it or, without such lines, one step's batch of searches, every round the depth enables in order, at least the battery's queries per round and the share with an operator or a domain filter, round 1's LinkedIn query through the domain filter; no linkedin.com page requested and no browser tool called; the reply holds no round line or query list, no text between the first and the last search, and at most five status lines of 30 words (a subagent's own text is not the reply); the Run row's counts match the history |
-| C22 | ask | `eval.py battery <history> [--profile ~/.pcp/profile.yaml] (also eval.py offer-conflict)` | every question goes through the host's native question tool (a typed numbered list only where the host has none, or after an empty answer), with one line of the reply before it saying what skip does; no search, page open or file work between the question and the answer; a popup that came back empty is asked again in the reply; a request that names a business other than the saved offer was asked about before the first search |
-| C23 | records | `eval.py records <folder with claims.jsonl, coverage.json, read.json> --depth <depth> --brief brief.md` | every claim has every field and valid tag, grade, confidence; coverage has every field, a count for each of the 12 source types equal to what claims.jsonl holds, rounds and searches, and a status S2-5 confirms; read.json has the six rubric dimensions with every field, the rubric's phrase for each band, and the tiers its observations support; the brief's source-type count, status and Evidence tier agree. Run it, and say what it reports, before the run is called done |
-| C24 | kept | `eval.py kept <first draft brief.md> <final brief.md> [--draft-script S --final-script S]` | every cited fact (ledger row) of the first complete draft is still a ledger row of the final brief and still cited in a sentence; a fact dropped for another reason (a dead link, an excluded topic) is named with --allow and told to the user |
-| C25 | grading | `eval.py checks --grading` | from grading.since, every ledger row prints its grade (Measured, Derived, Inference, Not determined), how it was found (Direct, Search, LinkedIn, Yours) and its strength as one plain word (Strong, Solid, Weak, Inferred); the note line keys the four; a strength is never stronger than its caps allow (a weak domain, a Search or LinkedIn tag, a Derived or Inference grade): a weak source never reads Strong or Solid |
-| C26 | schema | `eval.py checks --schema; eval.py assemble --check <folder>` | brief.md and script.md have exactly the structure of the forms table: the masthead, every block's heading and title in order, only the labels its form allows with the required ones present, its tables' headers, B9's subheads, the ledger's header and label grid, the script's title and subtitle; and, where fields.json exists, both files are byte for byte what eval.py assemble builds from it |
-
 ## Render
+
+**Load:** `format/talyx_pdf.py`; `format/layout.json`.
+
+**Config:** `format/layout.json` keys `page_budget.*` -- the renderer reads the page count, the ladder and the 10 pt floor from it.
 
 ```
 python3 format/talyx_pdf.py --style brief --brief brief.md --script script.md \
@@ -481,12 +187,29 @@ filler) and the script starts on page 3. Then `python3 eval.py pdf <the PDF> bri
 It uses Playwright's Chromium if installed, else the Chrome, Edge or Chromium already on the computer. If it
 reports that neither is there, run `python3 format/talyx_pdf.py --setup` once and render again.
 
-## Debrief and ratchet
+Every flag the renderer takes: `--brief`, `--brief-pages`, `--classification`, `--columns`, `--footer`, `--gaps`, `--input`, `--max-pages`, `--out`, `--script`, `--script-after`, `--script-subtitle`, `--setup`, `--style`, `--subtitle`, `--title`.
+
+## Stage 5: Debrief + ratchet
+
+**Load:** `evals/debrief_template.yaml`; `evals/ratchet.json`.
+
+**Config:** `pcp.json` keys `stages.*.rows.*.basis`, `calibration.rules.*.basis` -- improve cites a rule's basis when it proposes a change.
+
+**Input contract** (declared before behaviour):
+
+| Input | Type | Source | Required | Fallback |
+|---|---|---|---|---|
+| `debrief.yaml` | yaml | user, after the call (60 seconds, 4 fields) | no | skip loop |
+| `ratchet.json` | json | evals/ratchet.json | yes | initialise empty |
+
+**Context contract** -- read, in this order: ratchet floors, debrief rows, the pcp.yaml rows the debrief touches. Budget: 800 words. Not read: everything else.
+
+**Rows:**
+
+- **S5-1** A change to pcp.yaml lands only if eval.py ratchet passes: every frozen target's duf_pp >= its floor AND all checks pass. The floor is the best ever seen and only rises.
+- **S5-2** Debrief fields: facts_used[claim ids], questions_landed[ids], band_accuracy{dim: hit|miss}, outcome. Nothing else is asked.
+- **S5-3** improve proposes row diffs (family weights, question templates, band phrases) as a patch with basis: debrief_id; it never edits SKILL.md and never lands a diff itself.
 
 After the call, `evals/debrief_template.yaml` (four fields). `python3 eval.py improve` proposes row diffs to
 `pcp.yaml`; `python3 eval.py ratchet` lands them only if every frozen target holds its floor. The floor is the
 best ever seen and only rises.
-
-## About
-
-Made by Talyx AI, https://talyx.ai. Free to use under the licence in the plug-in's `LICENSE` file.
