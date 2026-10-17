@@ -261,17 +261,19 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
             for v in mv:
                 if v.lower() in secs.get(blk, "").lower():
                     fails.append(f"C8 outcome: method verb '{v}' in {blk}")
-    if want("exclusions"):
-        kws = {"health": [r"diagnos\w*", r"illness\w*", r"hospital\w*"],   # 2.1.0's words, each from the start of a word: every inflection (hospitalization,
-               "family": [r"divorc\w*", "his wife", "her husband", "children"],   # divorces, lawsuits) still trips; only a match inside a word is dropped --
-               "political": ["donated to", "FEC", r"campaign contribution\w*"],     # "effect" holds no FEC, "issued" no sued (two chat runs)
-               "litigation": [r"lawsuit\w*", "sued", r"plaintiff\w*"]}
+    if want("exclusions"):   # C9: pcp.yaml exclusions.keywords (from the start of a word; `*` any ending) and exclusions.compounds (exact whole words)
+        ex = R["exclusions"]
         body = "\n".join(v for k, v in secs.items() if k not in (LEDGER, "P8"))
-        for topic, words in kws.items():
+        for topic, words in ex["keywords"].items():
             for w in words:
-                m = re.search(r"\b(?:" + w + r")" + ("" if w.endswith(r"\w*") else r"\b"), body, re.I)
+                stem = w.endswith("*")
+                m = re.search(r"\b(?:" + re.escape(w.rstrip("*")) + (r"\w*" if stem else "") + r")" + ("" if stem else r"\b"), body, re.I)
                 if m:
                     fails.append(f"C9 exclusions: '{m.group(0)}' ({topic}) in body")
+            for c in ex["compounds"].get(topic, []):
+                m = re.search(r"\b" + re.escape(c) + r"\b", body, re.I)
+                if m:
+                    fails.append(f"C9 exclusions: '{m.group(0)}' ({topic}, a compound) in body")
     if want("plain"):
         for h in plain_hits(md):
             fails.append(f"C11 plain: '{h}' outside quoted words")
@@ -907,7 +909,7 @@ def self_test(require_pdf=False):
             (root / rel).write_text((HERE / rel).read_text())
         src = (root / "eval.py").read_text()
         for case, old, new, want in (
-                ("C9 read as whole words again (2.1.0's inflections hospitalization, divorces, lawsuits no longer trip)", '[r"diagnos\\w*", r"illness\\w*", r"hospital\\w*"]', '[r"diagnos\\w*", "illness", r"hospital(?:i[sz]ed|s)?"]', "C9"),
+                ("C9 stems read as whole words again (2.1.0's inflections hospitalization, divorces, lawsuits no longer trip)", "stem = w.endswith(\"*\")", "stem = False", "C9"),
                 ("C1 read in B1 and B3-B8 only again (the questions and the meeting angle unread)", 're.match(r"B[1-9]$", k)]:   # every block that states', 're.match(r"B1$|B[3-8]$", k)]:   # every block that states', "C1"),
                 ("C7 not enforcing one never-say phrase", 'if p.lower() in body.lower():\n                    fails.append(f"C7', 'if p.lower() in body.lower() and p != R["guardrails"]["never_say"][0]:\n                    fails.append(f"C7', "C7")):
             if old not in src:
@@ -922,6 +924,32 @@ def self_test(require_pdf=False):
             else:
                 print(f"FAIL gates must report {want} looser for: {case} (got {f[:2]})"); ok = False
         (root / "eval.py").write_text(src)
+        pj = json.loads((HERE / "pcp.json").read_text())
+        for case, drop in (("C9 compound list without countersued", "countersued"), ("C9 compound list without schoolchildren", "schoolchildren")):
+            for topic in pj["exclusions"]["compounds"]:
+                if drop in pj["exclusions"]["compounds"][topic]:
+                    pj["exclusions"]["compounds"][topic].remove(drop)
+            (root / "pcp.json").write_text(json.dumps(pj))
+            spec = importlib.util.spec_from_file_location("eval_loosened", root / "eval.py")
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            _, f = mod.gates_table(root)
+            if any(x.startswith("gates: C9 ") for x in f):
+                print(f"tripped: gates by a loosened compound list ({case[3:]})")
+            else:
+                print(f"FAIL gates must report C9 looser for: {case} (got {f[:2]})"); ok = False
+        (root / "pcp.json").write_text((HERE / "pcp.json").read_text())
+    # ---- C9 (Daniel, Oct 17): word-start keywords plus the compound list
+    c9 = lambda w: any(x.startswith("C9 ") for x in checks(f"## B3 Title\nShe mentioned {w} once.\n", which="exclusions"))
+    inflect = ["diagnosed", "diagnostic", "illness", "illnesses", "hospital", "hospitalization", "hospitalised", "divorce", "divorced", "divorces", "his wife", "her husband",
+               "children", "donated to", "FEC", "campaign contribution", "campaign contributions", "lawsuit", "lawsuits", "sued", "plaintiff", "plaintiffs"]
+    comps = [c for v in R["exclusions"]["compounds"].values() for c in v]
+    missed = [w for w in inflect if not c9(w)] + [c for c in comps if not c9(c)] + [w for w in ("Countersued", "COUNTERSUING") if not c9(w)]
+    fired = [w for w in ("issued", "pursued", "effect", "affected", "reissued", "sue") if c9(w)]
+    if missed or fired:
+        print(f"FAIL C9: must trip on {missed}; must not trip on {fired}"); ok = False
+    else:
+        print(f"passes: C9 trips on countersued and {len(comps)} listed compounds and on all {len(inflect)} 2.1.0 word forms; issued, pursued, effect, affected do not")
     # ---- parity (C28): nothing of the 2.1.0 baseline is removed or weakened without an approved decision
     pf, ps = parity()
     if pf:
@@ -3568,6 +3596,9 @@ def gates_table(root=None):
     # ---- C9 exclusions: 2.1.0's keywords, every inflection of each; a hit inside another word was a false hit
     kw = ["diagnosed", "diagnostic", "illness", "illnesses", "hospital", "hospitalization", "divorce", "divorced", "divorces", "his wife", "her husband", "children",
           "donated to", "FEC", "campaign contribution", "campaign contributions", "lawsuit", "lawsuits", "sued", "plaintiff", "plaintiffs"]
+    compounds = ["misdiagnosed", "misdiagnosis", "undiagnosed", "rehospitalization", "grandchildren", "stepchildren", "schoolchildren", "countersued", "coplaintiff"]   # real words that hold a 2.1.0 keyword mid-word
+    beyond = ["countersue", "countersuing", "countersuit"]   # real compounds no 2.1.0 keyword reached
+    kw = kw + compounds
     benign = ["issued", "pursued", "effect", "affected"]   # 2.1.0 matched 'sued' and 'fec' inside these
     ff21 = {w for w in kw if flag(ref.checks, blk("B3", f"She mentioned {w} once."), "exclusions", "C9", [])}
     ffnow = {w for w in kw if flag(checks, blk("B3", f"She mentioned {w} once."), "exclusions", "C9", [])}
@@ -3575,7 +3606,8 @@ def gates_table(root=None):
     bfnow = {w for w in benign if flag(checks, blk("B3", f"It was {w} in 2025."), "exclusions", "C9", [])}
     exempt21 = [k for k in ("B8", "B9", "P7") if not flag(ref.checks, blk(k, "She was divorced."), "exclusions", "C9", [])]
     exemptnow = [k for k in ("B8", "B9", "B10", "P7", "P8") if not flag(checks, blk(k, "She was divorced."), "exclusions", "C9", [])]
-    add("C9", "no excluded topic (health, family, political giving, litigation) in the body", f"{len(ff21)} of {len(kw)} word forms flagged; exempt blocks {exempt21}; {len(bf21)} of {len(benign)} look-alikes flagged", f"{len(ffnow)} of {len(kw)} word forms flagged; exempt blocks {exemptnow}; look-alikes (a match inside another word: {sorted(bf21 - bfnow)}) no longer flagged",
+    gain = {w for w in beyond if flag(checks, blk("B3", f"She mentioned {w} once."), "exclusions", "C9", []) and not flag(ref.checks, blk("B3", f"She mentioned {w} once."), "exclusions", "C9", [])}
+    add("C9", "no excluded topic (health, family, political giving, litigation) in the body", f"{len(ff21)} of {len(kw)} word forms flagged (substring match); exempt blocks {exempt21}; {len(bf21)} of {len(benign)} look-alikes flagged", f"{len(ffnow)} of {len(kw)} word forms flagged (every 2.1.0 inflection, and {len([w for w in compounds if w in ffnow])} of {len(compounds)} compounds by pcp.yaml exclusions.compounds; {len(gain)} of {len(beyond)} compounds 2.1.0 never reached); exempt blocks {exemptnow}. Remains looser: a keyword inside an unrelated word ({sorted(bf21 - bfnow)}) and a compound not in the list",
         _verdict(ff21 - ffnow, {1} if len(exemptnow) < len(exempt21) else set()),
         f"{_want(mine, "exclusions")} (live), {_want(theirs, "exclusions")} (2.1.0); the look-alikes were two chat-run false hits")
     # ---- C10 pages: exactly 3

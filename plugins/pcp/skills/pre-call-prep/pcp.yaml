@@ -429,6 +429,43 @@ exclusions:
     eu:        [any claim older than 5 years that is not a current role, retention of claims.jsonl after render]
     regulated: [performance claims, promissory language, comparative claims about named competitors]
     apac:      []
+  # C9 (Daniel, Oct 17 2026): a keyword trips from the start of a word (`*` = any ending, so every inflection trips) or as a whole word. These are
+  # 2.1.0's keywords, nothing dropped. A match in the middle of an unrelated word does not trip ("issued" is not "sued", "effect" is not "FEC").
+  keywords:
+    health:     ["diagnos*", "illness*", "hospital*"]
+    family:     ["divorc*", his wife, her husband, children]
+    political:  [donated to, FEC, "campaign contribution*"]
+    litigation: ["lawsuit*", sued, "plaintiff*"]
+  # Compounds: real English words that hold a keyword in the middle (a prefix joined to it), so word-start matching would miss them. Each is an exact,
+  # case-insensitive, whole-word match; hyphenated forms (counter-sued, co-plaintiff) already trip because a hyphen starts a word. Only real words, no patterns.
+  # Families with no entry have no such compound: illness (nothing prefixes it), divorce (pre- and post-divorce are hyphenated), his wife and her husband
+  # (phrases), donated to, FEC (an acronym), campaign contribution (a phrase).
+  compounds:
+    health:     # diagnos: mis- and un- joined to it; hospital: re- joined to it
+      - misdiagnose
+      - misdiagnosed
+      - misdiagnoses
+      - misdiagnosing
+      - misdiagnosis
+      - undiagnosed
+      - rehospitalised
+      - rehospitalisation
+      - rehospitalized
+      - rehospitalization
+    family:     # children: grand-, step-, god- and school- joined to it
+      - grandchildren
+      - stepchildren
+      - godchildren
+      - schoolchildren
+    litigation: # sued: counter- joined to it (and countersue, countersuing, countersuit, which no 2.1 stem reached); plaintiff: co- joined to it
+      - countersue
+      - countersues
+      - countersued
+      - countersuing
+      - countersuit
+      - countersuits
+      - coplaintiff
+      - coplaintiffs
 grading:   # C25. Three independent axes, all on the page in plain words, strength capped by the weakest of them (Admiralty / ICD 203 practice: keep source reliability apart from what the claim is, never let one hide the other)
   tags: [Direct, Search, LinkedIn, Yours]            # how it was found: Direct = the page was opened; Search = a search result's own text; LinkedIn = a search result or the link the user gave; Yours = the user's own file or answer
   strength: {C1: "Strong: primary, dated", C2: "Solid: reputable secondary", C3: "Weak: single source", C4: "Inferred: no source states it"}   # the key, printed once above the ledger
