@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:2e44ead61a4c) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:b45e6e98f12b) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Checks and the test for each rule
 
@@ -15,7 +15,7 @@ Loaded by Stage 4 of SKILL.md.
 | C5 | sections | `eval.py checks --sections` | B1-B10 and P1-P9 present in order (P5 and P6 may be left out per S3-2) |
 | C6 | budgets | `eval.py checks --budgets` | no section exceeds its words by > 15% |
 | C7 | never_say | `eval.py checks --never-say` | no never_say phrase appears outside P8 |
-| C8 | outcome | `eval.py checks --outcome` | B5 contains no method verbs from checks.method_verbs |
+| C8 | outcome | `eval.py checks --outcome` | B1, B5 and B9 contain no method verbs from checks.method_verbs |
 | C9 | exclusions | `eval.py checks --exclusions` | no excluded topic keyword appears in the body |
 | C10 | pages | `format/talyx_pdf.py --style brief --brief-pages 2 --max-pages 3; eval.py pdf` | exactly 3 pages: the brief on pages 1-2 with the evidence ledger last on page 2, the script on page 3, page 3 of 3 in the footer, a link for every ledger row not tagged Yours; page 3's numbered sections run 1, 2, 3 ... with no gap when a section drops |
 | C11 | plain | `eval.py checks --plain` | no plain_words.banned term or internal code outside quoted words |
@@ -94,5 +94,5 @@ Each rule fails when:
 - **baseline_required_before_claims:** True
 - **Method verbs (C8):** we scrape, we ingest, our pipeline, our model, we crawl, our algorithm
 
-Commands of `eval.py`: `eval.py duf`, `eval.py checks`, `eval.py pdf`, `eval.py cites`, `eval.py links`, `eval.py render`, `eval.py battery`, `eval.py records`, `eval.py kept`, `eval.py offer-conflict`, `eval.py chat`, `eval.py assemble`, `eval.py hardcoded`, `eval.py skill`, `eval.py parity`, `eval.py concordance`, `eval.py self-test`, `eval.py ratchet`, `eval.py improve`.
+Commands of `eval.py`: `eval.py duf`, `eval.py checks`, `eval.py pdf`, `eval.py cites`, `eval.py links`, `eval.py render`, `eval.py battery`, `eval.py records`, `eval.py kept`, `eval.py offer-conflict`, `eval.py chat`, `eval.py assemble`, `eval.py hardcoded`, `eval.py gates`, `eval.py skill`, `eval.py parity`, `eval.py concordance`, `eval.py self-test`, `eval.py ratchet`, `eval.py improve`.
 

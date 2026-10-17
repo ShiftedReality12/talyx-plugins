@@ -7,13 +7,13 @@ Meeting: First intro: earn a second meeting | Prepared for: Founder / principal 
 
 ## B2 Questions that close gaps
 1. Autopilot handles recurring work and follow-ups [6]; which meeting tasks does it skip?
-   - **Decides:** whether a prep gap exists. **Ask:** Satya Nadella.
+   - **Decides:** whether Microsoft's agents leave a prep gap. **Ask:** Satya Nadella.
 2. Jared Spataro wrote the Copilot launch post [7]; who owns executive use?
-   - **Decides:** the owner for meeting two. **Ask:** Satya Nadella.
+   - **Decides:** who at Microsoft owns meeting two. **Ask:** Satya Nadella.
 3. You build "long-running Foundry agents" [8]; which serve executives' own meetings?
-   - **Decides:** fit with his agent plans. **Ask:** Satya Nadella.
+   - **Decides:** fit with Microsoft's agent plans. **Ask:** Satya Nadella.
 4. How does "Use all, but be independent of all" [9] apply to small tools?
-   - **Decides:** partner or build stance. **Ask:** Satya Nadella.
+   - **Decides:** Microsoft's partner or build stance. **Ask:** Satya Nadella.
 5. After April's buyouts [10], what must a tool prove to earn an executive team's time?
    - **Decides:** the gate. **Ask:** Satya Nadella.
 
@@ -60,7 +60,7 @@ Meeting: First intro: earn a second meeting | Prepared for: Founder / principal 
 
 ## B9 Meeting angle
 ### This meeting
-- **Frame:** how his executives prepare; no pitch.
+- **Frame:** how Microsoft's executives prepare; no pitch.
 - **Lands:** "independent of all" [9]: be replaceable.
 - **Repels:** spend-led pitches [5].
 - **What to bring:** a one-page example [17].
@@ -68,7 +68,7 @@ Meeting: First intro: earn a second meeting | Prepared for: Founder / principal 
 - **Stop if:** he says Copilot covers it.
 ### Meeting two
 - **Meeting two:** a session on seats past 30 million [3].
-- **Meeting three:** a pilot with one executive team.
+- **Meeting three:** a pilot with one Microsoft executive team.
 ### After the meeting
 - **Capture:** who owns it; what Copilot leaves out.
 

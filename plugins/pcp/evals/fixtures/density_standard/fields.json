@@ -15,22 +15,22 @@
  "b2": [
   {
    "q": "Autopilot handles recurring work and follow-ups [c6]; which meeting tasks does it skip?",
-   "decides": "whether a prep gap exists",
+   "decides": "whether Microsoft's agents leave a prep gap",
    "ask": "Satya Nadella"
   },
   {
    "q": "Jared Spataro wrote the Copilot launch post [c7]; who owns executive use?",
-   "decides": "the owner for meeting two",
+   "decides": "who at Microsoft owns meeting two",
    "ask": "Satya Nadella"
   },
   {
    "q": "You build \"long-running Foundry agents\" [c8]; which serve executives' own meetings?",
-   "decides": "fit with his agent plans",
+   "decides": "fit with Microsoft's agent plans",
    "ask": "Satya Nadella"
   },
   {
    "q": "How does \"Use all, but be independent of all\" [c9] apply to small tools?",
-   "decides": "partner or build stance",
+   "decides": "Microsoft's partner or build stance",
    "ask": "Satya Nadella"
   },
   {
@@ -98,7 +98,7 @@
   ]
  },
  "b9": {
-  "frame": "how his executives prepare; no pitch.",
+  "frame": "how Microsoft's executives prepare; no pitch.",
   "lands": "\"independent of all\" [c9]: be replaceable.",
   "repels": "spend-led pitches [c5].",
   "bring": "a one-page example [c17].",
@@ -106,7 +106,7 @@
   "fallback": "15 minutes with Spataro [c7].",
   "stop_if": "he says Copilot covers it.",
   "meeting_two": "a session on seats past 30 million [c3].",
-  "meeting_three": "a pilot with one executive team.",
+  "meeting_three": "a pilot with one Microsoft executive team.",
   "capture": "who owns it; what Copilot leaves out."
  },
  "still_open": [

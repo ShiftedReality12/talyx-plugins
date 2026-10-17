@@ -94,16 +94,16 @@
   "confirm_first": "her agenda-setting is one panel's view [c7]; ask whether it holds in private."
  },
  "b9": {
-  "frame": "how Alder Grey chooses a custodian; not a pitch.",
+  "frame": "how Alder Grey Capital chooses a custodian; not a pitch.",
   "lands": "the second close [c8].",
   "repels": "a fee-led pitch [c4].",
   "bring": "the introduction to the custodian [c12].",
   "ask": "a 30-minute follow-up [c12].",
   "fallback": "a 15-minute call.",
-  "stop_if": "she says the custodian is settled.",
+  "stop_if": "she says Alder Grey Capital's custodian is settled.",
   "meeting_two": "a working session on custodian onboarding [c12].",
-  "meeting_three": "a pilot with one family office.",
-  "capture": "who else signs off."
+  "meeting_three": "a pilot with one family office of Alder Grey Capital.",
+  "capture": "who else at Alder Grey Capital signs off."
  },
  "still_open": [
   {

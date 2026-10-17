@@ -217,7 +217,7 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
                          "or 'seen <date>' when it has none")
     if want("swap"):
         nouns = [n.lower() for n in target_nouns if n]
-        for k in [k for k in secs if re.match(r"B1$|B[3-8]$", k)]:   # the blocks that state facts about the person
+        for k in [k for k in secs if re.match(r"B[1-9]$", k)]:   # every block that states a fact or a question about the person (2.1.0: B1-B7 of its nine)
             for s in _sentences(secs[k]):
                 if CITE.search(s):
                     continue
@@ -257,17 +257,19 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
                     fails.append(f"C7 never_say: '{p}' in {k}")
     if want("outcome"):
         mv = next(c["method_verbs"] for c in R["checks"] if "method_verbs" in c)
-        for v in mv:
-            if v.lower() in secs.get("B5", "").lower():
-                fails.append(f"C8 outcome: method verb '{v}' in B5")
+        for blk in ("B1", "B5", "B9"):   # 2.1.0 read one block (its B6, the bridge); the offer is stated in these three now
+            for v in mv:
+                if v.lower() in secs.get(blk, "").lower():
+                    fails.append(f"C8 outcome: method verb '{v}' in {blk}")
     if want("exclusions"):
-        kws = {"health": [r"diagnos\w*", "illness", r"hospital(?:i[sz]ed|s)?"],   # whole words: "effect" holds no FEC,
-               "family": [r"divorced?", "his wife", "her husband", "children"],          # "issued" no sued (two chat runs)
-               "political": ["donated to", "FEC", r"campaign contributions?"], "litigation": [r"lawsuits?", "sued", r"plaintiffs?"]}
+        kws = {"health": [r"diagnos\w*", r"illness\w*", r"hospital\w*"],   # 2.1.0's words, each from the start of a word: every inflection (hospitalization,
+               "family": [r"divorc\w*", "his wife", "her husband", "children"],   # divorces, lawsuits) still trips; only a match inside a word is dropped --
+               "political": ["donated to", "FEC", r"campaign contribution\w*"],     # "effect" holds no FEC, "issued" no sued (two chat runs)
+               "litigation": [r"lawsuit\w*", "sued", r"plaintiff\w*"]}
         body = "\n".join(v for k, v in secs.items() if k not in (LEDGER, "P8"))
         for topic, words in kws.items():
             for w in words:
-                m = re.search(r"\b(?:" + w + r")\b", body, re.I)
+                m = re.search(r"\b(?:" + w + r")" + ("" if w.endswith(r"\w*") else r"\b"), body, re.I)
                 if m:
                     fails.append(f"C9 exclusions: '{m.group(0)}' ({topic}) in body")
     if want("plain"):
@@ -871,6 +873,36 @@ def self_test(require_pdf=False):
             print(f"tripped: C29 by {case}")
         else:
             print(f"FAIL C29 must trip on {case} (wanted '{want}'; got {f[:2]})"); ok = False
+    # ---- gates: every 2.1.0 gate is at least as strict now; a loosened gate is caught by the table itself
+    rows_g, fails_g = gates_table()
+    if fails_g:
+        print("FAIL gates must show no gate looser than 2.1.0:", *fails_g, sep="\n - "); ok = False
+    else:
+        n_g = {v: sum(1 for r in rows_g if r[4] == v) for v in ("same", "stricter", "looser")}
+        print(f"passes: gates: {len(rows_g)} rows against 2.1.0: {n_g['same']} same, {n_g['stricter']} stricter, {n_g['looser']} looser")
+    with tempfile.TemporaryDirectory() as td:
+        import importlib.util
+        root = pathlib.Path(td)
+        for rel in ("eval.py", "render_skill.py", "pcp.json", "evals/baseline-2.1.0.json", "evals/ref21.py", "format/talyx_pdf.py", "format/layout.json"):
+            (root / rel).parent.mkdir(parents=True, exist_ok=True)
+            (root / rel).write_text((HERE / rel).read_text())
+        src = (root / "eval.py").read_text()
+        for case, old, new, want in (
+                ("C9 read as whole words again (2.1.0's inflections hospitalization, divorces, lawsuits no longer trip)", '[r"diagnos\\w*", r"illness\\w*", r"hospital\\w*"]', '[r"diagnos\\w*", "illness", r"hospital(?:i[sz]ed|s)?"]', "C9"),
+                ("C1 read in B1 and B3-B8 only again (the questions and the meeting angle unread)", 're.match(r"B[1-9]$", k)]:   # every block that states', 're.match(r"B1$|B[3-8]$", k)]:   # every block that states', "C1"),
+                ("C7 not enforcing one never-say phrase", 'if p.lower() in body.lower():\n                    fails.append(f"C7', 'if p.lower() in body.lower() and p != R["guardrails"]["never_say"][0]:\n                    fails.append(f"C7', "C7")):
+            if old not in src:
+                print(f"FAIL gates self-test: the text to loosen for '{case}' is not in eval.py"); ok = False; continue
+            (root / "eval.py").write_text(src.replace(old, new, 1))
+            spec = importlib.util.spec_from_file_location("eval_loosened", root / "eval.py")
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            _, f = mod.gates_table(root)
+            if any(x.startswith(f"gates: {want} ") for x in f):
+                print(f"tripped: gates by {case}")
+            else:
+                print(f"FAIL gates must report {want} looser for: {case} (got {f[:2]})"); ok = False
+        (root / "eval.py").write_text(src)
     # ---- parity (C28): nothing of the 2.1.0 baseline is removed or weakened without an approved decision
     pf, ps = parity()
     if pf:
@@ -3348,6 +3380,210 @@ def skill_check(root=None, reg=None, skill_text=None):
                        how=how, lost=lost, max=sk["max_chars"], target=sk["target_chars"])
 
 
+# ---------------------------------------------------------------- gates: no gate looser than 2.1.0 ------------------
+GATE_ROLE = {"B1": ["B1", "B3"], "B2": ["B4"], "B3": ["B1", "B5", "B8"], "B4": ["B6"], "B5": ["B2"], "B6": ["B5", "B9"], "B7": ["B9"]}   # 2.1.0 block -> where its role is now
+
+
+def _want(path, name):
+    """'file:line' of the check `if want("name")` in eval.py or evals/ref21.py."""
+    for i, ln in enumerate(pathlib.Path(path).read_text().splitlines(), 1):
+        if f'if want("{name}")' in ln:
+            return f"{pathlib.Path(path).name}:{i}"
+    return f"{pathlib.Path(path).name}:?"
+
+
+def _loc(path, pattern):
+    """'file:line' of the first line of a file matching a pattern."""
+    for i, ln in enumerate(pathlib.Path(path).read_text().splitlines(), 1):
+        if re.search(pattern, ln):
+            return f"{pathlib.Path(path).name}:{i}"
+    return f"{pathlib.Path(path).name}:?"
+
+
+def _ref21(root):
+    """The 2.1.0 checks (evals/ref21.py, verbatim) loaded with the 2.1.0 registry from the frozen baseline."""
+    import importlib.util
+    base = json.loads((root / "evals/baseline-2.1.0.json").read_text())["items"]
+    spec = importlib.util.spec_from_file_location("ref21", root / "evals/ref21.py")
+    ref = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ref)
+    v = lambda k: base[k]["value"]
+    ids = lambda kind, key: sorted({k.split(".")[2] for k in base if k.startswith(f"{kind}.{key}.") and k.endswith(".words")})
+    ref.R = {"brief": {"sections": [{"id": i, "words": v(f"brief.sections.{i}.words")} for i in ids("brief", "sections")]},
+             "script": {"blocks": [{"id": i, "words": v(f"script.blocks.{i}.words")} for i in ids("script", "blocks")]},
+             "guardrails": {"never_say": v("guardrails.never_say")}, "checks": [{"method_verbs": v("checks.method_verbs")}],
+             "page_budget": {"total_pages": v("page_budget.total_pages")}}
+    return ref, base
+
+
+def _verdict(lost, gained):
+    return "looser" if lost else ("stricter" if gained else "same")
+
+
+def gates_table(root=None):
+    """Every 2.1.0 gate against its live counterpart: C1-C10, the rubric, guardrails, exclusions, retention and the page budget.
+    Each row runs the frozen 2.1.0 check (evals/ref21.py) and the live check on the same probes, or compares the values the baseline froze.
+    A probe a gate must catch (a true hit) that 2.1.0 flagged and the live check does not makes the row 'looser'; a match inside
+    a word that was a false hit (2.1.0 read 'issued' as 'sued') is listed as removed, not as a loss. Rows: (id, what, v21, now, verdict,
+    evidence). Returns (rows, failures)."""
+    root = pathlib.Path(root or HERE)
+    ref, base = _ref21(root)
+    live = _live_items(root)
+    N = {"alder grey", "jane doe", "doe"}
+    nouns = sorted(N)
+    rows, fails = [], []
+    mine, theirs = root / "eval.py", root / "evals/ref21.py"
+
+    def add(gid, what, v21, now, verdict, evidence):
+        rows.append((gid, what, v21, now, verdict, evidence))
+        if verdict == "looser":
+            fails.append(f"gates: {gid} ({what}) is looser than 2.1.0: 2.1.0 {v21} | now {now}")
+
+    flag = lambda fn, md, which, cid, nn=nouns: any(x.startswith(cid) for x in fn(md, "", which, nn))
+    blk = lambda i, body: f"## {i} Title\n{body}\n"
+    generic = "The whole industry is changing quickly and every leader feels the pressure."
+    # ---- C1 swap: where a generic, uncited sentence is caught
+    f21 = {b for b in [f"B{i}" for i in range(1, 10)] if flag(ref.checks, blk(b, generic), "swap", "C1")}
+    fnow = {b for b in [f"B{i}" for i in range(1, 10)] if flag(checks, blk(b, generic), "swap", "C1")}
+    lost = {b for b in f21 if not any(m in fnow for m in GATE_ROLE[b])}
+    gained = fnow - {m for b in f21 for m in GATE_ROLE[b]}
+    smug = "- **Role:** Not determined, though the firm is the largest in its industry and has grown for a decade."
+    tier = R["forms"]["B6"]["tier"].format(tier="high") + " The industry is changing quickly and every leader feels the pressure."
+    smuggled = [flag(checks, blk("B3", smug), "swap", "C1"), flag(checks, blk("B6", tier), "swap", "C1"),
+                flag(checks, blk("B8", "- No counter-evidence found, because every leader in the industry likes this kind of offer."), "swap", "C1")]
+    if not all(smuggled):
+        lost.add("smuggled claim")
+    add("C1", "swap test: a generic sentence with no [n] and no target noun fails", f"blocks {sorted(f21)} (7 of 9)", f"blocks {sorted(fnow)} ({len(fnow)} of 9); only a whole line that is exactly a schema template is exempt, a claim added to one fails ({sum(smuggled)} of {len(smuggled)} probes)",
+        _verdict(lost, gained), f"{_want(mine, "swap")} (live), {_want(theirs, "swap")} (2.1.0); eval.py self-test: 'C1 swap exempts exactly 5 template lines'")
+    # ---- C2 bound: every [n] bound to a source row with url + tag + date + C-level
+    def doc21(rows_, cites, cov=True):
+        body = " ".join(f"Fact {i} about Jane Doe [{i}]." for i in cites)
+        return f"## B1 Snapshot\n{body}\n\n## B9 Sources\n" + "\n".join(rows_) + "\n" + ("coverage 5/12\n" if cov else "")
+
+    def docnow(rows_, cites, cov=True):
+        body = " ".join(f"Fact {i} about Jane Doe [{i}]." for i in cites)
+        key = " · ".join(R["grading"]["strength"].values())
+        return (f"## B1 Take\n{body}\n\n## B10 Evidence ledger\n" + ("5 of 12 source types. " if cov else "") + f"Strength: {key}.\n" + "\n".join(rows_)
+                + "\n\nPrepared Oct 17, 2026\n")
+    r21 = lambda i, date="2026-01-02", tag="DIRECT", conf="C1": f"[{i}] fact {i} -- https://example.org/{i} -- {tag} -- {conf} -- {date}"
+    rn = lambda i, date="Jan 2, 2026", tag=" · Direct", strength="Strong": f"| [{i}] | fact {i} | [example.org](https://example.org/{i}){tag} | Measured · {strength} | {date} |"
+    ok_now = lambda md: duf(md)["ok"] and not grading_check(md)
+    if not (ref.duf(doc21([r21(1)], [1]))["ok"] and ok_now(docnow([rn(1)], [1]))):
+        fails.append("gates: the C2 control (one cited row with every field) must pass both 2.1.0 and now")
+    probes = {   # name: (2.1.0 document, live document)
+        "an uncited row (unbound)": (doc21([r21(1), r21(2)], [1]), docnow([rn(1), rn(2)], [1])),
+        "a cite with no row (dangling)": (doc21([r21(1)], [1, 2]), docnow([rn(1)], [1, 2])),
+        "a row with no date": (doc21([r21(1, date="")], [1]), docnow([rn(1, date="")], [1])),
+        "a row with no tag": (doc21([r21(1).replace(" -- DIRECT", "")], [1]), docnow([rn(1, tag="")], [1])),
+        "a row with no C-level": (doc21([r21(1).replace(" -- C1", "")], [1]), docnow([rn(1, strength="").replace("Measured · ", "Measured")], [1])),
+        "no coverage line": (doc21([r21(1)], [1], False), docnow([rn(1)], [1], False)),
+    }
+    f21 = {n for n, (d21, _) in probes.items() if not ref.duf(d21)["ok"]}
+    fnow = {n for n, (_, dn) in probes.items() if not ok_now(dn)}
+    add("C2", "every [n] is a source row with url, tag, date and C-level; none unbound, none dangling", f"{len(f21)} of {len(probes)} probes flagged (a row missing any field is dropped)",
+        f"{len(fnow)} of {len(probes)} probes flagged (duf plus the page's tag and strength, C25); claims.jsonl keeps url, tag, retrieved_at and confidence for every cited row (C23, 8b)",
+        _verdict(f21 - fnow, fnow - f21), f"{_loc(mine, 'def duf')}, {_loc(mine, 'def grading_check')}, {_loc(mine, 'claim_requires')} (live), {_loc(theirs, 'def duf')} (2.1.0); self-test: 'C23 ... 2.1.0 C2'")
+    # ---- C3 quotes, C4 custom questions: the same rule, the block renamed
+    q = 'He said "we want every meeting prepared the same way" at the keynote.'
+    add("C3", "a quoted string of 12+ characters in the quotes block carries a [n]", "B2 (In their words)", "B4 (In their words)",
+        _verdict({"q"} if flag(ref.checks, blk("B2", q), "quotes", "C3", []) and not flag(checks, blk("B4", q), "quotes", "C3", []) else set(), set()),
+        f"{_want(mine, "quotes")} (live), {_want(theirs, "quotes")} (2.1.0)")
+    one = "1. What drives it? [1]\n2. What slows it?\n3. Who decides?"
+    two = "1. What drives it? [1]\n2. What slows it? [2]\n3. Who decides?"
+    s21 = (flag(ref.checks, blk("B5", one), "custom-q", "C4", []), flag(ref.checks, blk("B5", two), "custom-q", "C4", []))
+    snow = (flag(checks, blk("B2", one), "custom-q", "C4", []), flag(checks, blk("B2", two), "custom-q", "C4", []))
+    add("C4", "at least 2 of the questions carry a [n]", "B5, threshold 2", "B2, threshold 2; the assembler also requires a [c<id>] on every question",
+        _verdict({"c4"} if s21 != snow else set(), set()), f"{_want(mine, "custom-q")} (live), {_want(theirs, "custom-q")} (2.1.0)")
+    # ---- C5 sections present, in order
+    ids21 = [f"B{i}" for i in range(1, 10)] + ["P1", "P2", "P3", "P4", "P6", "P7"]
+    idsnow = [b["id"] for b in R["brief"]["sections"]] + [b["id"] for b in R["script"]["blocks"] if b["prints"] == "always"]
+    mk = lambda ids_: "".join(blk(i, "Text [1].") for i in ids_)
+    miss21 = [i for i in ids21 if flag(ref.checks, mk([x for x in ids21 if x != i]), "sections", "C5", [])]
+    missnow = [i for i in idsnow if flag(checks, mk([x for x in idsnow if x != i]), "sections", "C5", [])]
+    add("C5", "the required blocks are present, in order", f"{len(miss21)} of {len(ids21)} required blocks (B1-B9, P1-P4, P6, P7)", f"{len(missnow)} of {len(idsnow)} required blocks (B1-B10, P1-P4, P7-P9; P5 and P6 only as C13 allows)",
+        _verdict({1} if len(missnow) < len(miss21) or len(miss21) != len(ids21) or len(missnow) != len(idsnow) else set(), {1} if len(missnow) > len(miss21) else set()),
+        f"{_want(mine, "sections")} (live), {_want(theirs, "sections")} (2.1.0)")
+    # ---- C6 word budgets: +15% per block, the budgets themselves
+    words = lambda n: " ".join(["word"] * n)
+    tol = {}
+    for name, fn, bud in (("2.1.0", ref.checks, base["brief.sections.B1.words"]["value"]), ("now", checks, live["brief.sections.B1.words"])):
+        tol[name] = (flag(fn, blk("B1", words(int(bud * 1.14))), "budgets", "C6", []), flag(fn, blk("B1", words(int(bud * 1.16) + 1)), "budgets", "C6", []))
+    tot = lambda items, kind: sum(v["value"] if isinstance(v, dict) else v for k, v in items.items() if k.startswith(kind) and k.endswith(".words"))
+    b21, bnow, s21, snow = tot(base, "brief.sections."), tot(live, "brief.sections."), tot(base, "script.blocks."), tot(live, "script.blocks.")
+    same_tol = tol["2.1.0"] == tol["now"] == (False, True)
+    add("C6", "no block exceeds its word budget by more than 15%; the budgets are the page budget", f"+15% (114% passes, 116% fails: {tol['2.1.0'] == (False, True)}); brief {b21} words, script {s21}",
+        f"+15% ({tol['now'] == (False, True)}); brief {bnow} words, script {snow}",
+        "looser" if (not same_tol or bnow > b21 or snow > s21) else ("stricter" if (bnow < b21 or snow < s21) else "same"),
+        f"{_want(mine, "budgets")} (live), {_want(theirs, "budgets")} (2.1.0); pcp.yaml brief.sections / script.blocks words")
+    # ---- C7 never say: the phrases, and where they may appear
+    phrases = base["guardrails.never_say"]["value"]
+    ph = " ".join(phrases)
+    a21 = {k: flag(ref.checks, blk(k, ph), "never-say", "C7", []) for k in ("B1", "B8", "P7")}
+    anow = {k: flag(checks, blk(k, ph), "never-say", "C7", []) for k in ("B1", "B8", "P7", "P8")}
+    each21 = {x for x in phrases if flag(ref.checks, blk("B1", x), "never-say", "C7", [])}
+    eachnow = {x for x in phrases if flag(checks, blk("B1", x), "never-say", "C7", [])}
+    ex21 = [k for k, fl in a21.items() if not fl]            # 2.1.0 exempts B8 and P7
+    exnow = [k for k, fl in anow.items() if not fl]          # now: P8 only
+    add("C7", "no never-say phrase appears outside the guardrails block", f"{len(each21)} of {len(phrases)} phrases flagged; exempt blocks {ex21}", f"{len(eachnow)} of {len(live['guardrails.never_say'])} phrases flagged; exempt block {exnow}",
+        _verdict(each21 - eachnow, {1} if len(exnow) < len(ex21) else set()),
+        f"{_want(mine, 'never-say')} (live), {_want(theirs, 'never-say')} (2.1.0)")
+    # ---- C8 outcome, not method
+    verbs = base["checks.method_verbs"]["value"]
+    vb = " ".join(verbs)
+    f21 = {b for b in ("B6",) if flag(ref.checks, blk(b, vb), "outcome", "C8", [])}
+    fnow = {b for b in ("B1", "B5", "B6", "B9") if flag(checks, blk(b, vb), "outcome", "C8", [])}
+    add("C8", "the offer is stated as an outcome: no method verb", f"{len(verbs)} verbs; read in {sorted(f21)} (the bridge)", f"{len(live['checks.method_verbs'])} verbs; read in {sorted(fnow)} (where the offer is stated)",
+        _verdict({1} if (not fnow or len(live["checks.method_verbs"]) < len(verbs)) else set(), {1} if len(fnow) > len(f21) else set()),
+        f"{_want(mine, "outcome")} (live), {_want(theirs, "outcome")} (2.1.0)")
+    # ---- C9 exclusions: 2.1.0's keywords, every inflection of each; a hit inside another word was a false hit
+    kw = ["diagnosed", "diagnostic", "illness", "illnesses", "hospital", "hospitalization", "divorce", "divorced", "divorces", "his wife", "her husband", "children",
+          "donated to", "FEC", "campaign contribution", "campaign contributions", "lawsuit", "lawsuits", "sued", "plaintiff", "plaintiffs"]
+    benign = ["issued", "pursued", "effect", "affected"]   # 2.1.0 matched 'sued' and 'fec' inside these
+    ff21 = {w for w in kw if flag(ref.checks, blk("B3", f"She mentioned {w} once."), "exclusions", "C9", [])}
+    ffnow = {w for w in kw if flag(checks, blk("B3", f"She mentioned {w} once."), "exclusions", "C9", [])}
+    bf21 = {w for w in benign if flag(ref.checks, blk("B3", f"It was {w} in 2025."), "exclusions", "C9", [])}
+    bfnow = {w for w in benign if flag(checks, blk("B3", f"It was {w} in 2025."), "exclusions", "C9", [])}
+    exempt21 = [k for k in ("B8", "B9", "P7") if not flag(ref.checks, blk(k, "She was divorced."), "exclusions", "C9", [])]
+    exemptnow = [k for k in ("B8", "B9", "B10", "P7", "P8") if not flag(checks, blk(k, "She was divorced."), "exclusions", "C9", [])]
+    add("C9", "no excluded topic (health, family, political giving, litigation) in the body", f"{len(ff21)} of {len(kw)} word forms flagged; exempt blocks {exempt21}; {len(bf21)} of {len(benign)} look-alikes flagged", f"{len(ffnow)} of {len(kw)} word forms flagged; exempt blocks {exemptnow}; look-alikes (a match inside another word: {sorted(bf21 - bfnow)}) no longer flagged",
+        _verdict(ff21 - ffnow, {1} if len(exemptnow) < len(exempt21) else set()),
+        f"{_want(mine, "exclusions")} (live), {_want(theirs, "exclusions")} (2.1.0); the look-alikes were two chat-run false hits")
+    # ---- C10 pages: exactly 3
+    pb21, pbnow = base["page_budget.total_pages"]["value"], live["page_budget.total_pages"]
+    enforced = bool(re.search(r'len\(pages\) != total', mine.read_text()))
+    add("C10", "the PDF is exactly 3 pages", f"page count == {pb21}; the renderer exits 2 past --max-pages", f"page count == {pbnow} (C10 pages), the script on page 3, the ledger last on page 2, a link per ledger row; the renderer exits 2 past --max-pages",
+        _verdict(set() if (pbnow == pb21 and enforced) else {1}, {1}), f"{_loc(mine, 'C10 pages: .*pages, need exactly')} (live); pcp.yaml page_budget.total_pages; eval.py self-test: 'C10 by control_12.pdf rendered with --brief-pages 3'")
+    # ---- values the baseline froze: rubric, guardrails, exclusions, retention, page budget
+    def group(gid, what, prefixes, enforce21, enforcenow, evidence, extra_stricter=False):
+        keys = [k for k in base if any(k.startswith(p) for p in prefixes)]
+        same = [k for k in keys if k in live and _covers(base[k]["value"], live[k])]
+        diff = [k for k in keys if k not in same]
+        add(gid, what, f"{len(keys)} items; {enforce21}", f"{len(same)} of {len(keys)} identical" + (f"; {len(diff)} differ: {diff[:4]}" if diff else "") + f"; {enforcenow}",
+            "looser" if diff else ("stricter" if extra_stricter else "same"), evidence)
+    group("rubric", "six dimensions (signals, Low/Mid/High phrases), the three tiers (3 / 2 / 1 observations, 2 sources and a quote or action for high), what they may want (up to 3, each with a disproving claim)",
+          ("rubric.",), "read by the model; no script checked them", "C23 checks each tier's minimum observations, the band phrase word for word and the tier line (eval.py records)",
+          f"eval.py parity --list (none of rubric.* changed); {_loc(mine, 'needs .* observations')}", True)
+    group("guardrails", "the five never-say phrases and the forbidden claims per domain", ("guardrails.",), "never_say checked by C7; forbidden claims text only", "never_say checked by C7 (narrower exemption); the domain's forbidden claims are printed in P8 by the assembler",
+          "eval.py parity --list (none of guardrails.* changed); C7 row above", True)
+    group("exclusions", "the base exclusions and the exclusions per jurisdiction", ("exclusions.",), "base and jurisdiction lists in the registry; C9 keywords", "same lists; C9 row above",
+          "eval.py parity --list (none of exclusions.* changed); C9 row above")
+    enforced_ret = any(re.search(r'\[\s*["\']retention["\']\s*\]|get\(\s*["\']retention["\']', (root / f).read_text()) for f in ("eval.py", "render_skill.py", "format/talyx_pdf.py"))
+    group("retention", "retention of claims.jsonl by jurisdiction (default, eu)", ("retention.",), "registry values; no script reads them", "same values; no script reads them" if not enforced_ret else "same values; enforced",
+          f"eval.py parity --list (none of retention.* changed); grep -n 'retention' eval.py render_skill.py format/talyx_pdf.py reads the registry only")
+    t = base["page_budget.ladder"]["value"]
+    bodies21 = sorted({r["body_pt"] for r in t})
+    pbj = json.loads((root / "format/layout.json").read_text())["page_budget"]
+    sizes = {k: v for k, v in pbj["text_sizes_pt"].items() if k not in pbj["text_floor_exempt"]}
+    small21 = 9.5   # upstream talyx_pdf.py: td at body - 0.5 pt on the 10 pt rungs; th 8.5 pt, cites 8 pt, footer 7.5 pt
+    keys = [k for k in base if k.startswith("page_budget.")]
+    same = [k for k in keys if k in live and _covers(base[k]["value"], live[k])]
+    add("page_budget", "3 pages (brief 2, script 1), body 10 pt floor, the density ladder, the type scale", f"{len(keys)} items: pages 3/2/1, floor 10, ladder bodies {bodies21}; smallest table text {small21} pt, headers 8.5 pt, cites 8 pt",
+        f"{len(same)} of {len(keys)} identical; every reader-facing size at least {min(sizes.values())} pt (footer {pbj['text_sizes_pt']['footer']} pt and the classification band stay small as the footer did); pinned in evals/DECISIONS.yaml",
+        "looser" if (len(same) != len(keys) or min(sizes.values()) < small21 or pbj["text_floor_pt"] < base["page_budget.body_pt_floor"]["value"]) else "stricter",
+        f"eval.py parity (pins: page_budget.text_floor_pt, body_pt_floor, text_sizes_pt, brief_ladder); {_loc(mine, 'def size_floor_check')}")
+    return rows, fails
+
+
 # ---------------------------------------------------------------- chat (S4-10) ----------------------------------
 CHAT_LABEL = "Intelligence Brief (in chat"
 
@@ -3484,6 +3720,8 @@ def main():
     asm.add_argument("folder"); asm.add_argument("--profile", default=str(pathlib.Path.home() / ".pcp/profile.yaml"))
     asm.add_argument("--depth", choices=["fast", "standard", "deep"]); asm.add_argument("--check", action="store_true", help="fail unless brief.md and script.md are exactly what assemble builds")
     sub.add_parser("hardcoded", help="C27: no value the registry owns is hard-coded in the render scripts")
+    gt = sub.add_parser("gates", help="every 2.1.0 gate (C1-C10, rubric, guardrails, exclusions, retention, page budget) against the live one: same, stricter or looser; any looser fails")
+    gt.add_argument("--md", action="store_true", help="print the table as Markdown")
     sub.add_parser("skill", help="C29: SKILL.md is at most skill.max_chars, every step names the files it loads, every 2.1.0 baseline item is reachable")
     pr = sub.add_parser("parity", help="C28: the no-drift guard: nothing of the 2.1.0 baseline is removed or weakened without an approved decision")
     pr.add_argument("--strict", action="store_true", help="also fail every decision that is still open")
@@ -3524,7 +3762,7 @@ def main():
         if f is None:
             print("pdf: no pdftotext or pypdf to read the PDF -- not run"); sys.exit(2)
         print(f"pdf {a.pdf}: {len(f)} failures"); [print(" -", x) for x in f]; sys.exit(1 if f else 0)
-    if a.cmd in ("parity", "hardcoded", "skill") and not (HERE / "render_skill.py").exists():
+    if a.cmd in ("parity", "hardcoded", "skill", "gates") and not (HERE / "render_skill.py").exists():
         sys.exit(f"{a.cmd}: a maintainer check; it needs the plug-in checkout (render_skill.py, evals/baseline-2.1.0.json), not the copy inside a skill folder")
     if a.cmd == "parity":
         if a.approve_locks and not (a.by and a.source):
@@ -3534,6 +3772,19 @@ def main():
               f"of the {s['changed'] + s['removed']}: {s['approved']} approved, {s['open']} open, {s['unapproved']} unapproved; {s['locked']} schema sections locked")
         if a.list:
             print("changed:", *s["changed_ids"], sep="\n  "); print("removed:", *s["removed_ids"], sep="\n  ")
+        print(*[" - " + x for x in f], f"{len(f)} failures", sep="\n")
+        sys.exit(1 if f else 0)
+    if a.cmd == "gates":
+        rows, f = gates_table()
+        if a.md:
+            print("| Gate | What | 2.1.0 | Now | Verdict | Evidence |", "|---|---|---|---|---|---|", sep="\n")
+            for r in rows:
+                print("| " + " | ".join(str(x).replace("|", "/") for x in r) + " |")
+        else:
+            for r in rows:
+                print(f"{r[0]:12} {r[4]:8} 2.1.0: {r[2]} | now: {r[3]}")
+        n = {v: sum(1 for r in rows if r[4] == v) for v in ("same", "stricter", "looser")}
+        print(f"gates: {len(rows)} rows: {n['same']} same, {n['stricter']} stricter, {n['looser']} looser")
         print(*[" - " + x for x in f], f"{len(f)} failures", sep="\n")
         sys.exit(1 if f else 0)
     if a.cmd == "skill":

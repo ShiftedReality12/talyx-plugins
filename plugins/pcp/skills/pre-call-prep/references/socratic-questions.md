@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:2e44ead61a4c) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:b45e6e98f12b) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Socratic questions
 
