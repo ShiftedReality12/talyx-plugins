@@ -9,7 +9,7 @@ description: >
   before a meeting, talking points, or shares an intake list. Do not use for general research unrelated
   to a meeting, or for notes on a meeting that has already happened.
 ---
-<!-- GENERATED from pcp.yaml (sha256:34336c9c31ce) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:2b9ed02ecfe7) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.0)
 
@@ -440,7 +440,7 @@ Check the links with `python3 eval.py links brief.md` (S2-8): replace a dead lin
 | Id | Check | Command | Passes when |
 |---|---|---|---|
 | C1 | swap | `eval.py checks --swap` | no sentence in B1 or B3-B8 lacks both a [n] and a target-specific noun (headings, the tier line and Not determined lines aside) |
-| C2 | bound | `eval.py duf` | unbound == 0, dangling == 0, and every [n] in the body is a B10 row | [n] | what it says | source | grade | date | (tag and confidence stay in claims.jsonl) |
+| C2 | bound | `eval.py duf; eval.py records <folder> --brief brief.md` | unbound == 0, dangling == 0, and every [n] in the body is a B10 row | [n] | what it says | source | grade | date |; and every cited row's claim in claims.jsonl keeps the url, tag, date and confidence 2.1.0 required (claim_requires) |
 | C3 | quotes | `eval.py checks --quotes` | every quoted string in B4 has a [n] |
 | C4 | custom_q | `eval.py checks --custom-q` | >= 2 questions in B2 carry a [n] |
 | C5 | sections | `eval.py checks --sections` | B1-B10 and P1-P9 present in order (P5 and P6 may be left out per S3-2) |

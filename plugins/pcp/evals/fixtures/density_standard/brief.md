@@ -55,8 +55,8 @@ Meeting: First intro: earn a second meeting | Prepared for: Founder / principal 
 - **Relationship holder:** Not determined
 
 ## B8 Strongest case against
-- **Against:** Autopilot already covers recurring work [6]. **Reverses if:** his team names a prep gap.
-- **Against:** April's buyouts [10] signal cost scrutiny. **Reverses if:** you count the hours saved.
+- **Against:** Autopilot already covers recurring work [6]. **Reverses if:** Nadella's team names a prep gap.
+- **Against:** April's buyouts [10] signal cost scrutiny. **Reverses if:** Microsoft's team counts the hours saved.
 
 ## B9 Meeting angle
 ### This meeting

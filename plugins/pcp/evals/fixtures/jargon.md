@@ -39,7 +39,7 @@ Meeting: First intro: earn a second meeting | Prepared for: Founder / principal 
 - **The gate:** Not determined
 
 ## B8 Strongest case against
-- **Against:** the close date has moved once before this year [11]; mind source handling. **Reverses if:** it holds [11].
+- **Against:** the close date has moved once before this year [11]; mind source handling. **Reverses if:** Alder Grey Capital's date holds [11].
 
 ## B9 Meeting angle
 ### This meeting

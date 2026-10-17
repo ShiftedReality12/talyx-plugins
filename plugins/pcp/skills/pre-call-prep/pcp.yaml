@@ -837,7 +837,7 @@ guardrails:
 # ------------------------------------------------------------------------------------------------
 checks:
   - {id: C1, name: swap,         cmd: "eval.py checks --swap",      passes_when: "no sentence in B1 or B3-B8 lacks both a [n] and a target-specific noun (headings, the tier line and Not determined lines aside)"}
-  - {id: C2, name: bound,        cmd: "eval.py duf",                passes_when: "unbound == 0, dangling == 0, and every [n] in the body is a B10 row | [n] | what it says | source | grade | date | (tag and confidence stay in claims.jsonl)"}
+  - {id: C2, name: bound,        cmd: "eval.py duf; eval.py records <folder> --brief brief.md", passes_when: "unbound == 0, dangling == 0, and every [n] in the body is a B10 row | [n] | what it says | source | grade | date |; and every cited row's claim in claims.jsonl keeps the url, tag, date and confidence 2.1.0 required (claim_requires)", claim_requires: [url, tag, retrieved_at, confidence]}
   - {id: C3, name: quotes,       cmd: "eval.py checks --quotes",    passes_when: "every quoted string in B4 has a [n]"}
   - {id: C4, name: custom_q,     cmd: "eval.py checks --custom-q",  passes_when: ">= 2 questions in B2 carry a [n]"}
   - {id: C5, name: sections,     cmd: "eval.py checks --sections",  passes_when: "B1-B10 and P1-P9 present in order (P5 and P6 may be left out per S3-2)"}

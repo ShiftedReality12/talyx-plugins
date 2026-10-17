@@ -89,11 +89,11 @@
   "against": [
    {
     "against": "Autopilot already covers recurring work [c6].",
-    "reverses_if": "his team names a prep gap."
+    "reverses_if": "Nadella's team names a prep gap."
    },
    {
     "against": "April's buyouts [c10] signal cost scrutiny.",
-    "reverses_if": "you count the hours saved."
+    "reverses_if": "Microsoft's team counts the hours saved."
    }
   ]
  },

@@ -116,10 +116,30 @@ ABBR = re.compile(r"\b(?:Mr|Mrs|Ms|Dr|U\.S|e\.g|i\.e)\.|\b(?:No|Nos|Inc|Co|Corp|
 QUOTE_SPAN = re.compile(r'"[^"\n]*"|\u201c[^\u201d\n]*\u201d')
 
 
+def template_lines():
+    """C1 (swap): the only lines that state no fact, as the registry writes them -- one regex each, matched against the whole line.
+    A gap line ('- **Role:** Not determined'), a fallback ('- Not determined', '- No counter-evidence found'), the tier line and the
+    LinkedIn status line. A line that merely contains 'Not determined' or 'Evidence tier:' is a sentence like any other: it must carry
+    a [n] or a target-specific noun (2.1.0 exempted nothing)."""
+    F, li, out = R["forms"], R["linkedin"], []
+    bullet = r"(?:[-*]\s+)?"
+    for spec in F.values():
+        for f in spec.get("fields", []) if isinstance(spec, dict) else []:
+            if f.get("missing"):
+                out.append(bullet + r"\*\*" + re.escape(f["label"]) + r"\*\*\s+" + re.escape(f["missing"]) + r"\.?")
+    out.append(r"[-*]\s+(?:" + "|".join(re.escape(F[b]["none"]) for b in ("B4", "B8")) + r")\.?")
+    out.append(r"\*\*Evidence tier:\*\*\s+(?:high|medium|low)(?:" + re.escape(F["B6"]["tier"].split("{tier}")[1]) + r")?\.?")
+    reasons = li["reasons"] + list(li.get("retired", {}))
+    out.append(r"(?:[-*]\s+)?\*\*LinkedIn:\*\*\s+(?:" + "|".join(re.escape(r) for r in li["read"].values())
+               + "|" + re.escape(li["not_read"]) + ": (?:" + "|".join(re.escape(r) for r in reasons) + r"))\.?")
+    return re.compile(r"\s*(?:" + "|".join(out) + r")\s*")
+
+
 def _sentences(txt):
     txt = re.sub(r"\|.*\|", " ", txt)  # tables are rows, not sentences
-    txt = "\n".join(ln for ln in txt.splitlines()   # structure and the registry's own fallback lines, not claims
-                    if not re.match(r"\s*#|.*(?:Not determined|Evidence tier:|No counter-evidence found)", ln))
+    tpl = template_lines()
+    txt = "\n".join(ln for ln in txt.splitlines()   # headings and the registry's own template lines, whole-line matches only
+                    if not re.match(r"\s*#", ln) and not tpl.fullmatch(ln))
     hide = lambda m: m.group(0).translate(str.maketrans(".!?", "\x00\x01\x02"))   # a quote is one span, cited after it
     txt = QUOTE_SPAN.sub(hide, ABBR.sub(hide, txt))
     back = str.maketrans("\x00\x01\x02", ".!?")
@@ -200,8 +220,6 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
         for k in [k for k in secs if re.match(r"B1$|B[3-8]$", k)]:   # the blocks that state facts about the person
             for s in _sentences(secs[k]):
                 if CITE.search(s):
-                    continue
-                if re.match(r"[-*\s]*\*\*(LinkedIn|Reverses if|Stop if):\*\*", s):   # the mandated status line (S2-7, C16) states no fact
                     continue
                 if nouns and any(n in s.lower() for n in nouns):
                     continue
@@ -542,6 +560,28 @@ def self_test(require_pdf=False):
                 print(f"tripped: {cid} by {name}")
             else:
                 print(f"FAIL {name} must trip {cid}"); ok = False
+    # ---- C1 (swap): only a line that is exactly a schema template is exempt; a claim smuggled into a near-template line fails
+    nouns, F = ["alder grey", "doe"], R["forms"]
+    def swap(body, block="B3"):
+        return [x for x in checks(f"## {block} Title\n{body}\n", which="swap", target_nouns=nouns) if x.startswith("C1 ")]
+    tier_line = F["B6"]["tier"].format(tier="high")
+    li_line = "**LinkedIn:** " + R["linkedin"]["read"]["search"]
+    exact = {"a gap line": ("B3", "- **Role:** Not determined"), "a fallback line": ("B8", "- No counter-evidence found"),
+             "the tier line": ("B6", tier_line), "the LinkedIn status line": ("B4", li_line),
+             "a fallback theme line": ("B4", "- Not determined")}
+    smuggled = {"a claim after 'Not determined'": ("B3", "- **Role:** Not determined, though the firm is among the largest in the industry and has grown for a decade."),
+                "a claim before 'Not determined'": ("B3", "- **Path:** Rose through the ranks of the industry very quickly, then Not determined."),
+                "a claim after the tier line": ("B6", tier_line + " The industry is changing quickly and every leader is feeling the pressure."),
+                "a claim in the tier line's place": ("B6", "**Evidence tier:** high: every leader in the industry responds to a deadline this way."),
+                "a claim after the fallback": ("B8", "- No counter-evidence found, because every leader in the industry likes this kind of offer."),
+                "a claim after the LinkedIn status": ("B4", li_line + ". Every executive in the industry keeps a profile like this one."),
+                "a reverses-if line with no noun": ("B8", "- **Against:** Alder Grey is expanding [1]. **Reverses if:** the industry turns against this kind of firm for a decade.")}
+    bad_ex = [k for k, (b_, x) in exact.items() if swap(x, b_)]
+    bad_sm = [k for k, (b_, x) in smuggled.items() if not swap(x, b_)]
+    if bad_ex or bad_sm:
+        print("FAIL C1 swap exemptions: template-exact lines that failed", bad_ex, "| smuggled claims that passed", bad_sm); ok = False
+    else:
+        print(f"passes: C1 swap exempts exactly {len(exact)} template lines (gap, fallback, tier, LinkedIn status); tripped by {len(smuggled)} claims smuggled into near-template lines")
     ids = {c["id"] for c in R["checks"] if "id" in c}
     blocks = {b["id"]: b for b in R["brief"]["sections"] + R["script"]["blocks"]}
     conditional = [(e["id"], blocks[e["id"]]["prints"], e.get("check")) for e in R["inventory"]["blocks"] if blocks[e["id"]]["prints"] != "always"]
@@ -549,7 +589,7 @@ def self_test(require_pdf=False):
     for pid, prints, cid in conditional:
         if cid not in ids:
             print(f"FAIL inventory {pid}: prints only when '{prints}' but no check enforces it (check: {cid})"); ok = False
-    cf = chat_check((fx / "chat_control.md").read_text())
+    cf = chat_check((fx / "chat_control.md").read_text(), FIXTURE_NOUNS)
     if cf:
         print("FAIL chat_control.md (S4-10 in-chat fallback) must pass:", *cf, sep="\n - "); ok = False
     else:
@@ -985,6 +1025,14 @@ def self_test(require_pdf=False):
         def go(d):
             j = json.loads((d / fn).read_text()); mut(j); (d / fn).write_text(json.dumps(j))
         return go
+    def jedit_lines(cid, mut):   # edit one claim of claims.jsonl, by id
+        def go(d):
+            rows = [json.loads(x) for x in (d / "claims.jsonl").read_text().splitlines()]
+            for r in rows:
+                if r["id"] == cid:
+                    mut(r)
+            (d / "claims.jsonl").write_text("\n".join(json.dumps(r) for r in rows))
+        return go
     for case, edit, want in (
             ("a coverage record without per-source-type counts", jedit("coverage.json", lambda j: j.pop("hits_by_family")), "hits_by_family"),
             ("a coverage record that skips one source type", jedit("coverage.json", lambda j: j["hits_by_family"].pop("F12")), "must hold a count for each"),
@@ -997,6 +1045,9 @@ def self_test(require_pdf=False):
             ("a tier its observations cannot carry", jedit("read.json", lambda j: j[0].update(observation_ids=[3])), "needs 3 observations"),
             ("a claim missing a field", lambda d: (d / "claims.jsonl").write_text("\n".join(json.dumps({k: v for k, v in json.loads(x).items() if k != "grade"} if i == 0 else json.loads(x))
                                                                                            for i, x in enumerate((d / "claims.jsonl").read_text().splitlines()))), "lacks"),
+            ("a cited claim with an empty tag", jedit_lines(1, lambda c: c.update(tag="")), "2.1.0 C2"),
+            ("a cited claim with no retrieved_at date", jedit_lines(2, lambda c: c.pop("retrieved_at")), "2.1.0 C2"),
+            ("a cited claim with an empty confidence", jedit_lines(3, lambda c: c.update(confidence=None)), "2.1.0 C2"),
             ("a ledger row whose page is not in claims.jsonl", lambda d: (d / "claims.jsonl").write_text("\n".join(x for x in (d / "claims.jsonl").read_text().splitlines() if '"id": 5,' not in x)), "does not hold")):
         f = broken(edit, case)
         if any(want in x for x in f):
@@ -1271,13 +1322,14 @@ def pdf_self_test(fx):
 
 
 # fixture -> passes every check (with these arguments)
+FIXTURE_NOUNS = ["Jane Doe", "Doe", "Alder Grey Capital"]   # the target the fixtures are about; the command line passes them (--target-nouns)
 MUST_PASS = [
-    ("control_12.md", {}),
-    ("control_12.md", {"experience": "experienced"}),
-    ("control_12.md", {"experience": "top"}),
-    ("exp_new.md", {"experience": "new"}),
-    ("linkedin_declined.md", {}),
-    ("linkedin_search.md", {}),
+    ("control_12.md", {"target_nouns": FIXTURE_NOUNS}),
+    ("control_12.md", {"experience": "experienced", "target_nouns": FIXTURE_NOUNS}),
+    ("control_12.md", {"experience": "top", "target_nouns": FIXTURE_NOUNS}),
+    ("exp_new.md", {"experience": "new", "target_nouns": FIXTURE_NOUNS}),
+    ("linkedin_declined.md", {"target_nouns": FIXTURE_NOUNS}),
+    ("linkedin_search.md", {"target_nouns": FIXTURE_NOUNS}),
 ]
 
 
@@ -2146,6 +2198,17 @@ def records_check(folder, depth="standard", brief=""):
         for k, rows in ledger_facts(brief).items():
             if k[0] and k[0] not in have and not any(k[0] in h or h in k[0] for h in have if h):
                 fails.append(f"C23 records: ledger row [{rows[0]['n']}] cites {k[0]}, which claims.jsonl does not hold; the brief holds only what the records hold (S4-12)")
+    if brief and claims:   # C2 (2.1.0): every cited fact has url + tag + date + C-level. The page prints them as the ledger's source, grade and date;
+        # the record holds them in full, so a ledger row whose claim lacks one is a fact 2.1.0 would have dropped
+        keys = {k[0] for k in ledger_facts(brief)}
+        for c in claims:
+            u = str(c.get("url", ""))
+            page = _page(u) if u.startswith("http") else u.lower()
+            if not any(k == page or (page and (k in page or page in k)) for k in keys):
+                continue
+            gone = [f for f in next(x for x in R["checks"] if x.get("id") == "C2")["claim_requires"] if not str(c.get(f) or "").strip()]
+            if gone:
+                fails.append(f"C23 records: claim {c.get('id', '?')} is a cited ledger row, yet claims.jsonl has no {gone} for it; every cited fact keeps its url, tag, date and confidence (2.1.0 C2)")
     cv, err = _load_json(d / rec["coverage"]["file"])
     if err:
         fails.append(f"C23 records: {err} (the coverage record)")

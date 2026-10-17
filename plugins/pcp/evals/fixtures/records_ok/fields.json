@@ -88,7 +88,7 @@
   "against": [
    {
     "against": "the close date has moved once before this year [c11].",
-    "reverses_if": "it holds."
+    "reverses_if": "Alder Grey Capital's date holds."
    }
   ],
   "confirm_first": "her agenda-setting is one panel's view [c7]; ask whether it holds in private."
