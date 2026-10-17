@@ -139,6 +139,13 @@ decisions:
     date: 2026-10-17
     source: "Daniel, Oct 17 2026, decision 4: SKILL.md holds only the procedure; everything else lives in pcp.yaml or generated reference files loaded on demand; 'plugin should be completely parameterized', 'elitely configured'"
     summary: "render_skill.py writes a lean SKILL.md (steps, stop points, gates, a Load line per step) and generated references/*.md; the registry is unchanged in behaviour. Reachability of every 2.1.0 item and a 30,000-character cap are checked (eval.py skill)."
+  # 4b. The gates of the trim pass: no 2.1.0 gate may be looser (PROMPT.md of the trim pass, WWHTBT 8; `eval.py gates` prints the table).
+  - covers: []
+    status: approved
+    by: Daniel
+    date: 2026-10-17
+    source: "Daniel's trim-pass prompt, Oct 17 2026, WWHTBT 8 (gates 8a, 8b, 8c): every 2.1 threshold at least as strict now"
+    summary: "C1 exempts only whole lines that are exactly a schema template and reads B1-B9; C2 checks url, tag, retrieved_at and confidence in claims.jsonl for every cited row; C8 reads B1, B5 and B9; C9 keeps 2.1's word stems (every inflection trips, a match inside another word does not); the brief's word budgets total 2.1's 1,080 (B10 405). eval.py gates fails any gate looser than 2.1.0."
   - covers: ["lock:forms@fcbfb88c38af"]
     status: approved
     by: "Daniel (Oct 16 instructions: MUST-FIX 1-9, D1-D3, grading design delegated, parameterization, forms/assembler, no-drift guard)"
