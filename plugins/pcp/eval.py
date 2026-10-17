@@ -818,6 +818,9 @@ def self_test(require_pdf=False):
             ("a layout size changed", lambda r: r["page_budget"]["text_sizes_pt"].update(ledger=8), "schema section 'page_budget'"),
             ("the ledger set to 9.5 pt (Daniel's pin: 10 pt)", lambda r: r["page_budget"]["text_sizes_pt"].update(ledger=9.5), "below the pinned minimum"),
             ("the text floor lowered to 9.5 pt", lambda r: r["page_budget"].update(text_floor_pt=9.5), "Daniel pinned it at 10.0"),
+            ("Q2's private-equity option reworded (Daniel, Oct 17: 2.1's text)", lambda r: r["calibration"]["questions"][1]["options"][2].update(description="GPs, LPs, portfolio companies; adds fund and portfolio news."), "Daniel pinned it at"),
+            ("Q7's EU option reworded (Daniel, Oct 17: 2.1's text)", lambda r: r["calibration"]["questions"][6]["options"][1].update(description="Adds minimisation: working notes are deleted once the PDF renders."), "Daniel pinned it at"),
+            ("the ledger source link changed from the domain (Daniel, Oct 17)", lambda r: r["grading"].update(source_link="url"), "Daniel pinned it at"),
             ("a brief rung's body set to 9 pt (Ben, Oct 13)", lambda r: r["page_budget"]["brief_ladder"][0].update(body_pt=9.0), "entries with body_pt below 10")):
         f, _ = parity(reg=mutated(fn))
         if any(want in x for x in f):
@@ -841,11 +844,23 @@ def self_test(require_pdf=False):
             print("tripped: C28 by an edit to the frozen baseline")
         else:
             print("FAIL C28 must trip on an edit to baseline-2.1.0.json"); ok = False
-    f, _ = parity(strict=True)
-    if any("still open" in x for x in f):
-        print(f"tripped: C28 --strict on the {ps['open']} decisions that are still open")
+    if ps["open"] or parity(strict=True)[0]:
+        print(f"FAIL parity --strict must pass on the shipped registry: {ps['open']} decisions are still open"); ok = False
     else:
-        print("FAIL parity --strict must fail an open decision"); ok = False
+        print("passes: C28 --strict: no decision is open")
+    with tempfile.TemporaryDirectory() as td:
+        rt = pathlib.Path(td); (rt / "evals").mkdir()
+        for fn in ("baseline-2.1.0.json", "DECISIONS.yaml", "schema.lock.json"):
+            (rt / "evals" / fn).write_text((HERE / "evals" / fn).read_text())
+        for fn in ("eval.py", "format/talyx_pdf.py"):
+            (rt / fn).parent.mkdir(parents=True, exist_ok=True); (rt / fn).write_text((HERE / fn).read_text())
+        with open(rt / "evals/DECISIONS.yaml", "a") as fh:
+            fh.write('  - covers: ["research.full_threshold.standard"]\n    status: open\n    by: test\n    source: self-test\n')
+        f, _ = parity(root=rt, reg=mutated(lambda r: r["research"]["full_threshold"].update(standard=6)), strict=True)
+        if any("still open" in x for x in f):
+            print("tripped: C28 --strict by a change whose decision is still open")
+        else:
+            print("FAIL parity --strict must fail an open decision"); ok = False
     # ---- D2 (a LinkedIn address the user gives may be read, no other) and MUST-FIX 8 (a subagent's own text is not the reply)
     li_url = "https://www.linkedin.com/in/jane-doe-example"
     user_msg = json.dumps({"type": "user", "message": {"role": "user", "content": f"Jane Doe, Alder Grey Capital. Her profile: {li_url}"}})
@@ -1038,6 +1053,8 @@ def self_test(require_pdf=False):
               "a Search row read Solid": (lambda b: re.sub(r"(Fact 6 about Alder Grey \|[^|]*\| )[^|]+\|", "\\1Derived · Solid |", b), "caps"),
               "the strength key left out": (lambda b: re.sub(r"Strength: [^.]*\.", "", b), "key the strengths"),
               "a row with no tag": (lambda b: b.replace("(https://example.org/1) · Direct", "(https://example.org/1)"), "how it was found"),
+              "a source printed as its full URL": (lambda b: b.replace("[example.org](https://example.org/1)", "[https://example.org/1](https://example.org/1)"), "never the full URL"),
+              "a source printed as a bare URL": (lambda b: b.replace("[example.org](https://example.org/2)", "https://example.org/2"), "bare URL"),
               "a row with no strength": (lambda b: b.replace("Measured · Strong", "Measured", 1), "no source strength")}
     weak_ab = ab.replace("[example.org](https://example.org/12)", "[thefabulous.co](https://thefabulous.co/12)")   # the real regression: a weak domain printed Measured
     for case, (fn, want) in gcases.items():
@@ -2600,8 +2617,13 @@ def grading_check(md):
         if strength.strip() in inv and ranks.index(inv[strength.strip()]) < ranks.index(cap):
             why = "a weak domain" if is_weak and cap == g["caps"]["weak_domain"] else f"tag {tag}, grade {grade.strip()}"
             fails.append(f"C25 grading: [{r['n']}] reads '{strength.strip()}' but {why} caps it at '{g['words'][cap]}'; a weak source never reads as strong")
+        shown = re.match(r"\s*\[([^\]]*)\]\(https?://", r["source"])
+        if u and g["source_link"] == "domain" and shown and shown.group(1) not in (_domain(u.group(1)), f"{_domain(u.group(1))}, search result"):
+            fails.append(f"C25 grading: [{r['n']}] prints '{shown.group(1)[:50]}' as its source; it prints the domain '{_domain(u.group(1))}' as a link to the full address, never the full URL")
         if u and "linkedin.com" in u.group(1) and tag != "LinkedIn":
             fails.append(f"C25 grading: [{r['n']}] cites linkedin.com but is tagged '{tag}'")
+        if not u and re.search(r"https?://", r["source"]):
+            fails.append(f"C25 grading: [{r['n']}] prints a bare URL as its source; it prints the domain as a link to the full address")
         if not u and tag != "Yours":
             fails.append(f"C25 grading: [{r['n']}] has no link, so it is the user's own: tag Yours (got '{tag}')")
     return fails

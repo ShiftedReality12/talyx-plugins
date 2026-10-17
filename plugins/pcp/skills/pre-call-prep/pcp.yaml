@@ -50,6 +50,9 @@ plain_words:
             asset base, asset quality, asset growth, asset mix, asset value, asset values, net asset value, asset price, asset prices,
             asset sale, asset sales, asset purchase, asset purchases, asset deal, asset finance, asset servicing, asset gathering,
             real asset, alternative asset, digital asset, fixed asset, financial asset, hard asset, single-asset, multi-asset]
+  # Daniel, Oct 17: exactly one string is exempt from the banned list -- the setup question's 2.1.0 option text, kept byte for byte (decision 1 in
+  # evals/DECISIONS.yaml). It is an exact string, never a pattern: any other use of claims.jsonl in user-facing text still fails.
+  exempt: ["Adds minimisation -- claims.jsonl deleted after render."]
   # Oct 9 / AID-58: Ben's executive words. Not enforced until Daniel decides (spec Q3, Q5); move a word to banned to adopt it.
   pending: [intelligence collection, counter-evidence]   # behavioral profile left the list Oct 14: it is block 6's approved title
   # the deliverable has one name (names.deliverable); build/adapters.py --check fails on these anywhere in the repo
@@ -119,7 +122,7 @@ calibration:
       options:
         - {label: General professional (Recommended), value: general, description: No domain assumptions; broadest source set.}
         - {label: "Wealth management", value: wealth, description: "Advisors, RIAs, family offices; adds BrokerCheck/IAPD registers."}
-        - {label: "Private equity / VC", value: pe, description: "GPs, LPs, portfolio companies; adds fund and portfolio news."}
+        - {label: "Private equity / VC", value: pe, description: "GPs, LPs, portfolio companies; adds fund/portfolio news families."}
         - {label: Enterprise / SaaS, value: saas, description: Buyers and champions in technology companies.}
       sets: {domain: value}
       consumed_by: [families.registers, brief.vocab, guardrails.forbidden_claims]
@@ -166,7 +169,7 @@ calibration:
       question: Jurisdiction and compliance posture?
       options:
         - {label: US (Recommended), value: us, description: Public professional record; standard exclusions.}
-        - {label: UK / EU (GDPR strict), value: eu, description: "Adds minimisation: working notes are deleted once the PDF renders."}
+        - {label: UK / EU (GDPR strict), value: eu, description: "Adds minimisation -- claims.jsonl deleted after render."}
         - {label: Regulated sales (FINRA / FCA style), value: regulated, description: Adds performance-claim and promissory-language guardrails.}
         - {label: APAC, value: apac, description: Standard exclusions; formal-register openers.}
       sets: {jurisdiction: value}
@@ -429,6 +432,7 @@ grading:   # C25. Three independent axes, all on the page in plain words, streng
     tag: {Search: C3, LinkedIn: C3, Yours: C2}       # a snippet is not a read page; LinkedIn is read from a search result; the user's own record is unverified
     grade: {Derived: C2, Inference: C4, "Not determined": C4}   # only a Measured fact (read as written) can be Strong
   since: 2026-10-16   # a brief prepared earlier (the frozen targets) prints no tag or strength
+  source_link: domain   # Daniel, Oct 17: a ledger source prints as its domain, a link to the full address -- never the full URL as text (C25 enforces; pinned in evals/DECISIONS.yaml)
 retention:
   default: keep claims.jsonl beside the PDF
   eu: delete claims.jsonl after render

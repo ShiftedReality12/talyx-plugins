@@ -28,6 +28,16 @@ pins:
     each_min: {key: body_pt, min: 10}
     why: "2.1.0's ladder bottoms at 10 pt"
 
+  - path: calibration.questions.1.options.2.description
+    equals: "GPs, LPs, portfolio companies; adds fund/portfolio news families."
+    why: "Daniel, Oct 17, decision 1: Q2's private-equity option is 2.1.0's text, byte for byte"
+  - path: calibration.questions.6.options.1.description
+    equals: "Adds minimisation -- claims.jsonl deleted after render."
+    why: "Daniel, Oct 17, decision 1: Q7's EU option is 2.1.0's text, byte for byte"
+  - path: grading.source_link
+    equals: domain
+    why: "Daniel, Oct 17, decision 3: a ledger source prints as its domain, a link to the full address"
+
 decisions:
   # ---- the approved schema (Ben's nine blocks and the evidence ledger, page 3's nine sections) replaced B1-B9 / P1-P7
   - covers: ["brief.sections.B*", "script.blocks.P*", "script.title", "checks.C1.*", "checks.C2.*", "checks.C3.*", "checks.C4.*", "checks.C5.*", "checks.C7.*", "checks.C8.*", "checks.C10.*", "eval.definition"]
@@ -99,13 +109,36 @@ decisions:
     date: 2026-10-16
     source: "D3 (corrected Oct 16: 10 pt, not 9.5) for everything a reader reads (page_budget.text_sizes_pt)"
     summary: "C10 adds exactly 3 pages with the ledger last on page 2 and the script on page 3."
-  # ---- OPEN: changes with no recorded decision (reworded text, nothing weakened that I can see); Daniel to approve or revert
-  - covers: ["calibration.questions.Q2.options", "calibration.questions.Q7.options", "calibration.rules.CAL-1.*"]
-    status: open
-    by: none yet
-    date: 2026-10-16
-    source: "rc2 rewording: Q2 option descriptions, Q7's EU description ('working notes are deleted once the PDF renders'), CAL-1 'ask only the questions with no saved answer' (adds Q9 without re-asking all). Not in a recorded decision."
-    summary: "Needs Daniel's yes or a revert."
+  # ---- Daniel's four decisions of Oct 17 2026 (the trim pass, PCP 3.1.0)
+  # 1. Q2 and Q7 are back to 2.1.0's exact option text. covers is empty on purpose: nothing about these options is approved to differ from 2.1.0;
+  #    the two pins above the decisions list fail the run if either string changes again.
+  - covers: []
+    status: approved
+    by: Daniel
+    date: 2026-10-17
+    source: "Daniel, Oct 17 2026, decision 1: revert calibration.questions.Q2.options and Q7.options to 2.1's exact text; 'the old wording was better and parameterized; rewording invites drift'. The tension with the plain-words rule is known: the double hyphen and the British spelling stay; pcp.yaml plain_words.exempt holds exactly the Q7 string."
+    summary: "Q2's PE option reads 'GPs, LPs, portfolio companies; adds fund/portfolio news families.' and Q7's EU option reads 'Adds minimisation -- claims.jsonl deleted after render.', byte for byte as in 2.1.0 (parity: unchanged)."
+  # 2. CAL-1: ask only the setup questions with no saved answer, so a new Q9 is asked of returning users.
+  - covers: ["calibration.rules.CAL-1.*"]
+    status: approved
+    by: Daniel
+    date: 2026-10-17
+    source: "Daniel, Oct 17 2026, decision 2: approve CAL-1 (ask only the setup questions with no saved answer)"
+    summary: "CAL-1 asks only the questions the saved profile has no answer for (a returning user is asked a new Q9 only)."
+  # 3. Ledger sources print as domain links.
+  - covers: []
+    status: approved
+    by: Daniel
+    date: 2026-10-17
+    source: "Daniel, Oct 17 2026, decision 3: keep ledger sources printed as domain links (visible text = domain, clickable to the full URL), not full printed URLs"
+    summary: "A ledger source prints as its domain, a link to the full address; C25 fails a row that prints the full URL or a bare URL (pcp.yaml grading.source_link, pinned above)."
+  # 4. The trim pass.
+  - covers: []
+    status: approved
+    by: Daniel
+    date: 2026-10-17
+    source: "Daniel, Oct 17 2026, decision 4: SKILL.md holds only the procedure; everything else lives in pcp.yaml or generated reference files loaded on demand; 'plugin should be completely parameterized', 'elitely configured'"
+    summary: "render_skill.py writes a lean SKILL.md (steps, stop points, gates, a Load line per step) and generated references/*.md; the registry is unchanged in behaviour. Reachability of every 2.1.0 item and a 30,000-character cap are checked (eval.py skill)."
   - covers: ["lock:forms@fcbfb88c38af"]
     status: approved
     by: "Daniel (Oct 16 instructions: MUST-FIX 1-9, D1-D3, grading design delegated, parameterization, forms/assembler, no-drift guard)"
@@ -196,3 +229,9 @@ decisions:
     date: 2026-10-16
     source: "Daniel's message of Oct 16 (after the report); Ben Oct 13, commit 2ff8d0a; RESTORE-REPORT.md 'Schema locks'"
     summary: "schema section page_budget changed from 956961a9eef8 to f0a5af7b2740"
+  - covers: ["lock:grading@028c910a4f27"]
+    status: approved
+    by: "Daniel (Oct 17 2026, decision 3: ledger sources print as domain links)"
+    date: 2026-10-17
+    source: "Daniel's decision 3 of Oct 17 2026; pcp.yaml grading.source_link"
+    summary: "schema section grading changed from 8b31f6cf79e4 to 028c910a4f27"

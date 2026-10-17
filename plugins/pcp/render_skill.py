@@ -506,13 +506,21 @@ def inventory_problems(R, inventory_md, skill_md):
     return out
 
 
+def exact_removed(text, exempt):
+    """text without the exempt strings, each matched whole."""
+    for s in exempt:
+        text = text.replace(s, " ")
+    return text
+
+
 def plain_violations(R, texts):
     """Banned words in user-facing text: the names, the setup questions and the skill's listing text.
     A banned word inside a plain_words.allowed phrase (asset manager) is not the banned word."""
     pw = R["plain_words"]
     words = re.compile(r"\b(?:" + "|".join(re.escape(w) for w in pw["banned"]) + r")\b", re.I)
     allowed = re.compile(r"\b(?:" + "|".join(re.escape(w) for w in pw.get("allowed") or ["\x00"]) + r")\b", re.I)
-    texts = [allowed.sub(" ", t) for t in texts]
+    exempt = pw.get("exempt") or []   # exact strings Daniel kept from 2.1.0 (pcp.yaml plain_words.exempt); never a pattern
+    texts = [allowed.sub(" ", exact_removed(t, exempt)) for t in texts]
     return sorted({m.group(0) for t in texts for pat in (words, re.compile(pw["codes"])) for m in pat.finditer(t)})
 
 
