@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:1df3c742667e) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:a18c120a8ff1) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Checks and the test for each rule
 
@@ -94,5 +94,5 @@ Each rule fails when:
 - **baseline_required_before_claims:** True
 - **Method verbs (C8):** we scrape, we ingest, our pipeline, our model, we crawl, our algorithm
 
-Commands of `eval.py`: `eval.py duf`, `eval.py checks`, `eval.py pdf`, `eval.py cites`, `eval.py links`, `eval.py render`, `eval.py battery`, `eval.py records`, `eval.py kept`, `eval.py offer-conflict`, `eval.py chat`, `eval.py assemble`, `eval.py hardcoded`, `eval.py gates`, `eval.py skill`, `eval.py parity`, `eval.py concordance`, `eval.py self-test`, `eval.py ratchet`, `eval.py improve`.
+Commands of `eval.py`: `eval.py duf`, `eval.py checks`, `eval.py pdf`, `eval.py cites`, `eval.py links`, `eval.py render`, `eval.py battery`, `eval.py records`, `eval.py kept`, `eval.py offer-conflict`, `eval.py chat`, `eval.py assemble`, `eval.py hardcoded`, `eval.py gates`, `eval.py versions`, `eval.py skill`, `eval.py parity`, `eval.py concordance`, `eval.py self-test`, `eval.py ratchet`, `eval.py improve`.
 

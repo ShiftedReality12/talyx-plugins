@@ -11,6 +11,7 @@ python3 eval.py concordance >/dev/null || { echo "concordance: SKILL.md or a ref
 python3 eval.py hardcoded || fail=1
 python3 eval.py parity || fail=1
 python3 eval.py skill || fail=1
+python3 eval.py versions || fail=1
 python3 eval.py gates >/dev/null || { python3 eval.py gates | tail -4; fail=1; }
 if [ "$fail" != 0 ]; then
   echo "pre-commit: blocked. A removed or weakened 2.1.0 item needs an approved entry in plugins/pcp/evals/DECISIONS.yaml (python3 eval.py parity --list)."

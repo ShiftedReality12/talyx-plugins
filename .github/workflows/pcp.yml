@@ -25,6 +25,7 @@ jobs:
           python3 plugins/pcp/eval.py parity
           python3 plugins/pcp/eval.py hardcoded
           python3 plugins/pcp/eval.py skill
+          python3 plugins/pcp/eval.py versions
           python3 plugins/pcp/eval.py gates
       - name: Every check is proven able to fail; two PDFs rendered and read back
         run: python3 plugins/pcp/eval.py self-test --require-pdf

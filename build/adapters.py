@@ -259,13 +259,18 @@ def check_listing(files):
     return out
 
 
+# top-level folders that are not part of what ships (no host installs from them); the name rule covers everything else, unchanged
+NOT_SHIPPED = ("marketing",)
+
+
 def check_names(files):
-    """The deliverable has one name: no other name (pcp.yaml plain_words.names_banned) anywhere in the repo or in
-    what this writes. A line that lists banned words is the list itself, not a use."""
+    """The deliverable has one name: no other name (pcp.yaml plain_words.names_banned) in anything that ships -- the whole repo apart
+    from NOT_SHIPPED -- or in what this writes. A line that lists banned words is the list itself, not a use."""
     R = yaml.safe_load((PLUGIN / "pcp.yaml").read_text())
     pat = re.compile(r"\b(?:" + "|".join(re.escape(w) for w in R["plain_words"]["names_banned"]) + r")\b", re.I)
     texts = {p.relative_to(ROOT).as_posix(): p.read_bytes() for p in ROOT.rglob("*")
-             if p.is_file() and ".git" not in p.relative_to(ROOT).parts and "__pycache__" not in p.parts}
+             if p.is_file() and ".git" not in p.relative_to(ROOT).parts and "__pycache__" not in p.parts
+             and p.relative_to(ROOT).parts[0] not in NOT_SHIPPED}
     texts |= {rel: (d if isinstance(d, bytes) else d.encode()) for rel, d in files.items()}
     out = []
     for rel, data in sorted(texts.items()):

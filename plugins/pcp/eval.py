@@ -894,6 +894,36 @@ def self_test(require_pdf=False):
             print(f"FAIL --latest must return the session's file and its subagent transcript, under $CLAUDE_CONFIG_DIR (got {found})"); ok = False
         else:
             print("passes: battery --latest reads the session file and its subagent transcripts, under $CLAUDE_CONFIG_DIR")
+    # ---- versions (C30): one version everywhere; a manifest, a marketplace entry, a header or the changelog that disagrees fails
+    vf, vfound = versions_check()
+    if vf:
+        print("FAIL versions must agree on the shipped repo:", *vf[:5], sep="\n - "); ok = False
+    else:
+        print(f"passes: C30 versions: {len(vfound)} version strings in {len({x[0] for x in vfound})} files all say {vfound[0][2]}")
+    if (HERE.parents[1] / "build").is_dir():
+        with tempfile.TemporaryDirectory() as td:
+            repo = pathlib.Path(td)
+            for rel in VERSION_FILES:
+                if (HERE.parents[1] / rel).exists():
+                    (repo / rel).parent.mkdir(parents=True, exist_ok=True)
+                    (repo / rel).write_text((HERE.parents[1] / rel).read_text())
+            cur = vfound[0][2]
+            for rel, old, new in (("plugins/pcp/.codex-plugin/plugin.json", f'"version": "{cur}"', '"version": "9.9.9"'),
+                                  (".claude-plugin/marketplace.json", f'"version": "{cur}",\n      "author"', '"version": "9.9.9",\n      "author"'),
+                                  ("plugins/pcp/skills/pre-call-prep/SKILL.md", f"(v{cur})", "(v9.9.9)"),
+                                  ("plugins/pcp/CHANGELOG.md", f"## [{cur}]", "## [9.9.9]"),
+                                  ("build/plugin.source.json", f'"version": "{cur}"', '"version": "9.9.9"')):
+                f = repo / rel
+                if not f.exists() or old not in f.read_text():
+                    print(f"FAIL versions self-test: no '{old[:30]}' in {rel} to change"); ok = False; continue
+                raw = f.read_text()
+                f.write_text(raw.replace(old, new, 1))
+                bad, _ = versions_check(repo)
+                f.write_text(raw)
+                if any(rel in x for x in bad):
+                    print(f"tripped: C30 by a version that disagrees in {rel}")
+                else:
+                    print(f"FAIL C30 must trip on a different version in {rel} (got {bad})"); ok = False
     # ---- gates: every 2.1.0 gate is at least as strict now; a loosened gate is caught by the table itself
     rows_g, fails_g = gates_table()
     if fails_g:
@@ -3438,6 +3468,57 @@ def skill_check(root=None, reg=None, skill_text=None):
                        how=how, lost=lost, max=sk["max_chars"], target=sk["target_chars"])
 
 
+# ---------------------------------------------------------------- versions (C30): one version everywhere ----------------------
+VERSION_FILES = {   # path from the repo root -> how its version is written
+    "plugins/pcp/pcp.yaml": "registry", "plugins/pcp/pcp.json": "json:registry_version", "build/plugin.source.json": "json:version",
+    "plugins/pcp/plugin.json": "json:version", "plugins/pcp/gemini-extension.json": "json:version",
+    "plugins/pcp/.claude-plugin/plugin.json": "json:version", "plugins/pcp/.codex-plugin/plugin.json": "json:version",
+    "plugins/pcp/.cursor-plugin/plugin.json": "json:version", "plugins/pcp/.devin-plugin/plugin.json": "json:version",
+    "plugins/pcp/.grok-plugin/plugin.json": "json:version",
+    ".claude-plugin/marketplace.json": "marketplace", ".cursor-plugin/marketplace.json": "marketplace", ".grok-plugin/marketplace.json": "marketplace",
+    "plugins/pcp/skills/pre-call-prep/pcp.yaml": "registry", "plugins/pcp/skills/pre-call-prep/pcp.json": "json:registry_version",
+    "plugins/pcp/skills/pre-call-prep/SKILL.md": "title", "plugins/pcp/INVENTORY.md": "title",
+    "adapters/chat/pcp-knowledge.md": "title", "adapters/chat/pcp-knowledge.txt": "title", "adapters/grok/pcp-knowledge.md": "title",
+    "plugins/pcp/CHANGELOG.md": "changelog",
+}
+
+
+def version_strings(repo):
+    """[(file, where, version)] for every version string of the plug-in in the repo. Files absent from a partial checkout are skipped."""
+    out = []
+    for rel, how in VERSION_FILES.items():
+        f = pathlib.Path(repo) / rel
+        if not f.exists():
+            continue
+        text = f.read_text()
+        if how == "registry":
+            out += [(rel, "registry_version", m) for m in re.findall(r"^registry_version:\s*([\w.-]+)", text, re.M)]
+            out += [(rel, "header", m) for m in re.findall(r"registry for the pcp plug-in \(v([\w.-]+)\)", text)]
+        elif how.startswith("json:"):
+            out.append((rel, how[5:], str(json.loads(text).get(how[5:]))))
+        elif how == "marketplace":
+            j = json.loads(text)
+            out.append((rel, "metadata.version", str(j["metadata"]["version"])))
+            out += [(rel, f"plugins[{e['name']}].version", str(e["version"])) for e in j["plugins"]]
+        elif how == "title":
+            out += [(rel, "title", m) for m in re.findall(r"^# (?:Pre-call prep|Inventory: .*?) \(v([\w.-]+)\)", text, re.M)]
+        elif how == "changelog":
+            m = re.search(r"^## \[(\d[\w.-]*)\]", text, re.M)
+            out.append((rel, "newest entry", m.group(1) if m else "none"))
+    return out
+
+
+def versions_check(repo=None):
+    """C30: every version string agrees with pcp.yaml's registry_version: the manifest of each host, the marketplace entries, the build source,
+    pcp.json, the skill folder's copies, the generated headers and the newest CHANGELOG entry. Returns (failures, [(file, where, version)])."""
+    repo = pathlib.Path(repo or HERE.parents[1])
+    found = version_strings(repo)
+    want = next((v for f, w, v in found if f == "plugins/pcp/pcp.yaml" and w == "registry_version"), None)
+    if want is None:
+        return ["C30 versions: plugins/pcp/pcp.yaml has no registry_version"], found
+    return [f"C30 versions: {f} ({w}) says {v}; pcp.yaml registry_version is {want}" for f, w, v in found if v != want], found
+
+
 # ---------------------------------------------------------------- gates: no gate looser than 2.1.0 ------------------
 GATE_ROLE = {"B1": ["B1", "B3"], "B2": ["B4"], "B3": ["B1", "B5", "B8"], "B4": ["B6"], "B5": ["B2"], "B6": ["B5", "B9"], "B7": ["B9"]}   # 2.1.0 block -> where its role is now
 
@@ -3784,6 +3865,7 @@ def main():
     sub.add_parser("hardcoded", help="C27: no value the registry owns is hard-coded in the render scripts")
     gt = sub.add_parser("gates", help="every 2.1.0 gate (C1-C10, rubric, guardrails, exclusions, retention, page budget) against the live one: same, stricter or looser; any looser fails")
     gt.add_argument("--md", action="store_true", help="print the table as Markdown")
+    sub.add_parser("versions", help="C30: every version string in the repo (host manifests, marketplaces, generated headers, CHANGELOG) agrees with pcp.yaml's registry_version")
     sub.add_parser("skill", help="C29: SKILL.md is at most skill.max_chars, every step names the files it loads, every 2.1.0 baseline item is reachable")
     pr = sub.add_parser("parity", help="C28: the no-drift guard: nothing of the 2.1.0 baseline is removed or weakened without an approved decision")
     pr.add_argument("--strict", action="store_true", help="also fail every decision that is still open")
@@ -3824,7 +3906,7 @@ def main():
         if f is None:
             print("pdf: no pdftotext or pypdf to read the PDF -- not run"); sys.exit(2)
         print(f"pdf {a.pdf}: {len(f)} failures"); [print(" -", x) for x in f]; sys.exit(1 if f else 0)
-    if a.cmd in ("parity", "hardcoded", "skill", "gates") and not (HERE / "render_skill.py").exists():
+    if a.cmd in ("parity", "hardcoded", "skill", "gates", "versions") and not (HERE / "render_skill.py").exists():
         sys.exit(f"{a.cmd}: a maintainer check; it needs the plug-in checkout (render_skill.py, evals/baseline-2.1.0.json), not the copy inside a skill folder")
     if a.cmd == "parity":
         if a.approve_locks and not (a.by and a.source):
@@ -3834,6 +3916,11 @@ def main():
               f"of the {s['changed'] + s['removed']}: {s['approved']} approved, {s['open']} open, {s['unapproved']} unapproved; {s['locked']} schema sections locked")
         if a.list:
             print("changed:", *s["changed_ids"], sep="\n  "); print("removed:", *s["removed_ids"], sep="\n  ")
+        print(*[" - " + x for x in f], f"{len(f)} failures", sep="\n")
+        sys.exit(1 if f else 0)
+    if a.cmd == "versions":
+        f, found = versions_check()
+        print(f"versions: {len(found)} version strings in {len({x[0] for x in found})} files, pcp.yaml says {next((v for fl, w, v in found if fl == 'plugins/pcp/pcp.yaml' and w == 'registry_version'), '?')}")
         print(*[" - " + x for x in f], f"{len(f)} failures", sep="\n")
         sys.exit(1 if f else 0)
     if a.cmd == "gates":

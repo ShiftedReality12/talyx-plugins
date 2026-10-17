@@ -1,6 +1,6 @@
-<!-- GENERATED from pcp.yaml (sha256:1df3c742667e) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:a18c120a8ff1) by render_skill.py -- edit pcp.yaml, never this file -->
 
-# Pre-call prep (v3.1.0)
+# Pre-call prep (v3.1.1)
 
 Stages, dependency-ordered: **setup once -> intake -> intelligence collection -> behavioral profile -> Intelligence Brief -> debrief.**
 Every stage declares its inputs before its behaviour, reads only its listed context, and follows rows

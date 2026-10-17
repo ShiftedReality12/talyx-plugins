@@ -4,7 +4,7 @@ These need a live host and a real model, so no script runs them. Record each run
 it, pass or fail, and one line of evidence (the transcript line or the file). Host results are not a merge gate
 (AID-10); the transcript tests are part of the AID-8 merge gate.
 
-## Hosts (AID-10), v3.1.0
+## Hosts (AID-10), v3.1.1
 
 | Host | Install path | Result | Date | Evidence |
 |---|---|---|---|---|
@@ -22,7 +22,7 @@ it, pass or fail, and one line of evidence (the transcript line or the file). Ho
 | Microsoft 365 Copilot | `adapters/chat/` | not run | | |
 
 v3.0.0 was installed on Sep 28 in Claude Code, Codex, Grok, Gemini CLI, Antigravity and ChatGPT (AID-10); those
-results do not carry over to 3.1.0.
+results do not carry over to 3.1.1.
 
 ## Transcript tests (one real `/pcp` run each)
 

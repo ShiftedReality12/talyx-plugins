@@ -1,4 +1,4 @@
-# pcp.yaml — THE registry for the pcp plug-in (v3.1.0).
+# pcp.yaml — THE registry for the pcp plug-in (v3.1.1).
 #
 # Every parameter, instruction, question, source family, rubric band and page budget lives here and
 # nowhere else. skills/pre-call-prep/SKILL.md, commands/pcp.md, the Socratic reference, INVENTORY.md and pcp.json
@@ -14,7 +14,7 @@
 #   3. INSTRUCTION CONTRACT -- each instruction is a row {id, text, test, basis}. No row without a
 #                            test reaches SKILL.md. Rows change only via a ratchet-passing edit here.
 
-registry_version: 3.1.0
+registry_version: 3.1.1
 generated_files:
   - skills/pre-call-prep/SKILL.md
   - skills/pre-call-prep/references/socratic-questions.md
