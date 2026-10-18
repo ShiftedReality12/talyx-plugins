@@ -265,6 +265,16 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
                 w = len(WORD.findall(LINK_URL.sub("]", body)))   # pipes, rules and link targets are not words
                 if w > budgets[k] * 1.15:
                     fails.append(f"C6 budgets: {k} {w} words > {budgets[k]} (+15%)")
+        if not (prepared and _day(prepared.group(1)) < dt.date.fromisoformat(str(dens["since"]))):   # 2.1.0's caps on the parts 2.1.0 had (R3)
+            blk = {b["id"]: b for b in R["script"]["blocks"]}
+            hook = re.search(r"\*\*Hook:\*\*(.*)", secs.get("P1", ""))
+            if hook and blk["P1"].get("hook_words"):
+                w, n = len(WORD.findall(CITE.sub(" ", hook.group(1)))), len(_sentences(hook.group(1).replace("*", "")))
+                if w > blk["P1"]["hook_words"] * 1.15 or n > 2:
+                    fails.append(f"C6 budgets: P1's Hook is {w} words in {n} sentences; 2.1.0's opening: at most 2 sentences and {blk['P1']['hook_words']} words (+15%)")
+            close = " ".join(m for m in re.findall(r"\*\*(?:The ask|Fallback|Follow-up):\*\*([^*\n]*)", secs.get("P4", "")))
+            if close and blk["P4"].get("close_words") and len(WORD.findall(CITE.sub(" ", close))) > blk["P4"]["close_words"] * 1.15:
+                fails.append(f"C6 budgets: P4's ask, fallback and follow-up are {len(WORD.findall(CITE.sub(' ', close)))} words; 2.1.0's close: {blk['P4']['close_words']} (+15%)")
     if want("never-say"):
         for k, body in secs.items():
             if k == "P8":
@@ -408,6 +418,10 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
             fails.append(f"C13 conditional: P6 Influence printed with caller authority {authority} (needs high)")
         if "P5" in secs and tier == "low":
             fails.append("C13 conditional: P5 Read the room printed at evidence tier low")
+        cap6 = next(b for b in R["script"]["blocks"] if b["id"] == "P6").get("max_moves")
+        moves6 = len(re.findall(r"^\s*[-*] ", secs.get("P6", ""), re.M))
+        if cap6 and moves6 > cap6:   # 2.1.0's '3 moves from B4 meanings' (its B4 is B6 now)
+            fails.append(f"C13 conditional: P6 Influence has {moves6} moves; at most {cap6}, each from a B6 meaning")
         for w in re.findall(r"\*\*Recent wins:\*\*(.*)", secs.get("B3", "")):
             if not (CITE.search(w) and re.search(r"\b(?:19|20)\d\d\b|\b[A-Z][a-z]{2} \d{1,2}\b", w)) or "Not determined" in w:
                 fails.append(f"C13 conditional: B3 Recent wins printed without a dated, cited result: '{w.strip()[:50]}'")
@@ -1464,6 +1478,52 @@ def self_test(require_pdf=False):
         print("FAIL internal notes in consumer copy: missed", missed, "| false hits", false, "| shipped files", dirty); ok = False
     else:
         print(f"passes: consumer copy free of internal notes ({len(shipped)} shipped files); tripped by {len(leaks)} leaks, none of {len(clean)} clean lines")
+    # ---- the audit's loosenings against 2.1.0 (R2-R5), each closed: each case trips, its control passes
+    generic = "The whole industry is changing quickly and every leader feels the pressure."
+    for blk_id, what in (("B2", "the questions"), ("B9", "the meeting angle")):   # 2.1.0's B5 and B7, outside 3.1.1's B1-B7 sweep
+        bad = [x for x in checks(f"## {blk_id} Title\n{generic}\n", "", "swap", FIXTURE_NOUNS) if x.startswith("C1") and blk_id in x]
+        good = checks(f"## {blk_id} Title\n{generic[:-1]} [1].\n", "", "swap", FIXTURE_NOUNS)
+        if bad and not good:
+            print(f"tripped: C1 by a generic, uncited sentence in {blk_id} ({what}); the same sentence cited passes")
+        else:
+            print(f"FAIL C1 must read {blk_id}: {bad or 'no trip'} / control {good}"); ok = False
+    hook2 = "Jane Doe runs Alder Grey [1]. She says patience wins [2]."
+    close_ok = "thirty minutes with Jane Doe [1] · **Fallback:** fifteen minutes [2].\n- **Follow-up:** the one-page example within a day."
+    close_long = " ".join(["thirty minutes with Jane Doe and her operations partner at Alder Grey"] * 5) + close_ok[len("thirty minutes with Jane Doe"):]
+    tier_hi = "## B6 Behavioral profile\n**Evidence tier:** high: it sets how far page 3 goes\n"
+    p6 = lambda n: "## P6 Influence\n" + "".join(f"- **{k}:** Jane Doe's move at Alder Grey [{i}].\n" for i, k in enumerate(["Authority", "Reciprocity", "Liking", "Scarcity"][:n], 1))
+    for case, which, want, bad_md, good_md in (
+            ("a Hook of three sentences (2.1.0's opening: two)", "budgets", "P1's Hook",
+             f"## P1 Open\n- **Hook:** *{hook2} She also hires slowly [3].*\n", f"## P1 Open\n- **Hook:** *{hook2}*\n"),
+            ("a Hook of 2 sentences over 2.1.0's 40 words", "budgets", "P1's Hook",
+             f"## P1 Open\n- **Hook:** *Jane Doe runs {' and '.join(['Alder Grey Capital'] * 12)} [1]. She says patience wins [2].*\n", f"## P1 Open\n- **Hook:** *{hook2}*\n"),
+            ("an ask, fallback and follow-up over 2.1.0's 50 words", "budgets", "P4's ask",
+             f"## P4 Close\n- **The ask:** {close_long}\n", f"## P4 Close\n- **The ask:** {close_ok}\n"),
+            ("four influence moves (2.1.0: 3 moves from the behavioral read)", "conditional", "at most 3", tier_hi + p6(4), tier_hi + p6(3))):
+        bad = [x for x in checks("Prepared Oct 18, 2026\n" + bad_md, "", which, FIXTURE_NOUNS, None, "high") if want in x]
+        good = [x for x in checks("Prepared Oct 18, 2026\n" + good_md, "", which, FIXTURE_NOUNS, None, "high") if want in x]
+        if bad and not good:
+            print(f"tripped: {'C13' if which == 'conditional' else 'C6'} by {case}; the control within 2.1.0's cap passes")
+        else:
+            print(f"FAIL must trip on {case}: {bad or 'no trip'} / control {good}"); ok = False
+    caps = {s["id"]: s["words"] for s in R["brief"]["sections"]} | {b["id"]: b["words"] for b in R["script"]["blocks"]}
+    held = []
+    for blk_id in ("B3", "B9", "P3", "P6", "P8"):   # the per-block caps R3 put back, read from pcp.yaml
+        over = f"Prepared Oct 18, 2026\n## {blk_id} Title\n" + "word " * (int(caps[blk_id] * 1.15) + 1) + "\n"
+        at = f"Prepared Oct 18, 2026\n## {blk_id} Title\n" + "word " * caps[blk_id] + "\n"
+        if any(f"C6 budgets: {blk_id} " in x for x in checks(over, "", "budgets")) and not checks(at, "", "budgets"):
+            held.append(f"{blk_id} {caps[blk_id]}")
+        else:
+            print(f"FAIL C6 must hold {blk_id} to {caps[blk_id]} words (+15%)"); ok = False
+    if len(held) == 5:
+        print(f"tripped: C6 by {', '.join(held)} words one word over their cap (+15%); each at its cap passes")
+    s21 = "Public sources only. Nothing behind a login, no paid data the user has not supplied, no scraping."
+    s21_row = next(r for st in R["stages"] for r in st["rows"] if r["id"] == "S2-1")["text"]
+    skill_txt = (HERE / SKILL_DIR / "SKILL.md").read_text() if (HERE / SKILL_DIR / "SKILL.md").exists() else s21
+    if not (s21_row.startswith(s21) and s21 in skill_txt and "tagged Yours" in s21_row):
+        print("FAIL S2-1 must carry 2.1.0's public-sources sentence word for word, with the user's own material tagged Yours"); ok = False
+    else:
+        print(f"passes: S2-1 opens with 2.1.0's '{s21}' (pcp.yaml and SKILL.md); the user's own material stays tagged Yours")
     pdf = pdf_self_test(fx)
     if pdf is None:
         print("SKIP the PDF checks: no Chromium, or no pdftotext / pypdf, on this computer"
@@ -3067,6 +3127,9 @@ def assemble(folder, profile=None, depth=None, want_order=False):
     S["P4"] = "\n".join(bullets("P4", F["P4"]["fields"]))
     S["P5"] = "\n".join(bullets("P5", F["P5"]["fields"])) if rank[tier] >= 1 else ""
     S["P6"] = "\n".join(bullets("P6", F["P6"]["fields"])) if tier == "high" and authority == "high" else ""
+    cap6 = next(b for b in R["script"]["blocks"] if b["id"] == "P6").get("max_moves")
+    if cap6 and len([ln for ln in S["P6"].splitlines() if ln.lstrip().startswith("- ")]) > cap6:
+        probs.append(f"C26 assemble: P6 fills {len([ln for ln in S['P6'].splitlines() if ln.lstrip().startswith('- ')])} principles; at most {cap6} moves, each from a B6 meaning")
     f7 = F["P7"]; mv = (fj.get("p7") or {}).get(f7["key"]) or []
     if not f7["count"][0] <= len(mv) <= f7["count"][1]:
         probs.append(f"C26 assemble: P7 needs {f7['count'][0]} to {f7['count'][1]} moves (got {len(mv)})")

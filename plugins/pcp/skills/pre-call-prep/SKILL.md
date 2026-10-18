@@ -9,7 +9,7 @@ description: >
   before a meeting, talking points, or shares an intake list. Do not use for general research unrelated
   to a meeting, or for notes on a meeting that has already happened.
 ---
-<!-- GENERATED from pcp.yaml (sha256:317112cf0b83) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:e2b17d79cae0) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.1)
 
@@ -17,7 +17,7 @@ Stages, dependency-ordered: **setup once -> intake -> intelligence collection ->
 This file is the procedure: for each step, what to do, where to stop and what must pass. Each step's **Load** line names the files
 it reads: load them before the step, because they hold the tables, rules and wording this file leaves out. A **Config** line names
 the keys a step may read from `pcp.json` (pcp.yaml as JSON); the scripts read it, so never edit or retype it.
-Every fact traces to a source. Nothing is invented. The deliverable is one 3-page PDF, the Intelligence Brief. Nothing else is emitted.
+Every fact traces to a public source, or to the user's own notes and answers, tagged Yours. Nothing is invented. The deliverable is one 3-page PDF, the Intelligence Brief. Nothing else is emitted.
 
 **No shell or code tool (plain chat)?** Run the same stages anyway; never stop or refuse for lack of tools. Keep claims, coverage
 and the behavioral read in your working notes, not in the reply: one short status line, then nothing until a question or the
@@ -87,7 +87,7 @@ and `linkedin` when set) and continue.
 
 **Rows:**
 
-- **S2-1** Public sources found by targeted web search in rounds (osint), plus what the user gives: their files and answers (tag Yours), a LinkedIn profile they save among them (S2-7). LinkedIn itself only as its public search results show it; never a signed-in or automated browser. No paid data the user has not supplied; nothing collected in bulk. A page behind a login wall is a failed URL: list it in coverage.failed_urls and cite another source.
+- **S2-1** Public sources only. Nothing behind a login, no paid data the user has not supplied, no scraping. Web evidence is found by targeted web search in rounds (osint); nothing is collected in bulk; LinkedIn only as its public search results show it, never a signed-in or automated browser. The one other source is what the user gives -- their notes, files and answers, a LinkedIn profile they save among them (S2-7) -- tagged Yours, never presented as public. A page behind a login wall is a failed URL: list it in coverage.failed_urls and cite another source.
 - **S2-2** Every claim carries url (or the file name, for Yours), retrieved_at, published (the source's own publication or event date; none when the source is undated), tag Direct|Search|LinkedIn|Yours, grade Measured|Derived|Inference|Not determined, and confidence C1 (primary, dated) | C2 (reputable secondary) | C3 (single weak source) | C4 (inferred).
 - **S2-3** A claim that hits an exclusion is dropped BEFORE the writer sees it and counted in coverage.excluded; the ledger's Left out on purpose row names the topic, never the fact.
 - **S2-4** Coverage is a required output: families_attempted/families_total and hits per family. A run without coverage is not a run.

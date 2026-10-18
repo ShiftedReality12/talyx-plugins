@@ -88,13 +88,14 @@ decisions:
     date: 2026-10-16
     source: "Ben's evidence tier (Oct 14 schema); Daniel Oct 16 MUST-FIX 4: cut wording, never cited facts"
     summary: "B6's tier is the highest tier three rows reach and gates P5/P6; an overflow cuts words only (C24)."
-  # ---- where the PDF is made, and in-chat fallback
+  # ---- where the PDF is made, and in-chat fallback: the audit's R1 (AUDIT 2026-10-17, 1b), the one loosening against 2.1.0 approved
+  # on the record (2.1.0 SKILL.md:143 'Render ONLY through format/talyx_pdf.py'; R2-R5 were closed in 3.1.2, not approved)
   - covers: ["stages.S4.rows.S4-3.*"]
     status: approved
     by: Daniel
     date: 2026-10-13
-    source: "Daniel Oct 13: PDF where scripts run, in-chat fallback elsewhere (S4-10)"
-    summary: "PDF only where the host can run scripts and a browser engine; full brief in chat otherwise."
+    source: "Daniel Oct 13: PDF where scripts run, in-chat fallback elsewhere (S4-10); re-confirmed as R1 in the 3.1.2 brief of Oct 18 (item 3)"
+    summary: "PDF only where the host can run scripts and a browser engine; full brief in chat otherwise. The PDF path stays the first resort (S4-3)."
   # ---- Socratic questions
   - covers: ["stages.S1.context.*"]
     status: approved

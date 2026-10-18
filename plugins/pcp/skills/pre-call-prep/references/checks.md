@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:317112cf0b83) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:e2b17d79cae0) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Checks and the test for each rule
 
@@ -8,7 +8,7 @@ Loaded by Stage 4 of SKILL.md.
 
 | Id | Check | Command | Passes when |
 |---|---|---|---|
-| C1 | swap | `eval.py checks --swap` | no sentence in B1 or B3-B8 lacks both a [n] and a target-specific noun (headings, the tier line and Not determined lines aside) |
+| C1 | swap | `eval.py checks --swap` | no sentence in B1-B9 -- the questions (B2) and the meeting angle (B9) included -- lacks both a [n] and a target-specific noun (headings, the tier line, Not determined lines and a whole line that is exactly a schema template aside) |
 | C2 | bound | `eval.py duf; eval.py records <folder> --brief brief.md` | unbound == 0, dangling == 0, and every [n] in the body is a B10 row | [n] | what it says | source | grade | date |; and every cited row's claim in claims.jsonl keeps the url, tag, date and confidence 2.1.0 required (claim_requires) |
 | C3 | quotes | `eval.py checks --quotes` | every quoted string in B4 has a [n] |
 | C4 | custom_q | `eval.py checks --custom-q` | >= 2 questions in B2 carry a [n] |

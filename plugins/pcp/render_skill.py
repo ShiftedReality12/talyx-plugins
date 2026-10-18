@@ -120,7 +120,7 @@ description: >
 
 Stages, dependency-ordered: **setup once -> intake -> {n['collection'].lower()} -> {n['profile'].lower()} -> {n['deliverable']} -> debrief.**
 Every stage declares its inputs before its behaviour, reads only its listed context, and follows rows
-that each carry a falsification test. Every fact traces to a source. Nothing is invented.
+that each carry a falsification test. Every fact traces to a public source, or to the user's own notes and answers, tagged Yours. Nothing is invented.
 The deliverable is one 3-page PDF, the {n['deliverable']}. Nothing else is emitted.
 
 {t_chat(R)}"""
@@ -556,7 +556,7 @@ Stages, dependency-ordered: **setup once -> intake -> {n['collection'].lower()} 
 This file is the procedure: for each step, what to do, where to stop and what must pass. Each step's **Load** line names the files
 it reads: load them before the step, because they hold the tables, rules and wording this file leaves out. A **Config** line names
 the keys a step may read from `pcp.json` (pcp.yaml as JSON); the scripts read it, so never edit or retype it.
-Every fact traces to a source. Nothing is invented. The deliverable is one 3-page PDF, the {n['deliverable']}. Nothing else is emitted.
+Every fact traces to a public source, or to the user's own notes and answers, tagged Yours. Nothing is invented. The deliverable is one 3-page PDF, the {n['deliverable']}. Nothing else is emitted.
 
 **No shell or code tool (plain chat)?** Run the same stages anyway; never stop or refuse for lack of tools. Keep claims, coverage
 and the behavioral read in your working notes, not in the reply: one short status line, then nothing until a question or the
