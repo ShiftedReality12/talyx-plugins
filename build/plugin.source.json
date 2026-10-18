@@ -1,7 +1,7 @@
 {
   "_comment": "Identity of the pcp plug-in for every host install file. Skill and command text come from pcp.yaml via render_skill.py. Edit this, then run python3 build/adapters.py.",
   "name": "pcp",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "Pre-call prep: a few one-time setup questions, research from public sources by targeted web search (LinkedIn only as its public search results show it, never your browser), plus your own files when you give them, and ONE 3-page PDF: a 2-page Intelligence Brief and a 1-page meeting script. Every fact cited.",
   "author": {
     "name": "Talyx AI",

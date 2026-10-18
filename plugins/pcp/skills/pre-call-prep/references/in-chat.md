@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:04e4d654ad3b) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:1c36ed211ef7) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # The brief in the chat
 

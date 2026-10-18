@@ -1,10 +1,10 @@
-<!-- GENERATED from pcp.yaml (sha256:04e4d654ad3b) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:1c36ed211ef7) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Behavioral profile: six dimensions and tiers
 
 Loaded by Stage 3 of SKILL.md.
 
-Rubric version 2.0.0-public: the rubric's own label, not the plug-in's (v3.1.1); its six dimensions, tiers and phrases are unchanged since that label; only each dimension's printed name (shows) was added since.
+Rubric version 2.0.0-public: the rubric's own label, not the plug-in's (v3.1.2); its six dimensions, tiers and phrases are unchanged since that label; only each dimension's printed name (shows) was added since.
 
 ## Behavioral profile (six dimensions)
 

@@ -9,9 +9,9 @@ description: >
   before a meeting, talking points, or shares an intake list. Do not use for general research unrelated
   to a meeting, or for notes on a meeting that has already happened.
 ---
-<!-- GENERATED from pcp.yaml (sha256:04e4d654ad3b) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:1c36ed211ef7) by render_skill.py -- edit pcp.yaml, never this file -->
 
-# Pre-call prep (v3.1.1)
+# Pre-call prep (v3.1.2)
 
 Stages, dependency-ordered: **setup once -> intake -> intelligence collection -> behavioral profile -> Intelligence Brief -> debrief.**
 This file is the procedure: for each step, what to do, where to stop and what must pass. Each step's **Load** line names the files

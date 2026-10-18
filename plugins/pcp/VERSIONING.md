@@ -44,15 +44,15 @@ The standard the plug-in is held to is the original talyx-ai 2.1.0, frozen in `p
 - `DECISIONS.yaml`: the only way an item differs from it (approved entries, pins, schema-lock approvals).
 - `schema.lock.json`: hashes of the schema sections. `ref21.py`: the 2.1.0 checks, verbatim, run by `eval.py gates`.
 
-## Branch map (as of 2026-10-17; no branch is deleted or renamed)
+## Branch map (as of 2026-10-18; no branch is deleted or renamed)
 
-Current build: **`restore-2026-10-16`** (local and `origin`), carrying 3.1.1. Everything below that is "in" it is an ancestor of it.
+Current build: **`restore-2026-10-16`** (local and `origin`), carrying 3.1.2. Everything below that is "in" it is an ancestor of it.
 
 | Branch | Tip | What it is | Superseded? |
 |---|---|---|---|
-| `restore-2026-10-16` (+ `origin/restore-2026-10-16`) | 3.1.1 line | Restored toward 2.1.0, trimmed, with Daniel's Oct 17 decisions. The release branch of 3.1.1. | No: current |
+| `restore-2026-10-16` (+ `origin/restore-2026-10-16`) | 3.1.2 line | Restored toward 2.1.0, trimmed, with Daniel's Oct 17 decisions and the 3.1.2 fixes. The release branch of 3.1.1 and 3.1.2. | No: current |
 | `main` (local) | `51b2a65`, 3.0.0 | Local `main` stopped at 3.0.0, 63 commits behind `origin/main`. | Yes, by `origin/main` and `restore-2026-10-16` |
-| `origin/main` (and `origin/HEAD`) | `32badc4`, labelled 3.1.0 | The pre-restore 3.1.0 build (`pcp-3.1.0-rc2`). Its version string is 3.1.0 but it lacks the restore, trim and decisions. | Yes, by 3.1.1 on `restore-2026-10-16`, until `main` is advanced to it |
+| `origin/main` (and `origin/HEAD`) | `32badc4`, labelled 3.1.0 | The pre-restore 3.1.0 build (`pcp-3.1.0-rc2`). Its version string is 3.1.0 but it lacks the restore, trim and decisions. | Yes, by 3.1.2 on `restore-2026-10-16`, until Daniel advances `main` to it |
 | `pcp-update-2026-10-13` (+ origin) | `32badc4` | The branch the 3.1.0 work was done on; same commit as `origin/main`. | Yes, by `restore-2026-10-16` |
 | `pcp-v3-intelligence-brief` (+ origin) | `51b2a65`, 3.0.0 | The 3.0.0 Intelligence Brief work; same commit as local `main`. | Yes |
 | `brief-rework` | `6122e8d`, 2.1.0 line | The Oct 9 renderer rework (3-page brief with bookmarks), one commit ahead of `upstream/main`. | Yes (its work is in 3.0.0 and later) |
@@ -65,4 +65,4 @@ Current build: **`restore-2026-10-16`** (local and `origin`), carrying 3.1.1. Ev
 | `setup-script` (+ origin) | `96d38fd` | Sep 28 merge of `adapters-bugfixes` with a setup-script variant; not merged. | Yes (not an ancestor) |
 | `upstream/main` | `993a8be`, 2.1.0 | talyx-ai's original plug-in: the parity standard. Not ours to push to. | No: it is the baseline, not a build to ship |
 
-Tags: `pcp-3.1.0-rc1` (`45f423e`), `pcp-3.1.0-rc2` (`32badc4`), `pcp-v3.1.1` (the 3.1.1 release).
+Tags: `pcp-3.1.0-rc1` (`45f423e`), `pcp-3.1.0-rc2` (`32badc4`), `pcp-v3.1.1` (the 3.1.1 release), `pcp-v3.1.2` (the 3.1.2 release).

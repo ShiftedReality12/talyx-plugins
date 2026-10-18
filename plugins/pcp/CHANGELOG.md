@@ -4,6 +4,45 @@ All notable changes to the pcp plug-in. Format: [Keep a Changelog](https://keepa
 The version of record is `registry_version` in `pcp.yaml`; `eval.py versions` fails if any manifest, marketplace entry, generated header or the
 newest entry below disagrees with it.
 
+## [3.1.2] - 2026-10-18
+
+A patch: fixes and wording, nothing of 2.1.0 removed or weakened (parity 0 removed, 0 open; gates 0 looser; reachability 403/403).
+Branch `restore-2026-10-16`, tag `pcp-v3.1.2`.
+
+### Fixed
+- **Cited facts are no longer lost to fit the page.** The Oct 17 Claude desktop run cut its brief from 27 cited facts to 18 and excused each cut as
+  allowed. Now `eval.py assemble` records the draft itself: the folder's first build that fits its 3 pages, with a lock file. `eval.py kept <folder>`
+  compares the final against that record. A cut is excused only for a dead page or an excluded topic (`--allow N=dead` or `N=excluded`), never for
+  fit or by naming a page. A fit pass cuts in a fixed order: wording, then the ledger cells, the "What they may want" table, uncited framing, and an
+  uncited optional row. A fact that no longer fits in its block keeps its ledger row and a short cited mention. Fixture `kept_oct17`: the real
+  27 -> 18 cut fails, the bypass fails, and the same 27 facts in shorter wording pass. Body text stays 10 pt on 3 pages.
+- **The search check reads Claude desktop runs correctly.** A Claude desktop session keeps its research in subagent files; `eval.py battery` now reads them
+  in time order and splits the base pass from the rounds by what each search carries. Its counts match an independent count of the Oct 17 run
+  (rounds 6, 7, 7, 6, 6; 14 base; 9 later searches).
+- **The two real misses of that run are fixed in behaviour.** Each setup question call gets its own skip line right before it. The run stays quiet
+  through writing and checking: a host's progress reminder is answered by the stage's one status line. The checker was not loosened.
+
+### Restored to 2.1.0's strictness
+- The swap test (C1) reads every fact block B1-B9, including the questions (B2) and the meeting angle (B9).
+- 2.1.0's block caps where a block maps: the meeting angle 80, guardrails 40, influence 60 with at most 3 moves, each from the behavioral profile;
+  the opening's hook at most 2 sentences and 40 words; the ask, fallback and follow-up together at most 50 words. The brief stays 1,080 words.
+- "Public sources only. Nothing behind a login, no paid data the user has not supplied, no scraping." is back, word for word. The user's own
+  notes and files stay tagged Yours.
+- The in-chat fallback (a host that cannot make the PDF) stays, approved by Daniel on Oct 13.
+
+### Setup questions
+- No setup text says "targets", "Target kind", "news families" or "claims.jsonl", except Q2's and Q7's original wording, which stays under
+  Daniel's Oct 17 decision (open for him to revisit). The render fails if any of these words comes back.
+- Fast says 5 source types (it runs 5). Deep promises what runs: "what they may want" and more searches per round, not a network pass that was
+  never built. APAC's "formal-register openers" is now built: the opening calls the person by title and family name, never the first name alone.
+
+### Leaner
+- The test behind each rule and the in-chat worked examples moved to `evals/rule-tests.md`, which nothing loads at run time. Repeated rules have one
+  home and pointers. Ten contradictions found by the Oct 17 audit are fixed. Words a run reads: SKILL.md 3,232 -> 3,142; with its references,
+  15,239 -> 14,252 (PDF host) and 16,132 -> 14,991 (in chat); the chat apps' knowledge file 11,297 -> 10,632.
+- goodfest.westfield.com left the never-cite list (added without a reason). thefabulous.co stays on the weak list, with its reason. The rubric's
+  "2.0.0-public" is explained as the rubric's own label.
+
 ## [3.1.1] - 2026-10-17
 
 **3.1.1 supersedes the "3.1.0" on `origin/main` at `32badc4`.** That commit (and the `pcp-3.1.0-rc1` / `pcp-3.1.0-rc2` tags, and any copy installed from it)
