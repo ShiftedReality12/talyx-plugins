@@ -263,3 +263,9 @@ decisions:
     date: 2026-10-18
     source: "~/Downloads/pcp-finish/fix-3.1.2-2026-10-18/PROMPT.md item 5; AUDIT 2026-10-17 2d; osint.rule now points to S2-9, which holds the battery rule"
     summary: "schema section osint changed from 12b51c613d3a to 2c6e5b1d4968"
+  - covers: ["lock:source_quality@4a2d47d09d76"]
+    status: approved
+    by: "Daniel (3.1.2 brief of Oct 18, item 6: 'Remove goodfest.westfield.com from source_quality.exclude'; 'thefabulous.co ... keep only with a one-line stated reason')"
+    date: 2026-10-18
+    source: "~/Downloads/pcp-finish/fix-3.1.2-2026-10-18/PROMPT.md item 6; git log -S goodfest.westfield.com: added in 293da35 (Oct 13) with no reason; thefabulous.co kept weak with its reason in pcp.yaml (the Oct 14 Nadella run, 9d84f3b)"
+    summary: "schema section source_quality changed from f02333d74ccb to 4a2d47d09d76"

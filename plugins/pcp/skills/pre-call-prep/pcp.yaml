@@ -386,8 +386,11 @@ osint:   # AID-63 (Oct 14 meeting, Oct 15): the record, LinkedIn included, by ta
     - {round: 4, name: their own words, types: [F5, F6, F8], goal: "quotes with a date and a link", queries: ['"{name}" interview OR podcast OR keynote OR panel', 'filetype:pdf "{name}" "{org}"', '"{name}" site:youtube.com OR site:linkedin.com/pulse OR site:linkedin.com/posts', '"{name}" "{a topic from rounds 2-3}"', 'intitle:"{name}" transcript OR remarks OR letter', '"{name}" site:x.com OR site:bsky.app OR site:substack.com (only when socmint.scope is social)'], next: "Their recurring words feed In their words and the {profile}."}
     - {round: 5, name: gaps and counter-evidence, types: [F12, F11], goal: "only what is still Not determined, and what contradicts the read", queries: ['"{name}" OR "{org}" decides OR approves OR budget OR committee', '"{org}" layoffs OR departure OR decline OR criticism (the exclusions still apply)', '"{org}" "{a gap still Not determined: who decides, the gate, the timing}"', 'site:{org_domain} "{the gap term}" (the organisation in its own words on the open gap)', '"{org}" "{the claim the Take rests on}" -"{name}" (who disagrees with the read)'], next: "What is still open after this round becomes a Still open question in the room."}
 source_quality:   # C18 (eval.py checks/cites). Weak: never C1/C2. Exclude: never cited. Prefer primary sources.
+  # thefabulous.co stays weak: a third-party write-up of podcast episodes, not the episode; the Oct 14 Nadella run cited its All-In summary
+  # four times as Measured (commit 9d84f3b), and self-test keeps that regression as its weak-domain case. goodfest.westfield.com left the
+  # exclude list on Oct 18 (3.1.2): added Oct 13 (293da35) with no reason, neither a people-search site nor unreachable (AUDIT 4.1).
   weak: [thefabulous.co, mexc.com, medium.com, substack.com, quora.com, reddit.com, wikipedia.org, crunchbase.com, zoominfo.com, rocketreach.co, signalhire.com, contactout.com, theorg.com, famousbirthdays.com, celebsages.com, wealthygorilla.com, idcrawl.com]
-  exclude: [goodfest.westfield.com, peoplefinders.com, spokeo.com, whitepages.com, beenverified.com, radaris.com, truthfinder.com, mylife.com]
+  exclude: [peoplefinders.com, spokeo.com, whitepages.com, beenverified.com, radaris.com, truthfinder.com, mylife.com]
 registers:
   general:  []
   wealth:   [{name: FINRA BrokerCheck, url: "https://brokercheck.finra.org"}, {name: SEC IAPD, url: "https://adviserinfo.sec.gov"}, {name: SEC EDGAR, url: "https://www.sec.gov/edgar"}]

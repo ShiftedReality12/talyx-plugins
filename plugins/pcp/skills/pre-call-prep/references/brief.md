@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:ddde3e1ee80e) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:04e4d654ad3b) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # The brief and the script: blocks, fields and writing rules
 

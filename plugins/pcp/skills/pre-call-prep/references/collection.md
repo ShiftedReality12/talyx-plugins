@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:ddde3e1ee80e) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:04e4d654ad3b) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Collection: source types, records and LinkedIn
 
@@ -32,7 +32,7 @@ Registers by domain: wealth: FINRA BrokerCheck (https://brokercheck.finra.org), 
 **Exclusions (dropped before the writer, counted in coverage):** health, family matters outside the public professional record, political giving, litigation as a talking point, home address, personal finances.
 By jurisdiction: eu: any claim older than 5 years that is not a current role, retention of claims.jsonl after render; regulated: performance claims, promissory language, comparative claims about named competitors.
 
-**Sources never cited:** goodfest.westfield.com, peoplefinders.com, spokeo.com, whitepages.com, beenverified.com, radaris.com, truthfinder.com, mylife.com. **Weak (never C1/C2, never the only support on page 1):** thefabulous.co, mexc.com, medium.com, substack.com, quora.com, reddit.com, wikipedia.org, crunchbase.com, zoominfo.com, rocketreach.co, signalhire.com, contactout.com, theorg.com, famousbirthdays.com, celebsages.com, wealthygorilla.com, idcrawl.com.
+**Sources never cited:** peoplefinders.com, spokeo.com, whitepages.com, beenverified.com, radaris.com, truthfinder.com, mylife.com. **Weak (never C1/C2, never the only support on page 1):** thefabulous.co, mexc.com, medium.com, substack.com, quora.com, reddit.com, wikipedia.org, crunchbase.com, zoominfo.com, rocketreach.co, signalhire.com, contactout.com, theorg.com, famousbirthdays.com, celebsages.com, wealthygorilla.com, idcrawl.com.
 
 ## Records (C23)
 

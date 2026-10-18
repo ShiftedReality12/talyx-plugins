@@ -51,7 +51,7 @@ Unmarked facts are measured. 12 facts cited; status FULL at 10 of 12 source type
 | # | What it says | Source | Grade | Date |
 |---|---|---|---|---|
 | [1] | Jane Doe leads Alder Grey Capital | [example.org](https://example.org/1) | Measured | Sep 12, 2026 |
-| [2] | The firm manages family capital | [goodfest.westfield.com](https://goodfest.westfield.com/2) | Measured | Sep 12, 2026 |
+| [2] | The firm manages family capital | [spokeo.com](https://spokeo.com/2) | Measured | Sep 12, 2026 |
 | [3] | Letter: "We buy patience" | [example.org](https://example.org/3) | Measured | Sep 12, 2026 |
 | [4] | Avoids fee-led pitches | [example.org](https://example.org/4) | Measured | Sep 12, 2026 |
 | [5] | Raising a second vehicle this year | [example.org](https://example.org/5) | Measured | Sep 12, 2026 |

@@ -621,7 +621,7 @@ def render_refs(R, sha):
         "setup": ref_head(R, sha, "setup") + t_concepts(R) + "## Setup questions\n\n" + setup_table_full(R) + p_asking(R) + moved("setup")
                  + "## Intake\n\n" + t_intake_columns(R),
         "collection": ref_head(R, sha, "collection") + t_families(R) + registers_full(R) + t_source_lists(R) + p_records(R) + t_linkedin(R) + moved("collection"),
-        "profile": ref_head(R, sha, "profile") + f"Rubric version {R['rubric']['version']}.\n\n" + p_profile(R),
+        "profile": ref_head(R, sha, "profile") + f"Rubric version {R['rubric']['version']}: the rubric's own label, not the plug-in's (v{R['registry_version']}); its six dimensions, tiers and phrases are unchanged since that label; only each dimension's printed name (shows) was added since.\n\n" + p_profile(R),
         "brief": ref_head(R, sha, "brief") + t_plain_words(R) + p_brief(R) + p_script(R) + p_fields(R) + moved("brief"),
         "checks": ref_head(R, sha, "checks") + t_checks_table(R).replace("| Id | Check", "## Checks\n\n| Id | Check", 1) + instrument(R),
         "in_chat": ref_head(R, sha, "in_chat") + "## Plain chat\n\n" + t_chat(R) + moved("in_chat"),
