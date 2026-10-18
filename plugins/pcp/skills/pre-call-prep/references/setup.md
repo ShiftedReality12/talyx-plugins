@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:28d15cfc0130) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:317112cf0b83) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Setup, intake and how PCP thinks
 
@@ -28,13 +28,13 @@ Loaded by Stage 0 of SKILL.md.
 ## Asking questions
 
 When a question is needed -- of the user, or for the room -- read `references/socratic-questions.md` first.
-Ask with the host's native popup question tool: `AskUserQuestion` in Claude Code and Claude Cowork; the structured question tool in ChatGPT, Codex and Grok (request_user_input and its equivalents). First option recommended. Whichever way you ask, say it in one line of the reply before the call ('Two quick questions: answer in the popup, or skip and I'll use the recommended answers.'), then stop. Do no search, page open or file work until the user's next message or the tool's answer. Setup questions: a skip takes the recommended option, stored defaulted. A question from a trigger below: a skip means go on without the answer, and the gap stays Not determined. Ask each question once.
+Ask with the host's native popup question tool: `AskUserQuestion` in Claude Code and Claude Cowork; the structured question tool in ChatGPT, Codex and Grok (request_user_input and its equivalents). First option recommended. Whichever way you ask, say it in a line of the reply right before each call, every call its own line -- the setup's three calls each have one -- ('Two quick questions: answer in the popup, or skip and I'll use the recommended answers.'), then stop. Do no search, page open or file work until the user's next message or the tool's answer. Setup questions: a skip takes the recommended option, stored defaulted. A question from a trigger below: a skip means go on without the answer, and the gap stays Not determined. Ask each question once.
 
 ## Rules moved out of SKILL.md
 
 The full text of the rows SKILL.md summarises; the rule is this text.
 
-- **CAL-5** Questions use the host's native popup question tool (AskUserQuestion in Claude Code and Cowork; the structured question tool in ChatGPT, Codex and Grok): setup in calls of four, first option recommended, and every Socratic question the same way. A typed numbered list is the fallback only for a host with no such tool, or after a tool call that came back with no answer. Say in one line of the reply that you are asking and what skip does, then stop until the answer or the user's next message; do no research meanwhile. The saved offer (Q8) and domain (Q2) are checked against what the user asks for in this run: when the request names a different business, offer or domain, ask which to use before any search (the offer-conflict trigger, S1-4); use the answer for this run only unless the user says to change the saved one; on skip, use the saved one and say so in the Coverage row.
+- **CAL-5** Questions use the host's native popup question tool (AskUserQuestion in Claude Code and Cowork; the structured question tool in ChatGPT, Codex and Grok): setup in calls of four, first option recommended, and every Socratic question the same way. A typed numbered list is the fallback only for a host with no such tool, or after a tool call that came back with no answer. Before every question call -- each of the setup's three calls, and every question later -- write its own line in the reply saying that you are asking and what skip does (a line written before an earlier call does not count), then stop until the answer or the user's next message; do no research meanwhile. The saved offer (Q8) and domain (Q2) are checked against what the user asks for in this run: when the request names a different business, offer or domain, ask which to use before any search (the offer-conflict trigger, S1-4); use the answer for this run only unless the user says to change the saved one; on skip, use the saved one and say so in the Coverage row.
 
 ## Intake
 

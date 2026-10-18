@@ -1237,6 +1237,22 @@ def self_test(require_pdf=False):
         print("FAIL assemble(records_ok) must build a brief that passes schema, grading and every check:", *afail, sep="\n - "); ok = False
     else:
         print(f"passes: C26 and C25 on the assembled brief (12 facts, {len(re.findall(chr(10) + '## ', ab))} blocks) and every other check")
+    with tempfile.TemporaryDirectory() as tg:   # S2-9: a search after round 5 is logged as a 'gap fill' entry: counted in N, never in M
+        tg = pathlib.Path(tg)
+        for x in rec_dir.iterdir():
+            if x.is_file():
+                shutil.copy(x, tg / x.name)
+        cv = json.loads((tg / "coverage.json").read_text())
+        n0, m0 = cv["searches"], len([r for r in cv["rounds"] if r.get("queries")])
+        cv["rounds"].append({"round": "gap fill", "queries": ['"Jane Doe" Alder Grey managing partner 2026', '"Alder Grey Capital" investment committee']})
+        cv["searches"] = n0 + 2
+        (tg / "coverage.json").write_text(json.dumps(cv))
+        gb = assemble(tg, prof_ok)[0]
+        row = RUN_COUNTS.search(re.sub(r"\s+", " ", gb))
+        if records_check(tg, "standard") or not row or (int(row.group(1)), int(row.group(3))) != (n0 + 2, m0):
+            print(f"FAIL S2-9: a gap-fill entry must count in N ({n0 + 2}) and not in M ({m0}), and pass the records:", row and row.group(0), records_check(tg, "standard")); ok = False
+        else:
+            print(f"passes: S2-9 gap fill: the Run row says {row.group(0)} (two gap-fill searches in N, rounds 1-5 in M); records pass")
     mut = {"a block renamed": (lambda b, s: (b.replace("## B3 Who they are", "## B3 About them"), s), "titled"),
            "a block out of order": (lambda b, s: (b.replace("## B7 Who decides", "## B8 Strongest case against", 1), s), "blocks are"),
            "a label its form does not have": (lambda b, s: (b.replace("- **The gate:**", "- **Gatekeeper:**"), s), "which its form does not have"),
@@ -3084,8 +3100,8 @@ def assemble(folder, profile=None, depth=None, want_order=False):
         stren = R["grading"]["words"][effective_conf(c)]
         led.append(f"| [{i}] | {c.get('says') or c.get('claim', '')} | {src} | {c.get('grade', 'Measured')} · {stren} | {_fmt_date(c.get('published'), c.get('retrieved_at'))} |")
     nf = [f["name"] for f in R["families"] if not cov.get("hits_by_family", {}).get(f["id"])]
-    rr = [r for r in cov.get("rounds", []) if isinstance(r, dict) and r.get("queries")]
     need = battery_floor(depth)[0]
+    rr = [r for r in cov.get("rounds", []) if isinstance(r, dict) and r.get("queries") and r.get("round") in need]   # a gap fill counts in N, not M (S2-9)
     so = (fj.get("still_open") or [])[:f10["still_open_max"]]
     day = str(fj.get("prepared", ""))
     run = (f"{day} · {depth} · {str(fj.get('meeting', '')).split(':')[0].lower()} · {_label_of('Q1', ans.get('Q1')).lower()} · {_label_of('Q2', ans.get('Q2')).lower()}"

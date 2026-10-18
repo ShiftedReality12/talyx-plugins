@@ -9,7 +9,7 @@ description: >
   before a meeting, talking points, or shares an intake list. Do not use for general research unrelated
   to a meeting, or for notes on a meeting that has already happened.
 ---
-<!-- GENERATED from pcp.yaml (sha256:28d15cfc0130) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:317112cf0b83) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.1)
 
@@ -32,7 +32,7 @@ Made by Talyx AI, https://talyx.ai. Free to use under the licence in the plug-in
 If `~/.pcp/profile.yaml` is missing or invalid, or `--recalibrate` is passed, ask these questions with
 `AskUserQuestion` -- Q1+Q2+Q3+Q4 · Q5+Q6+Q7+Q9 · Q8 (free text), first option recommended -- (the host's native question tool: the structured question tool in
 ChatGPT, Codex and Grok), asking only those the saved profile has no answer for. A label such as 'Sales / BD' is one option.
-Whichever way you ask, say it in one line of the reply before the call ('Two quick questions: answer in the popup, or skip and I'll use the recommended answers.'), then stop. Do no search, page open or file work until the user's next message or the tool's answer. Setup questions: a skip takes the recommended option, stored defaulted. A question from a trigger below: a skip means go on without the answer, and the gap stays Not determined. Ask each question once. Only if the host has no question tool, or the tool returns no answer:
+Whichever way you ask, say it in a line of the reply right before each call, every call its own line -- the setup's three calls each have one -- ('Two quick questions: answer in the popup, or skip and I'll use the recommended answers.'), then stop. Do no search, page open or file work until the user's next message or the tool's answer. Setup questions: a skip takes the recommended option, stored defaulted. A question from a trigger below: a skip means go on without the answer, and the gap stays Not determined. Ask each question once. Only if the host has no question tool, or the tool returns no answer:
 Type the questions in the reply, numbered, options numbered, only when the host has no such tool, or when the tool returns no answer (a popup that closes empty is not an answer): then end the message with 'Reply with your answers, or reply skip and I'll go on without them.' Then write the profile
 (`pcp_profile_format: 1`, answers under `profiles: <name>: answers: Qn: {value, defaulted}`, plus `context`
 and `linkedin` when set) and continue.
@@ -43,7 +43,7 @@ and `linkedin` when set) and continue.
 - **CAL-2** A skipped answer takes the first (Recommended) option and is stored with defaulted:true; the masthead's Prepared for and Depth show the saved answers.
 - **CAL-3** The improve loop may PROPOSE a profile change (one line, with the debrief evidence) but never applies one without a yes.
 - **CAL-4** Files named in Q8 (or later with --context <path>) are read once; their paths and a summary of at most 150 words go in the profile under context. Facts taken from them are tagged Yours, never presented as public. Supported: .pdf .docx .md .txt .csv. Any other file gets one line naming the supported types, and the profile is left unchanged.
-- **CAL-5** Ask every question with the host's native popup tool, and nothing else works until it is answered: say in one line of the reply what skip does, then stop. A typed list only where the host has no tool or the popup came back empty. Before any search, check the saved offer and domain against what this run asks for. Full rule: `references/setup.md`.
+- **CAL-5** Ask every question with the host's native popup tool, and nothing else works until it is answered: right before each call, the setup's three included, say in its own line what skip does, then stop. A typed list only where the host has no tool or the popup came back empty. Before any search, check the saved offer and domain against what this run asks for. Full rule: `references/setup.md`.
 
 ## Stage 1: Intake
 
@@ -96,7 +96,7 @@ and `linkedin` when set) and continue.
 - **S2-7** LinkedIn only as a search result shows it, as the one address the user gives, or as a profile they saved; never sign in, never open or drive a browser. State which in the LinkedIn line and the Coverage row. Full rule: `references/collection.md`.
 - **S2-8** Source quality: prefer the primary source (the organisation, filings, the person's own words). Never cite a source_quality.exclude domain (people-search and unreachable sites); a source_quality.weak domain is at most C3 and never the only support for a fact on page 1. Cite a fact only where the ledger row says it: hypotheticals (Reverses if, Stop if) carry no citation. Before render, check every link: dead links are replaced or the fact is dropped; blocked links (the site refuses bots) are kept.
 - **S2-9** Two passes, both mandatory: the base pass (each enabled source type's own query, filled), then the rounds in references/osint-search.md; each round's queries go out together; the Run row counts both. Full rule: `references/collection.md`.
-- **S2-10** Quiet research: at most one short status line per stage in the reply (at most 30 words, e.g. 'Researching <name>, <organization> for <objective>. The results go in the brief.' then 'Writing the brief.'), and nothing between: no round line, no query list, no source or progress note, no list of what was found. Search queries live in coverage.json's rounds and in your reasoning, and the Run row counts them ('N searches in M rounds'); they never appear in chat, whatever the host. A question (S1-4) or a stop for a wrong-person match is the only other text. A search call showing as a tool row in the host is the host's, not a message.
+- **S2-10** Quiet research: at most one short status line per stage in the reply (at most 30 words, e.g. 'Researching <name>, <organization> for <objective>. The results go in the brief.' then 'Writing the brief.'), and nothing between: no round line, no query list, no source or progress note, no list of what was found. Search queries live in coverage.json's rounds and in your reasoning, and the Run row counts them ('N searches in M rounds'); they never appear in chat, whatever the host. A question (S1-4) or a stop for a wrong-person match is the only other text. A search call showing as a tool row in the host is the host's, not a message. This holds through every stage, writing and checking the brief included: fit passes, check results and fixes go in the closing reply, never in progress notes. When the host asks for a progress line (a reminder to say what you are doing), the current stage's one status line answers it if that stage has none yet; a stage that has one writes nothing more.
 - **S2-11** Run collection as a background job where the host has one; take back the three records, not the pages. Full rule: `references/collection.md`.
 
 ## Stage 3: Behavioral profile
