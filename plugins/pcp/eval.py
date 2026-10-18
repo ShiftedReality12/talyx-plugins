@@ -1528,6 +1528,20 @@ def self_test(require_pdf=False):
             print(f"FAIL C6 must hold {blk_id} to {caps[blk_id]} words (+15%)"); ok = False
     if len(held) == 5:
         print(f"tripped: C6 by {', '.join(held)} words one word over their cap (+15%); each at its cap passes")
+    # ---- the bloat pass (Oct 18): S4-10's self-check names the live budgets; rule tests and worked examples stay out of the run-time files
+    s410 = next(r for st in R["stages"] for r in st["rows"] if r["id"] == "S4-10")["text"]
+    n_b1, n_b9 = re.search(r"count B1's words: at most (\d+)", s410), re.search(r"B9 included \(at most (\d+) words\)", s410)
+    if not (n_b1 and n_b9 and int(n_b1.group(1)) == caps["B1"] and int(n_b9.group(1)) == caps["B9"]):
+        print(f"FAIL S4-10's self-check must name B1's and B9's budgets ({caps['B1']}, {caps['B9']}): got {n_b1 and n_b1.group(1)}, {n_b9 and n_b9.group(1)}"); ok = False
+    else:
+        print(f"passes: S4-10's in-chat self-check counts B1 against {caps['B1']} and B9 against {caps['B9']}, their budgets (AUDIT F5: it said 60 and 120)")
+    real_md = (HERE / SKILL_DIR / "SKILL.md").read_text()
+    tests_back = [x for x in skill_check(skill_text=real_md + "\n  _Fails when:_ Run with a name only -- the run must ask.\n")[0] if "rule tests" in x]
+    dev_pats = R["skill"]["dev_file"]["reaches"]
+    if not tests_back or any(not p.endswith(".test") for p in dev_pats):
+        print(f"FAIL C29 must trip on a rule test in a loaded file ({tests_back}) and reach only tests from the developers' file ({dev_pats})"); ok = False
+    else:
+        print(f"tripped: C29 by a 'Fails when' line put back into SKILL.md; the developers' file ({R['skill']['dev_file']['path']}) reaches only {dev_pats}")
     # ---- setup text in plain words (Oct 18): each banned term put back into a setup question fails the render; Q2's and Q7's 2.1.0 strings
     # (Daniel's Oct 17 lock) are exempt only byte for byte
     if (HERE / "render_skill.py").exists():
@@ -3925,17 +3939,32 @@ def skill_check(root=None, reg=None, skill_text=None):
             scopes.append((ids, pat))
     base = json.loads((root / "evals/baseline-2.1.0.json").read_text())["items"]
     live = _live_items(root, reg)
+    dev = sk.get("dev_file") or {}   # the rule tests and worked examples: for developers, never loaded at run time (AUDIT 2b)
+    dev_text = (root / dev["path"]).read_text() if dev and (root / dev["path"]).exists() else ""
+    if dev and dev["path"] in named:
+        fails.append(f"C29 skill: a step loads {dev['path']}; it is the developers' file and no step loads it")
+    if re.search(r"Fails when|^## Rule tests|^## Worked examples", corpus, re.M):
+        fails.append(f"C29 skill: rule tests or worked examples are in SKILL.md or a file a step loads; they belong in {dev.get('path', 'the developers file')}")
     how, lost = {}, []
     for pid in base:
         r = item_reach(pid, live[pid], corpus, scopes, reg["names"]) if pid in live else None
+        if not r and pid in live and dev_text and any(fnmatch.fnmatch(pid, pat) for pat in dev.get("reaches", [])):   # a test, never a rule
+            r = "dev" if item_reach(pid, live[pid], dev_text, [], reg["names"]) == "text" else None
         if r:
             how[r] = how.get(r, 0) + 1
         else:
             lost.append(pid)
     if lost:
         fails.append(f"C29 skill: {len(lost)} of {len(base)} baseline items are in neither SKILL.md nor a file a step loads: " + ", ".join(lost[:12]) + (" ..." if len(lost) > 12 else ""))
+    stage_words = {}   # each stage's static load: its SKILL.md section and the references its Load line names (the profile, intake row
+    for (head, body), paths in zip(skill_sections(md), loads.values()):   # and the records come on top at run time), against its context budget
+        m = re.match(r"Stage (\d)", head)
+        st = next((x for x in reg["stages"] if m and x["id"] == f"S{m.group(1)}"), None)
+        if st:
+            stage_words[st["id"]] = (len(body.split()) + sum(len((sd / q).read_text().split()) for q in paths if q.endswith(".md") and (sd / q).exists()),
+                                     st["context"]["budget_words"])
     return fails, dict(size=size, steps=len(loads), steps_named=sum(1 for p in loads.values() if p), total=len(base), reachable=len(base) - len(lost),
-                       how=how, lost=lost, max=sk["max_chars"], target=sk["target_chars"])
+                       how=how, lost=lost, max=sk["max_chars"], target=sk["target_chars"], stage_words=stage_words)
 
 
 # ---------------------------------------------------------------- versions (C30): one version everywhere ----------------------
@@ -4412,6 +4441,8 @@ def main():
         f, s = skill_check()
         print(f"skill: SKILL.md {s['size']} characters (cap {s['max']}, target {s['target']}); {s['steps_named']} of {s['steps']} steps name the files they load; "
               f"reachable {s['reachable']}/{s['total']} baseline items ({', '.join(f'{k} {v}' for k, v in sorted(s['how'].items()))})")
+        print("context loads, static words (the stage's SKILL.md section + the references it loads) / budget_words: "
+              + ", ".join(f"{k} {w}/{b}{' OVER' if w > b else ''}" for k, (w, b) in s["stage_words"].items()))
         print(*[" - " + x for x in f], f"{len(f)} failures", sep="\n")
         sys.exit(1 if f else 0)
     if a.cmd == "hardcoded":

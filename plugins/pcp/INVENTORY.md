@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:c380fc28b875) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:ddde3e1ee80e) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Inventory: what the Intelligence Brief prints (v3.1.1)
 
@@ -11,7 +11,7 @@ has a decided status. Totals: 30 always, 5 conditional, 0 removed.
 | Id | Block | Page | Produces | Comes from | Status | Prints when | Enforced by |
 |---|---|---|---|---|---|---|---|
 | B1 | Take | 1-2 | the one-paragraph read: Take, Evidence, Action, Avoid | B2-B9 | always | -- | -- |
-| B2 | Questions that close gaps | 1-2 | five questions, each on a cited fact, with what the answer decides and whom to ask | F1 identity, F3 org news, F5 voice, F11 shared context, Q4 | always | -- | -- |
+| B2 | Questions that close gaps | 1-2 | four to six questions, each on a cited fact, with what the answer decides and whom to ask | F1 identity, F3 org news, F5 voice, F11 shared context, Q4 | always | -- | -- |
 | B3 | Who they are | 1-2 | role, path, the organization, what changed and recent wins | F1 identity, F2 career timeline, F3 org news, F4 org self-description, F9 registers | always | -- | -- |
 | B4 | In their words | 1-2 | their own words, quoted and cited, and the LinkedIn status line | F5 voice, F6 public social, F8 publications, LinkedIn | always | -- | -- |
 | B5 | Signals and what to do with them | 1-2 | three signals -- their priority, where your offer connects, why now -- and what to do with each | F3 org news, F10 events, F11 shared context, Q8 | always | -- | -- |

@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:c380fc28b875) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:ddde3e1ee80e) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Search rounds: the record by targeted web search
 
@@ -10,7 +10,7 @@ never drives a browser.
 account that ran them, so reading a profile in your own signed-in browser put your account at risk. A search result
 never touches LinkedIn: the search engine read the page, and PCP reads only what the result shows.
 
-The rounds are mandatory (S2-9) and come on top of the base pass: every round whose source types the run's depth enables, in order, each with at least osint.battery.queries_per_round queries, most of them carrying an advanced operator or the tool's domain filter. Keep each round's line, 'Round N (name): <query> | <query> | ...', the queries as they will be sent, in your reasoning and in coverage.rounds only, never in the reply; send them together, in one step, and no other search until the next round. The queries carry what the base pass found (each source type's claims) and what the rounds before found: each round is refined from the last. A round is skipped only when the depth turns all its source types off, never for convenience; a round that finds nothing still counts, and its gap goes to Coverage.
+How the rounds run, and the line each keeps out of the reply, is S2-9 (references/collection.md). Each round is refined from the last: its queries carry what the base pass found (each source type's claims) and what the rounds before found. The table gives each depth's floor.
 
 | Depth | Rounds | Queries per round, at least | Searches, at least | With an operator or a domain filter, at least |
 |---|---|---|---|---|
@@ -50,8 +50,7 @@ The rounds are mandatory (S2-9) and come on top of the base pass: every round wh
 
 ## LinkedIn status
 
-Every run says, in B4's last line and in the Coverage row: `LinkedIn: read from search results` or `LinkedIn: read from your file` or `LinkedIn: read from the link you gave`, or
-`LinkedIn: not read: <reason>` with one of: you declined; scope none; no matching profile. Check C16 holds the two lines to each other and to the ledger.
+Every run says which, in B4's last line and in the Coverage row, in the words `references/collection.md` gives (S2-7); C16 checks them.
 
 **A saved profile (optional).** When you give PCP the person's LinkedIn profile saved as a PDF (on their
 profile: More > Save to PDF) or as copied text, it is read as your file: its facts are tagged Yours and cited by

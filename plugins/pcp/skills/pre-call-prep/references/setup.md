@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:c380fc28b875) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:ddde3e1ee80e) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Setup, intake and how PCP thinks
 
@@ -28,7 +28,8 @@ Loaded by Stage 0 of SKILL.md.
 ## Asking questions
 
 When a question is needed -- of the user, or for the room -- read `references/socratic-questions.md` first.
-Ask with the host's native popup question tool: `AskUserQuestion` in Claude Code and Claude Cowork; the structured question tool in ChatGPT, Codex and Grok (request_user_input and its equivalents). First option recommended. Whichever way you ask, say it in a line of the reply right before each call, every call its own line -- the setup's three calls each have one -- ('Two quick questions: answer in the popup, or skip and I'll use the recommended answers.'), then stop. Do no search, page open or file work until the user's next message or the tool's answer. Setup questions: a skip takes the recommended option, stored defaulted. A question from a trigger below: a skip means go on without the answer, and the gap stays Not determined. Ask each question once.
+Ask with the host's native popup question tool: `AskUserQuestion` in Claude Code and Claude Cowork; the structured question tool in ChatGPT, Codex and Grok (request_user_input and its equivalents). First option recommended. Whichever way you ask, say it in a line of the reply right before each call, every call its own line -- the setup's three calls each have one -- ('Two quick questions: answer in the popup, or skip and I'll use the recommended answers.'), then stop. Do no search, page open or file work until the user's next message or the tool's answer. Setup questions: a skip takes the recommended option, stored defaulted. A question from a trigger below: a skip means go on without the answer, and the gap stays Not determined. Ask each question once: a popup that came back empty was not answered, so type it in the reply, once.
+Type the questions in the reply, numbered, options numbered, only when the host has no such tool, or when the tool returns no answer (a popup that closes empty is not an answer): then end the message with 'Reply with your answers, or reply skip and I'll go on without them.'
 
 ## Rules moved out of SKILL.md
 

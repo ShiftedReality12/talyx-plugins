@@ -9,7 +9,7 @@ description: >
   before a meeting, talking points, or shares an intake list. Do not use for general research unrelated
   to a meeting, or for notes on a meeting that has already happened.
 ---
-<!-- GENERATED from pcp.yaml (sha256:c380fc28b875) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:ddde3e1ee80e) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.1)
 
@@ -19,9 +19,7 @@ it reads: load them before the step, because they hold the tables, rules and wor
 the keys a step may read from `pcp.json` (pcp.yaml as JSON); the scripts read it, so never edit or retype it.
 Every fact traces to a public source, or to the user's own notes and answers, tagged Yours. Nothing is invented. The deliverable is one 3-page PDF, the Intelligence Brief. Nothing else is emitted.
 
-**No shell or code tool (plain chat)?** Run the same stages anyway; never stop or refuse for lack of tools. Keep claims, coverage
-and the behavioral read in your working notes, not in the reply: one short status line, then nothing until a question or the
-brief itself (S2-10). Deliver the full Intelligence Brief in the chat as `references/in-chat.md` says.
+**No shell or code tool (plain chat)?** Run the same stages anyway; never stop or refuse for lack of tools: `references/in-chat.md` says how (S4-10).
 
 Made by Talyx AI, https://talyx.ai. Free to use under the licence in the plug-in's `LICENSE` file.
 
@@ -30,10 +28,9 @@ Made by Talyx AI, https://talyx.ai. Free to use under the licence in the plug-in
 **Load:** `references/setup.md` (how PCP thinks, the setup questions and rules CAL-1 to CAL-5, the intake columns); `references/socratic-questions.md` (when to ask the user, and the questions written for the room).
 
 If `~/.pcp/profile.yaml` is missing or invalid, or `--recalibrate` is passed, ask these questions with
-`AskUserQuestion` -- Q1+Q2+Q3+Q4 · Q5+Q6+Q7+Q9 · Q8 (free text), first option recommended -- (the host's native question tool: the structured question tool in
-ChatGPT, Codex and Grok), asking only those the saved profile has no answer for. A label such as 'Sales / BD' is one option.
-Whichever way you ask, say it in a line of the reply right before each call, every call its own line -- the setup's three calls each have one -- ('Two quick questions: answer in the popup, or skip and I'll use the recommended answers.'), then stop. Do no search, page open or file work until the user's next message or the tool's answer. Setup questions: a skip takes the recommended option, stored defaulted. A question from a trigger below: a skip means go on without the answer, and the gap stays Not determined. Ask each question once. Only if the host has no question tool, or the tool returns no answer:
-Type the questions in the reply, numbered, options numbered, only when the host has no such tool, or when the tool returns no answer (a popup that closes empty is not an answer): then end the message with 'Reply with your answers, or reply skip and I'll go on without them.' Then write the profile
+`AskUserQuestion` (the host's native question tool) in three calls -- Q1+Q2+Q3+Q4 · Q5+Q6+Q7+Q9 · Q8 (free text), first option recommended -- asking only those the
+saved profile has no answer for. A label such as 'Sales / BD' is one option. Each call has its own skip line right before it, and
+nothing else runs until the answer (CAL-5; how to ask: `references/setup.md`). Then write the profile
 (`pcp_profile_format: 1`, answers under `profiles: <name>: answers: Qn: {value, defaulted}`, plus `context`
 and `linkedin` when set) and continue.
 
@@ -96,7 +93,7 @@ and `linkedin` when set) and continue.
 - **S2-7** LinkedIn only as a search result shows it, as the one address the user gives, or as a profile they saved; never sign in, never open or drive a browser. State which in the LinkedIn line and the Coverage row. Full rule: `references/collection.md`.
 - **S2-8** Source quality: prefer the primary source (the organisation, filings, the person's own words). Never cite a source_quality.exclude domain (people-search and unreachable sites); a source_quality.weak domain is at most C3 and never the only support for a fact on page 1. Cite a fact only where the ledger row says it: hypotheticals (Reverses if, Stop if) carry no citation. Before render, check every link: dead links are replaced or the fact is dropped; blocked links (the site refuses bots) are kept.
 - **S2-9** Two passes, both mandatory: the base pass (each enabled source type's own query, filled), then the rounds in references/osint-search.md; each round's queries go out together; the Run row counts both. Full rule: `references/collection.md`.
-- **S2-10** Quiet research: at most one short status line per stage in the reply (at most 30 words, e.g. 'Researching <name>, <organization> for <objective>. The results go in the brief.' then 'Writing the brief.'), and nothing between: no round line, no query list, no source or progress note, no list of what was found. Search queries live in coverage.json's rounds and in your reasoning, and the Run row counts them ('N searches in M rounds'); they never appear in chat, whatever the host. A question (S1-4) or a stop for a wrong-person match is the only other text. A search call showing as a tool row in the host is the host's, not a message. This holds through every stage, writing and checking the brief included: fit passes, check results and fixes go in the closing reply, never in progress notes. When the host asks for a progress line (a reminder to say what you are doing), the current stage's one status line answers it if that stage has none yet; a stage that has one writes nothing more.
+- **S2-10** Quiet research: at most one short status line per stage in the reply (at most 30 words, e.g. 'Researching <name>, <organization> for <objective>. The results go in the brief.' then 'Writing the brief.'), and nothing between: no round line, no query list, no source or progress note, no list of what was found. Search queries live in coverage.json's rounds and in your reasoning, and the Run row counts them ('N searches in M rounds'); they never appear in chat, whatever the host. A question (S1-4) or a stop for a wrong-person match is the only other text. A search call showing as a tool row in the host is the host's, not a message. This holds through every stage, writing and checking the brief included: fit passes, check results and fixes go in the closing reply, never in progress notes. The closing reply, the run's last message, is not a status line: it names the checks (S4-12). When the host asks for a progress line (a reminder to say what you are doing), the current stage's one status line answers it if that stage has none yet; a stage that has one writes nothing more.
 - **S2-11** Run collection as a background job where the host has one; take back the three records, not the pages. Full rule: `references/collection.md`.
 
 ## Stage 3: Behavioral profile
@@ -124,7 +121,7 @@ and `linkedin` when set) and continue.
 
 ## Stage 4: Intelligence Brief
 
-**Load:** `references/brief.md` (plain words, the brief's blocks and the script's blocks with their word budgets, the fields.json keys, rules S4-4, S4-11, S4-12 and S4-13); `references/checks.md` (every check with its command, the test that makes each rule fail, the metric and the eval.py commands); `references/in-chat.md` (the brief delivered in the chat, rule S4-10), only when the host has no shell, python3 or browser engine, so no PDF can be made.
+**Load:** `references/brief.md` (plain words, the brief's blocks and the script's blocks with their word budgets, the fields.json keys, rules S4-4, S4-11, S4-12 and S4-13); `references/checks.md` (every check with its command and when it passes, the metric and the eval.py commands); `references/in-chat.md` (the brief delivered in the chat, rule S4-10), only when the host has no shell, python3 or browser engine, so no PDF can be made.
 
 **Input contract** (declared before behaviour):
 
@@ -157,7 +154,7 @@ and `linkedin` when set) and continue.
 
 ## Checks (all pass before render)
 
-**Load:** `references/checks.md` (every check with its command, the test that makes each rule fail, the metric and the eval.py commands).
+**Load:** `references/checks.md` (every check with its command and when it passes, the metric and the eval.py commands).
 
 Run `python3 eval.py checks brief.md script.md --target-nouns "<Full Name>,<surname>,<Organization>,<their key programmes>" --experience <Q9: experienced, new, top> --authority <caller.authority_level: high, medium>`
 and `python3 eval.py duf brief.md script.md`; fix fields.json until both are clean. Every cited fact of the draft (the folder's first build
@@ -181,8 +178,7 @@ python3 format/talyx_pdf.py --style brief --brief brief.md --script script.md \
     --brief-pages 2 --max-pages 3 --out <dir>/<date>-<slug>-intelligence-brief.pdf
 ```
 
-The PDF is exactly 3 pages: the brief fills pages 1-2 (a short brief puts the ledger on page 2, never
-filler) and the script starts on page 3. Then `python3 eval.py pdf <the PDF> brief.md` must exit 0.
+Then `python3 eval.py pdf <the PDF> brief.md` must exit 0 (3 pages, as S4-3 says).
 
 It uses Playwright's Chromium if installed, else the Chrome, Edge or Chromium already on the computer. If it
 reports that neither is there, run `python3 format/talyx_pdf.py --setup` once and render again.
@@ -210,6 +206,4 @@ Every flag the renderer takes: `--brief`, `--brief-pages`, `--classification`, `
 - **S5-2** Debrief fields: facts_used[claim ids], questions_landed[ids], band_accuracy{dim: hit|miss}, outcome. Nothing else is asked.
 - **S5-3** improve proposes row diffs (family weights, question templates, band phrases) as a patch with basis: debrief_id; it never edits SKILL.md and never lands a diff itself.
 
-After the call, `evals/debrief_template.yaml` (four fields). `python3 eval.py improve` proposes row diffs to
-`pcp.yaml`; `python3 eval.py ratchet` lands them only if every frozen target holds its floor. The floor is the
-best ever seen and only rises.
+After the call: `evals/debrief_template.yaml`, then `python3 eval.py improve` and `python3 eval.py ratchet` (S5-1 to S5-3).

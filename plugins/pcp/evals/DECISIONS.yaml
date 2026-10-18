@@ -257,3 +257,9 @@ decisions:
     date: 2026-10-17
     source: "Daniel's decision 3 of Oct 17 2026; pcp.yaml grading.source_link"
     summary: "schema section grading changed from 8b31f6cf79e4 to 028c910a4f27"
+  - covers: ["lock:osint@2c6e5b1d4968"]
+    status: approved
+    by: "Daniel (3.1.2 brief of Oct 18, item 5: 'Remove duplicated text ... battery rule x4 ... one home per rule, others point to it')"
+    date: 2026-10-18
+    source: "~/Downloads/pcp-finish/fix-3.1.2-2026-10-18/PROMPT.md item 5; AUDIT 2026-10-17 2d; osint.rule now points to S2-9, which holds the battery rule"
+    summary: "schema section osint changed from 12b51c613d3a to 2c6e5b1d4968"

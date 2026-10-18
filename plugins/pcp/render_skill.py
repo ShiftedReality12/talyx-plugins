@@ -34,7 +34,8 @@ def fill(R, text):
 
 
 def _rows(R, rows):
-    return "\n".join(f"- **{r['id']}** {fill(R, r['text'])}  \n  _Fails when:_ {r['test']}" for r in rows)
+    """The rows as rules (the chat knowledge file reads them at run time); each row's test is the developers', in skill.dev_file."""
+    return "\n".join(f"- **{r['id']}** {fill(R, r['text'])}" for r in rows)
 
 
 def _inputs(inputs):
@@ -98,8 +99,7 @@ def t_chat(R):
     n = R["names"]
     return f"""**No shell or code tool (plain chat)?** Run the same stages anyway; never stop or refuse for lack of tools.
 Research with the host's own web search and fetch tools. Keep claims, coverage and the behavioral read as the
-records below, in your working notes, not in the reply: say one short status line, then nothing until a question or
-the brief itself (S2-10). Apply the checks yourself. Then deliver the full {n['deliverable']} in chat
+records below, in your working notes, and keep the reply quiet as S2-10 says. Apply the checks yourself. Then deliver the full {n['deliverable']} in chat
 exactly as S4-10 says (label, page markers, every block, the ledger, the {n['script']}). Profile answers
 given in the message stand in for the saved setup file.
 
@@ -119,8 +119,8 @@ description: >
 # Pre-call prep (v{R['registry_version']})
 
 Stages, dependency-ordered: **setup once -> intake -> {n['collection'].lower()} -> {n['profile'].lower()} -> {n['deliverable']} -> debrief.**
-Every stage declares its inputs before its behaviour, reads only its listed context, and follows rows
-that each carry a falsification test. Every fact traces to a public source, or to the user's own notes and answers, tagged Yours. Nothing is invented.
+Every stage declares its inputs before its behaviour, reads only its listed context, and follows its rows.
+Every fact traces to a public source, or to the user's own notes and answers, tagged Yours. Nothing is invented.
 The deliverable is one 3-page PDF, the {n['deliverable']}. Nothing else is emitted.
 
 {t_chat(R)}"""
@@ -148,6 +148,7 @@ def t_plain_words(R):
     return f"""**Plain words.** {R['plain_words']['rule']} Never write a word banned: {', '.join(R['plain_words']['banned'])}, or an internal id
 (C1-C4, F1-F12, row ids). Allowed only inside these phrases: {', '.join(R['plain_words']['allowed'])}.
 Use "source types", not families; "the person you're meeting", not target. Call the deliverable the {n['deliverable']}, nothing else.
+The one exception is the setup's own wording, kept on purpose, word for word: {'; '.join(f"'{x}'" for x in R['plain_words']['exempt'])}.
 
 """
 
@@ -163,10 +164,9 @@ def p_setup_ask(R):
     return f"""## Stage 0: Setup (once)
 
 If `{cal['profile_path']}` is missing or invalid, or `{cal['reask_flag']}` is passed, ask these questions with
-`AskUserQuestion` -- {calls}, first option recommended -- (the host's native question tool: the structured question tool in
-ChatGPT, Codex and Grok), asking only those the saved profile has no answer for. A label such as 'Sales / BD' is one option.
-{R['socratic']['ask_user']['how']['wait']} Only if the host has no question tool, or the tool returns no answer:
-{R['socratic']['ask_user']['how']['fallback']} Then write the profile
+`AskUserQuestion` (the host's native question tool) in three calls -- {calls}, first option recommended -- asking only those the
+saved profile has no answer for. A label such as 'Sales / BD' is one option. Each call has its own skip line right before it, and
+nothing else runs until the answer (CAL-5; how to ask: `{R['skill']['files']['setup']['path']}`). Then write the profile
 (`pcp_profile_format: 1`, answers under `profiles: <name>: answers: Qn: {{value, defaulted}}`, plus `context`
 and `linkedin` when set) and continue.
 
@@ -198,6 +198,7 @@ def p_asking(R):
 
 When a question is needed -- of the user, or for the room -- read `references/socratic-questions.md` first.
 {R['socratic']['ask_user']['how']['tool']} {R['socratic']['ask_user']['how']['wait']}
+{R['socratic']['ask_user']['how']['fallback']}
 
 """
 
@@ -400,8 +401,7 @@ python3 format/talyx_pdf.py --style brief --brief brief.md --script script.md \\
     --brief-pages {pb['brief_pages']} --max-pages {pb['total_pages']} --out <dir>/<date>-<slug>-intelligence-brief.pdf
 ```
 
-The PDF is exactly {pb['total_pages']} pages: the brief fills pages 1-{pb['brief_pages']} (a short brief puts the ledger on page {pb['brief_pages']}, never
-filler) and the script starts on page {pb['brief_pages'] + 1}. Then `python3 eval.py pdf <the PDF> brief.md` must exit 0.
+Then `python3 eval.py pdf <the PDF> brief.md` must exit 0 ({pb['total_pages']} pages, as S4-3 says).
 
 It uses Playwright's Chromium if installed, else the Chrome, Edge or Chromium already on the computer. If it
 reports that neither is there, run `python3 format/talyx_pdf.py --setup` once and render again.
@@ -414,9 +414,7 @@ def p_debrief(R):
     n, cal, pb, qs, q_lines, calls, fam_lines, dims, tiers, table, beats, checks, excl = _ctx(R)
     return f"""## Debrief and ratchet
 
-After the call, `evals/debrief_template.yaml` (four fields). `python3 eval.py improve` proposes row diffs to
-`pcp.yaml`; `python3 eval.py ratchet` lands them only if every frozen target holds its floor. The floor is the
-best ever seen and only rises.
+After the call: `evals/debrief_template.yaml`, then `python3 eval.py improve` and `python3 eval.py ratchet` (S5-1 to S5-3).
 
 """
 
@@ -558,9 +556,7 @@ it reads: load them before the step, because they hold the tables, rules and wor
 the keys a step may read from `pcp.json` (pcp.yaml as JSON); the scripts read it, so never edit or retype it.
 Every fact traces to a public source, or to the user's own notes and answers, tagged Yours. Nothing is invented. The deliverable is one 3-page PDF, the {n['deliverable']}. Nothing else is emitted.
 
-**No shell or code tool (plain chat)?** Run the same stages anyway; never stop or refuse for lack of tools. Keep claims, coverage
-and the behavioral read in your working notes, not in the reply: one short status line, then nothing until a question or the
-brief itself (S2-10). Deliver the full {n['deliverable']} in the chat as `{R['skill']['files']['in_chat']['path']}` says.
+**No shell or code tool (plain chat)?** Run the same stages anyway; never stop or refuse for lack of tools: `{R['skill']['files']['in_chat']['path']}` says how (S4-10).
 
 Made by Talyx AI, https://talyx.ai. Free to use under the licence in the plug-in's `LICENSE` file.
 
@@ -606,6 +602,16 @@ def rule_tests(R):
     return f"## Rule tests\n\nEach rule fails when:\n\n| Row | Fails when |\n|---|---|\n{rows}\n\n"
 
 
+def render_dev(R, sha):
+    """evals/rule-tests.md: the rule tests and the worked examples, for developers and eval.py. No step of SKILL.md loads it."""
+    d = R["skill"]["dev_file"]
+    ex = "\n".join(f"- **{r['id']}** {x}" for r in all_rows(R) for x in r.get("examples", []))
+    return (f"{R['render_header'].format(sha=sha)}\n\n# {d['title']}\n\nFor developers and eval.py: no step of SKILL.md loads this file, "
+            "so none of it is read at run time. Every rule is in SKILL.md or a reference a step loads; this file holds only how each rule "
+            "is made to fail, and the worked examples behind the in-chat self-check.\n\n" + rule_tests(R)
+            + (f"## Worked examples\n\nThe numbers are the items of the S4-10 self-check.\n\n{ex}\n" if ex else ""))
+
+
 def render_refs(R, sha):
     """{path: text} of the generated references a step loads (the Socratic and search-round references have their own renderers)."""
     F = R["skill"]["files"]
@@ -617,7 +623,7 @@ def render_refs(R, sha):
         "collection": ref_head(R, sha, "collection") + t_families(R) + registers_full(R) + t_source_lists(R) + p_records(R) + t_linkedin(R) + moved("collection"),
         "profile": ref_head(R, sha, "profile") + f"Rubric version {R['rubric']['version']}.\n\n" + p_profile(R),
         "brief": ref_head(R, sha, "brief") + t_plain_words(R) + p_brief(R) + p_script(R) + p_fields(R) + moved("brief"),
-        "checks": ref_head(R, sha, "checks") + t_checks_table(R).replace("| Id | Check", "## Checks\n\n| Id | Check", 1) + rule_tests(R) + instrument(R),
+        "checks": ref_head(R, sha, "checks") + t_checks_table(R).replace("| Id | Check", "## Checks\n\n| Id | Check", 1) + instrument(R),
         "in_chat": ref_head(R, sha, "in_chat") + "## Plain chat\n\n" + t_chat(R) + moved("in_chat"),
     }
     return {F[k]["path"]: v for k, v in out.items()}
@@ -717,8 +723,7 @@ never touches LinkedIn: the search engine read the page, and PCP reads only what
 {osint_section(R).split(chr(10), 2)[2]}
 ## LinkedIn status
 
-Every run says, in B4's last line and in the Coverage row: {' or '.join(f"`LinkedIn: {r}`" for r in li['read'].values())}, or
-`LinkedIn: {li['not_read']}: <reason>` with one of: {'; '.join(li['reasons'])}. Check C16 holds the two lines to each other and to the ledger.
+Every run says which, in B4's last line and in the Coverage row, in the words `{R['skill']['files']['collection']['path']}` gives (S2-7); C16 checks them.
 
 **A saved profile (optional).** When you give PCP the person's LinkedIn profile saved as a PDF (on their
 profile: More > Save to PDF) or as copied text, it is read as your file: its facts are tagged Yours and cited by
@@ -901,6 +906,7 @@ def main():
                HERE / "skills/pre-call-prep/references/socratic-questions.md": render_socratic(R, sha),
                HERE / "skills/pre-call-prep/references/osint-search.md": render_osint(R, sha),
                **refs,
+               HERE / R["skill"]["dev_file"]["path"]: render_dev(R, sha),
                HERE / "commands/pcp.md": render_command(R, sha),
                HERE / "INVENTORY.md": render_inventory(R, sha),
                HERE / "pcp.json": json.dumps(R, ensure_ascii=False, separators=(",", ":"), default=str) + "\n",

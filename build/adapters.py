@@ -175,17 +175,18 @@ def _chat_registry(R):
         s["inputs"] = [{**i, **CHAT_INPUTS[i["name"]]} if i["name"] in CHAT_INPUTS else i for i in s["inputs"]]
         if s["id"] == "S4":
             s.pop("outputs", None)   # brief.md, script.md and the PDF are files
-    C["checks"] = [c for c in C["checks"] if c.get("id") not in ("C10", "C20", "C21", "C22", "C23", "C24", "C26")]   # the PDF's, and the ones that read a history, records or an assembled file
-    # the in-chat self-check is the same as the plug-in's: its ledger rules and worked examples, from pcp.yaml
+    C["checks"] = [c for c in C["checks"] if c.get("id") not in ("C10", "C19", "C20", "C21", "C22", "C23", "C24", "C26")]   # the PDF's (pages, render, colors), and the ones that read a history, records or an assembled file
+    # the in-chat self-check is the same as the plug-in's: its ledger rules and its list, from pcp.yaml (the worked examples are the
+    # developers', in evals/rule-tests.md)
     src = next(r for st in R["stages"] for r in st["rows"] if r["id"] == "S4-10")["text"]
-    rules = re.search(r"(Build the ledger from your claim list.*?) If a code tool exists.*?against these worked examples: (.*?) End with ", src)
-    assert rules, "pcp.yaml S4-10 no longer holds 'Build the ledger ... worked examples: ... End with': update _chat_registry"
+    rules = re.search(r"(Build the ledger from your claim list.*?) If a code tool exists.*?against this list: (.*?) End with ", src)
+    assert rules, "pcp.yaml S4-10 no longer holds 'Build the ledger ... against this list: ... End with': update _chat_registry"
     for st in C["stages"]:
         for r in st["rows"]:
             if r["id"] == "S4-10":
                 head, end = r["text"].split(" Apply the checks yourself and end with ")
-                r["text"] = (f"{head} {rules.group(1)} Before sending, check yourself, one line at a time, against these "
-                             f"worked examples: {rules.group(2)} End with {end}")
+                r["text"] = (f"{head} {rules.group(1)} Before sending, check yourself, one line at a time, against this "
+                             f"list: {rules.group(2)} End with {end}")
     return C
 
 
