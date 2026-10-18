@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:e2b17d79cae0) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:c380fc28b875) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.1)
 
@@ -47,9 +47,9 @@ This host runs no scripts. The saved setup is the **Saved setup** block at the e
 |---|---|---|---|---|
 | Q1 | Your role | Who is making the call? | 1. Founder / principal (Recommended) · 2. Sales / BD · 3. Advisor / relationship manager · 4. Investor / allocator | caller.role, caller.authority_level |
 | Q2 | Domain | Where do your targets mostly live? | 1. General professional (Recommended) · 2. Wealth management · 3. Private equity / VC · 4. Enterprise / SaaS | domain |
-| Q3 | Target kind | Who do you usually prep for? | 1. A person (Recommended) · 2. A company or team · 3. A deal or transaction · 4. Mixed | target.kind_default |
+| Q3 | Prep for | Who do you usually prep for? | 1. A person (Recommended) · 2. A company or team · 3. A deal or transaction · 4. Mixed | target.kind_default |
 | Q4 | Meeting | What is the typical call? | 1. First intro (cold or warm) (Recommended) · 2. Discovery / qualification · 3. Pitch / close · 4. Relationship / renewal | meeting.format_default |
-| Q5 | Depth | Research depth versus speed? | 1. Standard -- 12 source types, about 8 minutes (Recommended) · 2. Fast -- 6 source types, about 3 minutes · 3. Deep -- every source type + what they may want | research.depth |
+| Q5 | Depth | Research depth versus speed? | 1. Standard -- 12 source types, about 8 minutes (Recommended) · 2. Fast -- 5 source types, about 3 minutes · 3. Deep -- every source type + what they may want | research.depth |
 | Q6 | Social | Public social footprint -- how far? | 1. Professional only (Recommended) · 2. Plus public X / Bluesky / Substack · 3. None | socmint.scope |
 | Q7 | Compliance | Jurisdiction and compliance posture? | 1. US (Recommended) · 2. UK / EU (GDPR strict) · 3. Regulated sales (FINRA / FCA style) · 4. APAC | jurisdiction |
 | Q9 | Experience | How long have you been running meetings like this? | 1. Experienced (Recommended) · 2. Newer -- under two years · 3. Top producer | caller.experience |
@@ -331,7 +331,7 @@ Beats by meeting format:
 
 | Id | Section | Words | Prints when | Content |
 |---|---|---|---|---|
-| P1 | Open | 70 | always | Bullets: **Hook:** two sentences, said aloud, on a cited fact [n] -- in italics, at most 2 sentences and 40 words (hook_words). **Credibility:** who you are, in one line, 30 seconds [n]. **Insight:** one thing they didn't have [n]. **Rule:** how to hold the opening's rapport through the questions. |
+| P1 | Open | 70 | always | Bullets: **Hook:** two sentences, said aloud, on a cited fact [n] -- in italics, at most 2 sentences and 40 words (hook_words). **Credibility:** who you are, in one line, 30 seconds [n]. **Insight:** one thing they didn't have [n]. **Rule:** how to hold the opening's rapport through the questions. Where the jurisdiction keeps a formal register (Q7 APAC: guardrails.formal_opener), P1 calls the person by title and family name, never by first name alone. |
 | P2 | Question order | 130 | always | Bullets: **Beats:** one line per beat of the meeting type (script.beats_by_format for Q4), each on the [n] it rests on. Then **Story:** **Process:** **Gate:** **History:** **Commitment:** -- B2's questions word for word, in the order the room needs. |
 | P3 | Objections: name it, then answer | 105 | always | 3 bullets: **Their likely objection:** *say it before they do, then the answer, at most 30 words* [n]. |
 | P4 | Close | 70 | always | Bullets: **Restate:** ask what would make it an easy yes, then say it back in their words. **Real deadline:** a date that actually moves [n]. **The ask:** B9's ask · **Fallback:** B9's fallback. **Follow-up:** what you promise to send, and when. The ask, the fallback and the follow-up together stay within 50 words (close_words). |
@@ -354,7 +354,7 @@ Forbidden claims by domain (P8 quotes the saved domain's): wealth: "guaranteed",
 | C4 | custom_q | >= 2 questions in B2 carry a [n] |
 | C5 | sections | B1-B10 and P1-P9 present in order (P5 and P6 may be left out per S3-2) |
 | C6 | budgets | no section exceeds its words by > 15% |
-| C7 | never_say | no never_say phrase appears outside P8 |
+| C7 | never_say | no never_say phrase appears outside P8; on a run whose jurisdiction keeps a formal register (guardrails.formal_opener: APAC, read from the Run row), P1 never calls the person by first name alone |
 | C8 | outcome | B1, B5 and B9 contain no method verbs from checks.method_verbs |
 | C9 | exclusions | no excluded topic keyword appears in the body |
 | C11 | plain | no plain_words.banned term or internal code outside quoted words |

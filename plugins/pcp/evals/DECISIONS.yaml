@@ -154,6 +154,13 @@ decisions:
     date: 2026-10-17
     source: "Daniel, Oct 17 2026, C9-DECISION.md: word-start matching (every 2.1 inflection trips) plus an explicit compound list so sensitive compounds a word-start match would miss still trip"
     summary: "C9 reads pcp.yaml exclusions.keywords (2.1.0's keywords, from the start of a word) and exclusions.compounds (22 real words, exact whole-word match: misdiagnosed, grandchildren, countersued, coplaintiff ...). Still looser than 2.1.0 only for a keyword inside an unrelated word (issued, effect) and a compound not in the list; eval.py gates reports it."
+  # ---- PCP 3.1.2 (the brief of Oct 18 2026, ~/Downloads/pcp-finish/fix-3.1.2-2026-10-18/PROMPT.md, item 4) and Talyx's correction of the same day
+  - covers: ["calibration.questions.Q3.header", "calibration.questions.Q5.options"]
+    status: approved
+    by: Daniel
+    date: 2026-10-18
+    source: "3.1.2 brief, item 4: 'Setup text must not contain targets, Target kind, news families, claims.jsonl'; 'Fast says 5 source types (not 6), matching the table'; for Deep's network pass, 'rewrite the option text so it promises only what runs'. Talyx's correction, Oct 18: 'do NOT reword Q2 or Q7 ... leave them unchanged, exempt them from the new plain-words check, and list them in REPORT.md as an open question for Daniel'."
+    summary: "Q3's chip reads 'Prep for' (2.1.0: 'Target kind'); Fast reads '5 source types' and names them (2.1.0's '6 families' counted org news twice; the table enables 5); Deep promises what runs (what they may want, more searches in each round), not 2.1.0's 'second-order network pass', which neither 2.1.0 nor 3.x built. Q2 and Q7 keep 2.1.0's text under the Oct 17 pins; plain_words.exempt names their three strings exactly (open for Daniel). APAC's 'formal-register openers' is built (guardrails.formal_opener, C7), so its text stays."
   - covers: ["lock:forms@fcbfb88c38af"]
     status: approved
     by: "Daniel (Oct 16 instructions: MUST-FIX 1-9, D1-D3, grading design delegated, parameterization, forms/assembler, no-drift guard)"

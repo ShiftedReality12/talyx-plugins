@@ -865,10 +865,11 @@ def exact_removed(text, exempt):
 
 
 def plain_violations(R, texts):
-    """Banned words in user-facing text: the names, the setup questions and the skill's listing text.
-    A banned word inside a plain_words.allowed phrase (asset manager) is not the banned word."""
+    """Banned words in user-facing text: the names, the setup questions and the skill's listing text (plain_words.banned, and
+    plain_words.setup_banned: 'targets', 'Target kind', 'news families', 'claims.jsonl', Oct 18). A banned word inside a
+    plain_words.allowed phrase (asset manager) is not the banned word; a plain_words.exempt string (Q2's and Q7's 2.1.0 text) is skipped whole."""
     pw = R["plain_words"]
-    words = re.compile(r"\b(?:" + "|".join(re.escape(w) for w in pw["banned"]) + r")\b", re.I)
+    words = re.compile(r"\b(?:" + "|".join(re.escape(w) for w in pw["banned"] + pw.get("setup_banned", [])) + r")\b", re.I)
     allowed = re.compile(r"\b(?:" + "|".join(re.escape(w) for w in pw.get("allowed") or ["\x00"]) + r")\b", re.I)
     exempt = pw.get("exempt") or []   # exact strings Daniel kept from 2.1.0 (pcp.yaml plain_words.exempt); never a pattern
     texts = [allowed.sub(" ", exact_removed(t, exempt)) for t in texts]

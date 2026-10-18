@@ -7,7 +7,7 @@ never your browser), plus your own files when you give them, every fact cited.
 
 ## What it does
 
-0. **Sets up once.** Nine quick questions the first time (role, domain, target kind, meeting
+0. **Sets up once.** Nine quick questions the first time (role, domain, who you prep for, meeting
    shape, depth, social scope, jurisdiction, experience, your offer and any files about your
    business). Stored in `~/.pcp/profile.yaml`; never asked again unless you pass `--recalibrate`.
 1. **Intake.** A name and an organisation, or a CSV of up to 8 rows.

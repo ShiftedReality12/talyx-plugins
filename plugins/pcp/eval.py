@@ -282,6 +282,17 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
             for p in R["guardrails"]["never_say"]:
                 if p.lower() in body.lower():
                     fails.append(f"C7 never_say: '{p}' in {k}")
+        run = re.search(r"\*\*Run\*\*\s*\|([^\n]*)", brief_md)   # Q7's label is a cell of the Run row (assemble)
+        cells = [c.strip() for c in run.group(1).split("·")] if run else []
+        formal = next((lab for lab in (_label_of("Q7", j) for j in R["guardrails"].get("formal_opener", [])) if lab in cells), None)
+        who = re.search(r"^\*[^*\n]* · ([^,·*\n]+), [^·*\n]+ · Prepared ", md, re.M)   # the script's name line
+        name = (who.group(1) if who else next((n for n in target_nouns if n and " " in n.strip()), "")).split()
+        if formal and len(name) > 1:   # 2.1.0's 'formal-register openers' (Q7 APAC): title and family name, never the first name alone
+            p1 = re.sub(rf"{re.escape(name[0])}(?:\s+[A-Z][\w.'-]*)*\s+{re.escape(name[-1])}\b", " ", secs.get("P1", ""))   # the full name
+            p1 = re.sub(rf"\b(?:Mr|Mrs|Ms|Miss|Mx|Dr|Prof|Professor|Sir|Dame|Director|Chair|Chairman|President)\.?\s+{re.escape(name[0])}\b", " ", p1)
+            if re.search(rf"\b{re.escape(name[0])}\b", p1):
+                fails.append(f"C7 never_say: a {formal} run keeps a formal register: P1 calls the person '{name[0]}'; "
+                             f"use title and family name ({name[-1]}), never the first name alone")
     if want("outcome"):
         mv = next(c["method_verbs"] for c in R["checks"] if "method_verbs" in c)
         for blk in ("B1", "B5", "B9"):   # 2.1.0 read one block (its B6, the bridge); the offer is stated in these three now
@@ -1517,6 +1528,42 @@ def self_test(require_pdf=False):
             print(f"FAIL C6 must hold {blk_id} to {caps[blk_id]} words (+15%)"); ok = False
     if len(held) == 5:
         print(f"tripped: C6 by {', '.join(held)} words one word over their cap (+15%); each at its cap passes")
+    # ---- setup text in plain words (Oct 18): each banned term put back into a setup question fails the render; Q2's and Q7's 2.1.0 strings
+    # (Daniel's Oct 17 lock) are exempt only byte for byte
+    if (HERE / "render_skill.py").exists():
+        import copy, importlib.util
+        spec = importlib.util.spec_from_file_location("render_skill_selftest", HERE / "render_skill.py")
+        rs = importlib.util.module_from_spec(spec); spec.loader.exec_module(rs)
+        def setup_hits(edit):
+            C = copy.deepcopy(R); edit({q["id"]: q for q in C["calibration"]["questions"]}); return rs.plain_violations(C, rs.user_facing(C))
+        def put(qid, key, text, opt=None):
+            def f(Q):
+                if opt is None:
+                    Q[qid][key] = text
+                else:
+                    Q[qid]["options"][opt][key] = text
+            return f
+        trips = [("Target kind", put("Q3", "header", "Target kind")), ("targets", put("Q4", "question", "What is the typical call with your targets?")),
+                 ("news families", put("Q5", "description", "Adds what they may want and the fund news families.", 2)),
+                 ("claims.jsonl", put("Q6", "description", "No social sources; claims.jsonl keeps none.", 2)),
+                 ("a near copy of Q2's exempt question", put("Q2", "question", "Where do your targets usually live?"))]
+        missed = [n for n, f in trips if not setup_hits(f)]
+        live = setup_hits(lambda Q: None)
+        if missed or live:
+            print(f"FAIL setup plain words: not tripped by {missed}; the live setup text hits {live}"); ok = False
+        else:
+            print(f"tripped: the setup plain-words gate (render_skill.py) by each of {len(trips)} reintroductions; the live setup text, with Q2's and Q7's "
+                  f"{len(R['plain_words']['exempt'])} exact 2.1.0 strings, passes")
+    else:
+        print("SKIP the setup plain-words reintroductions: render_skill.py is not in this copy (the shipped skill)")
+    apac_run = "| **Run** | Oct 18, 2026 · standard · first intro · founder / principal · general professional · {j} · FULL · 6.0 decision-useful facts per page |\n"
+    apac_sc = "# Meeting script\n*Facts choose the moves; read the room, not the record · Jane Doe, Alder Grey Capital · Prepared Oct 18, 2026*\n\n## P1 Open\n- **Hook:** *{h}, you said patience wins [1].*\n"
+    cases = [("APAC", "Jane", True), ("APAC", "Ms Doe", False), ("APAC", "Jane Doe", False), ("US", "Jane", False)]
+    got = [(j, h, any("formal register" in x for x in checks(apac_run.format(j=j), apac_sc.format(h=h), "never-say"))) for j, h, _ in cases]
+    if [g[2] for g in got] != [c[2] for c in cases]:
+        print(f"FAIL C7 formal register (Q7 APAC): {got}"); ok = False
+    else:
+        print("tripped: C7 by an APAC run whose P1 calls Jane Doe 'Jane'; 'Ms Doe', the full name, and 'Jane' on a US run pass")
     s21 = "Public sources only. Nothing behind a login, no paid data the user has not supplied, no scraping."
     s21_row = next(r for st in R["stages"] for r in st["rows"] if r["id"] == "S2-1")["text"]
     skill_txt = (HERE / SKILL_DIR / "SKILL.md").read_text() if (HERE / SKILL_DIR / "SKILL.md").exists() else s21

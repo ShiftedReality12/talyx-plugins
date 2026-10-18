@@ -1,4 +1,4 @@
-<!-- GENERATED from pcp.yaml (sha256:e2b17d79cae0) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:c380fc28b875) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # The brief and the script: blocks, fields and writing rules
 
@@ -42,7 +42,7 @@ Beats by meeting format:
 
 | Id | Section | Words | Prints when | Content |
 |---|---|---|---|---|
-| P1 | Open | 70 | always | Bullets: **Hook:** two sentences, said aloud, on a cited fact [n] -- in italics, at most 2 sentences and 40 words (hook_words). **Credibility:** who you are, in one line, 30 seconds [n]. **Insight:** one thing they didn't have [n]. **Rule:** how to hold the opening's rapport through the questions. |
+| P1 | Open | 70 | always | Bullets: **Hook:** two sentences, said aloud, on a cited fact [n] -- in italics, at most 2 sentences and 40 words (hook_words). **Credibility:** who you are, in one line, 30 seconds [n]. **Insight:** one thing they didn't have [n]. **Rule:** how to hold the opening's rapport through the questions. Where the jurisdiction keeps a formal register (Q7 APAC: guardrails.formal_opener), P1 calls the person by title and family name, never by first name alone. |
 | P2 | Question order | 130 | always | Bullets: **Beats:** one line per beat of the meeting type (script.beats_by_format for Q4), each on the [n] it rests on. Then **Story:** **Process:** **Gate:** **History:** **Commitment:** -- B2's questions word for word, in the order the room needs. |
 | P3 | Objections: name it, then answer | 105 | always | 3 bullets: **Their likely objection:** *say it before they do, then the answer, at most 30 words* [n]. |
 | P4 | Close | 70 | always | Bullets: **Restate:** ask what would make it an easy yes, then say it back in their words. **Real deadline:** a date that actually moves [n]. **The ask:** B9's ask · **Fallback:** B9's fallback. **Follow-up:** what you promise to send, and when. The ask, the fallback and the follow-up together stay within 50 words (close_words). |

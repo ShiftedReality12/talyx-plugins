@@ -56,9 +56,11 @@ plain_words:
             asset base, asset quality, asset growth, asset mix, asset value, asset values, net asset value, asset price, asset prices,
             asset sale, asset sales, asset purchase, asset purchases, asset deal, asset finance, asset servicing, asset gathering,
             real asset, alternative asset, digital asset, fixed asset, financial asset, hard asset, single-asset, multi-asset]
-  # Daniel, Oct 17: exactly one string is exempt from the banned list -- the setup question's 2.1.0 option text, kept byte for byte (decision 1 in
-  # evals/DECISIONS.yaml). It is an exact string, never a pattern: any other use of claims.jsonl in user-facing text still fails.
-  exempt: ["Adds minimisation -- claims.jsonl deleted after render."]
+  # Oct 18 (3.1.2): no setup question, chip or option says these (render_skill.py fails the render; self-test reintroduces each).
+  setup_banned: [targets, Target kind, news families, claims.jsonl]
+  # Daniel, Oct 17, decision 1: Q2 and Q7 keep 2.1.0's text byte for byte (pins in evals/DECISIONS.yaml); the Oct 18 correction keeps that lock, so
+  # exactly these strings are exempt, from banned and from setup_banned. Exact strings, never patterns: any other use still fails. Open for Daniel.
+  exempt: ["Adds minimisation -- claims.jsonl deleted after render.", "GPs, LPs, portfolio companies; adds fund/portfolio news families.", "Where do your targets mostly live?"]
   # Oct 9 / AID-58: Ben's executive words. Not enforced until Daniel decides (spec Q3, Q5); move a word to banned to adopt it.
   pending: [intelligence collection, counter-evidence]   # behavioral profile left the list Oct 14: it is block 6's approved title
   # the deliverable has one name (names.deliverable); build/adapters.py --check fails on these anywhere in the repo
@@ -133,7 +135,7 @@ calibration:
       sets: {domain: value}
       consumed_by: [families.registers, brief.vocab, guardrails.forbidden_claims]
     - id: Q3
-      header: Target kind
+      header: Prep for   # 2.1.0: 'Target kind'; Oct 18 (3.1.2): no setup text says 'Target kind' (plain_words.setup_banned)
       question: Who do you usually prep for?
       options:
         - {label: A person (Recommended), value: person, description: One named counterpart.}
@@ -157,8 +159,10 @@ calibration:
       question: Research depth versus speed?
       options:
         - {label: "Standard -- 12 source types, about 8 minutes (Recommended)", value: standard, description: "Full public footprint, counter-evidence pass on."}
-        - {label: "Fast -- 6 source types, about 3 minutes", value: fast, description: "Identity, org, voice, news, registers, social. No counter-evidence."}
-        - {label: "Deep -- every source type + what they may want", value: deep, description: "Adds what they may want from the meeting, and a second pass on their network."}
+        - {label: "Fast -- 5 source types, about 3 minutes", value: fast, description: "Identity, organisation news, their own words, registers, public social. No counter-evidence."}
+        - {label: "Deep -- every source type + what they may want", value: deep, description: "Adds what they may want from the meeting, and more searches in each round."}
+      # Fast enables exactly the 5 source types of families (depth: fast); 2.1.0's '6 families' counted org news twice. Deep promises what runs:
+      # B8 (C13) and osint.battery.queries_per_round (C21). 2.1.0's 'second-order network pass' was never built, in 2.1.0 or since (Oct 18).
       sets: {research.depth: value}
       consumed_by: [families.enabled_by_depth, research.full_threshold, rubric.ach]
     - id: Q6
@@ -783,7 +787,7 @@ script:
     close:        [open, restate their words, the outcome, the safeguard, the ask]
     relationship: [open, acknowledge what changed, one thing of value, one forward question]
   blocks:
-    - {id: P1, title: Open, words: 70, hook_words: 40, prints: always, content: "Bullets: **Hook:** two sentences, said aloud, on a cited fact [n] -- in italics, at most 2 sentences and 40 words (hook_words). **Credibility:** who you are, in one line, 30 seconds [n]. **Insight:** one thing they didn't have [n]. **Rule:** how to hold the opening's rapport through the questions."}
+    - {id: P1, title: Open, words: 70, hook_words: 40, prints: always, content: "Bullets: **Hook:** two sentences, said aloud, on a cited fact [n] -- in italics, at most 2 sentences and 40 words (hook_words). **Credibility:** who you are, in one line, 30 seconds [n]. **Insight:** one thing they didn't have [n]. **Rule:** how to hold the opening's rapport through the questions. Where the jurisdiction keeps a formal register (Q7 APAC: guardrails.formal_opener), P1 calls the person by title and family name, never by first name alone."}
     - {id: P2, title: Question order, words: 130, prints: always, content: "Bullets: **Beats:** one line per beat of the meeting type (script.beats_by_format for Q4), each on the [n] it rests on. Then **Story:** **Process:** **Gate:** **History:** **Commitment:** -- B2's questions word for word, in the order the room needs."}
     - {id: P3, title: "Objections: name it, then answer", words: 105, prints: always, content: "3 bullets: **Their likely objection:** *say it before they do, then the answer, at most 30 words* [n]."}
     - {id: P4, title: Close, words: 70, close_words: 50, prints: always, content: "Bullets: **Restate:** ask what would make it an easy yes, then say it back in their words. **Real deadline:** a date that actually moves [n]. **The ask:** B9's ask · **Fallback:** B9's fallback. **Follow-up:** what you promise to send, and when. The ask, the fallback and the follow-up together stay within 50 words (close_words)."}
@@ -869,6 +873,9 @@ inventory:
     - {id: P.why, part: "Why lines (P1, P3, P4)", produces: "one line on why each move works", sources: [Q9], status: conditional, prints: "Q9 experience new", check: C15}
 guardrails:
   never_say: ["Does that make sense?", "Is this helpful?", "No pressure", "You'd know better than me", "Just checking in"]
+  # Q7 APAC's 'formal-register openers' (2.1.0's option text; built in 3.1.2, Oct 18): on these jurisdictions P1 calls the person by title and
+  # family name, never by first name alone (C7, from the Run row's jurisdiction and the script's name line)
+  formal_opener: [apac]
   forbidden_claims_by_domain:
     general: []
     wealth: [guaranteed, outperform, beat the market]
@@ -885,7 +892,7 @@ checks:
   - {id: C4, name: custom_q,     cmd: "eval.py checks --custom-q",  passes_when: ">= 2 questions in B2 carry a [n]"}
   - {id: C5, name: sections,     cmd: "eval.py checks --sections",  passes_when: "B1-B10 and P1-P9 present in order (P5 and P6 may be left out per S3-2)"}
   - {id: C6, name: budgets,      cmd: "eval.py checks --budgets",   passes_when: "no section exceeds its words by > 15%"}
-  - {id: C7, name: never_say,    cmd: "eval.py checks --never-say", passes_when: "no never_say phrase appears outside P8"}
+  - {id: C7, name: never_say,    cmd: "eval.py checks --never-say", passes_when: "no never_say phrase appears outside P8; on a run whose jurisdiction keeps a formal register (guardrails.formal_opener: APAC, read from the Run row), P1 never calls the person by first name alone"}
   - {id: C8, name: outcome,      cmd: "eval.py checks --outcome",   passes_when: "B1, B5 and B9 contain no method verbs from checks.method_verbs"}
   - {id: C9, name: exclusions,   cmd: "eval.py checks --exclusions",passes_when: "no excluded topic keyword appears in the body"}
   - {id: C10, name: pages,       cmd: "format/talyx_pdf.py --style brief --brief-pages 2 --max-pages 3; eval.py pdf", passes_when: "exactly 3 pages: the brief on pages 1-2 with the evidence ledger last on page 2, the script on page 3, page 3 of 3 in the footer, a link for every ledger row not tagged Yours; page 3's numbered sections run 1, 2, 3 ... with no gap when a section drops"}
