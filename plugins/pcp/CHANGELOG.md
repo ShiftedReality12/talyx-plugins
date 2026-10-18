@@ -12,7 +12,7 @@ Branch `restore-2026-10-16`, tag `pcp-v3.1.2`.
 ### Fixed
 - **Cited facts are no longer lost to fit the page.** The Oct 17 Claude desktop run cut its brief from 27 cited facts to 18 and excused each cut as
   allowed. Now `eval.py assemble` records the draft itself: the folder's first build that fits its 3 pages, with a lock file. `eval.py kept <folder>`
-  compares the final against that record. A cut is excused only for a dead page or an excluded topic (`--allow N=dead` or `N=excluded`), never for
+  compares the final against that record, and `eval.py battery` fails a run whose history removes or rewrites the recorded draft. A cut is excused only for a dead page or an excluded topic (`--allow N=dead` or `N=excluded`), never for
   fit or by naming a page. A fit pass cuts in a fixed order: wording, then the ledger cells, the "What they may want" table, uncited framing, and an
   uncited optional row. A fact that no longer fits in its block keeps its ledger row and a short cited mention. Fixture `kept_oct17`: the real
   27 -> 18 cut fails, the bypass fails, and the same 27 facts in shorter wording pass. Body text stays 10 pt on 3 pages.
@@ -39,7 +39,7 @@ Branch `restore-2026-10-16`, tag `pcp-v3.1.2`.
 ### Leaner
 - The test behind each rule and the in-chat worked examples moved to `evals/rule-tests.md`, which nothing loads at run time. Repeated rules have one
   home and pointers. Ten contradictions found by the Oct 17 audit are fixed. Words a run reads: SKILL.md 3,232 -> 3,142; with its references,
-  15,239 -> 14,252 (PDF host) and 16,132 -> 14,991 (in chat); the chat apps' knowledge file 11,297 -> 10,632.
+  15,239 -> 14,279 (PDF host) and 16,132 -> 15,018 (in chat); the chat apps' knowledge file 11,297 -> 10,631 (`wc -w`, 7ee48fb -> the tag).
 - goodfest.westfield.com left the never-cite list (added without a reason). thefabulous.co stays on the weak list, with its reason. The rubric's
   "2.0.0-public" is explained as the rubric's own label.
 

@@ -835,6 +835,13 @@ def self_test(require_pdf=False):
             print(f"FAIL C21/C22 must trip on {name} (want '{want}'):", f); ok = False
         else:
             print(f"tripped: {'C22' if 'skip' in name or 'popup' in name else 'C21'} by {name}")
+    bash = lambda c: dict(dmain[-1], type="assistant", message={"id": "m-end", "role": "assistant", "content": [{"type": "tool_use", "id": "toolu_d", "name": "Bash", "input": {"command": c}}]})
+    gone = battery(dl(dmain + [bash("rm -f brief.md script.md brief.draft.md script.draft.md")]), "deep", drow)[0]   # the Oct 17 run's L585
+    read_only = battery(dl(dmain + [bash("diff brief.draft.md brief.md; python3 eval.py kept .")]), "deep", drow)[0]
+    if not any("removed or rewrote the recorded draft" in x for x in gone) or any("recorded draft" in x for x in read_only):
+        print("FAIL C24 must trip on a run that deletes the recorded draft, and not on one that reads it:", gone, read_only); ok = False
+    else:
+        print("tripped: C24 by a run that deletes brief.draft.md and script.draft.md (the Oct 17 run, L585); reading them (diff, kept) passes")
     row = "| [{n}] | Fact | [{h}]({u}) | Measured | Oct 1, 2026 |\n"
     read = (row.format(n=1, h="aldergrey.example", u="https://www.aldergrey.example/team/#jane")
             + row.format(n=2, h="linkedin.com, search result", u="https://www.linkedin.com/in/jane-doe-example")
@@ -2013,6 +2020,11 @@ OPERATOR = re.compile(r"\b(?:site|intitle|inurl|filetype|after|before|allintitle
 RUN_COUNTS = re.compile(r"(\d+) searches(?: \((\d+) base\))? in (\d+) rounds")   # N total, B in the base pass, M rounds
 BROWSER_TOOL = re.compile(r"chrome|computer|browser|playwright", re.I)
 URL = re.compile(r"https?://[^\s\"'<>)\]]+")
+# C24: the recorded draft (eval.py assemble writes brief.draft.md, script.draft.md and draft.lock.json once) is never removed, moved or rewritten by
+# the run -- deleting it and assembling again would make a later, cut build the draft. A read (cat, diff, kept) is fine.
+_DRAFT = r"[\w./~*-]*(?:draft\.lock\.json|brief\.draft\.md|script\.draft\.md|\*\.draft\.md)"
+DRAFT_TOUCH = re.compile(rf"\b(?:rm|unlink|mv|truncate|shred)\b[^\n;&|]*{_DRAFT}|\bcp\b(?:\s+-\w+)*\s+\S+\s+{_DRAFT}(?=\s*(?:$|[;&|)\n]))"
+                         rf"|>{{1,2}}\s*{_DRAFT}|\btee\b[^\n;&|]*{_DRAFT}|open\(\s*['\"]{_DRAFT}['\"]\s*,\s*['\"][wa]")
 
 
 def _page(url):
@@ -2117,6 +2129,9 @@ def _blocks_claude(e, ev, st):
                 ev.append(dict(kind="open", step=step, url=inp.get("url", ""), id=x.get("id")))
             elif name == "Bash" and re.search(r"\b(?:curl|wget)\b", inp.get("command", "")):
                 ev.append(dict(kind="shell", step=step, urls=URL.findall(inp["command"]), command=inp["command"]))
+            if (name == "Bash" and DRAFT_TOUCH.search(inp.get("command", ""))) or (
+                    name in ("Write", "Edit", "MultiEdit") and re.search(_DRAFT + "$", str(inp.get("file_path", "")))):
+                ev.append(dict(kind="draft_touch", step=step, command=inp.get("command") or f"{name} {inp.get('file_path')}"))
             elif ASK_TOOL.search(name):
                 ev.append(dict(kind="ask", step=step, name=name, id=x.get("id"), questions=_ask_texts(inp)))
             elif name in ("Agent", "Task"):
@@ -2186,6 +2201,8 @@ def _blocks_codex(e, ev, st):
                     ev.append(dict(kind="browser", step=st["call"], name=tool))
             if re.search(r"\b(?:curl|wget)\b", body):
                 ev.append(dict(kind="shell", step=st["call"], urls=URL.findall(body), command=body))
+            if DRAFT_TOUCH.search(body):
+                ev.append(dict(kind="draft_touch", step=st["call"], command=body))
             for u in re.findall(r"open\s*:\s*\[([^\]]*)\]", body):   # web__run({open:[{ref_id:"https://..."}]})
                 ev.append(dict(kind="open", step=st["call"], url=" ".join(URL.findall(u)), planned=True))
         return
@@ -2450,6 +2467,10 @@ def battery(lines, depth="standard", brief="", cited=None, profile=None, popup=N
                 fails.append("C21 battery: a shell command requested linkedin.com; LinkedIn is read from search results only")
         elif k == "browser":
             fails.append(f"C21 battery: the browser tool {e['name']} was called; research never drives a browser")
+    for e in [x for x in ev if x["kind"] == "draft_touch"][:3]:
+        hit = DRAFT_TOUCH.search(e["command"])
+        fails.append(f"C24 kept: the run removed or rewrote the recorded draft ('{hit.group(0) if hit else e['command'][:80]}'); "
+                     "eval.py assemble records it once and nothing else touches it (S4-4)")
     if first_s is not None:   # quiet: no reply text between the first and the last search, a question aside
         loud = [e for i, e in enumerate(ev) if e["kind"] == "text" and not e.get("side") and first_s < i < last_s and e["text"].strip()
                 and not any(x["kind"] == "ask" for x in ev[i + 1:i + 3]) and not _round_heads(e["text"])]
