@@ -779,6 +779,29 @@ def self_test(require_pdf=False):
         print("FAIL C21 must pass round 1's line followed by rounds 2-5 as one batch each, unnamed:", summary, f); ok = False
     else:
         print(f"passes: C21 when only round 1's line is stated and each later round is one batch ({summary})")
+    dk = fx / "battery_desktop"   # the Oct 17 Claude desktop shape: the research job in its own file, each parallel search its own line, gap fill after round 5
+    dfiles = [dk / "session.jsonl", dk / "session/subagents/agent-fixture.jsonl"]
+    drow = "| **Run** | Oct 17, 2026 · deep · US · FULL · 55 searches (14 base) in 5 rounds |"
+    f, summary = battery(history_lines(dfiles), "deep", drow)
+    if f or "55 searches (14 base) in 5 rounds" not in summary or "per round [6, 7, 7, 6, 6]" not in summary:
+        print("FAIL C21 must read battery_desktop as 14 base, rounds of 6, 7, 7, 6 and 6, then 9 later searches:", summary, f); ok = False
+    else:
+        print(f"passes: C21 and C22 on battery_desktop, a Claude desktop run whose job keeps its own file ({summary})")
+    dmain = [json.loads(x) for x in dfiles[0].read_text().splitlines()]
+    djob = dfiles[1].read_text().splitlines()
+    def dl(rows): return [json.dumps(x) for x in rows] + djob
+    q2 = next(i for i, x in enumerate(dmain) if "toolu_q2" in json.dumps(x) and x["type"] == "assistant")
+    early = dict(dmain[q2], message={"id": "m2b", "role": "assistant", "content": [{"type": "tool_use", "id": "toolu_e", "name": "WebSearch", "input": {"query": "Jane Doe"}}]})
+    for name, lines, row, want in (
+            ("the job's file read after the main file, not by time", [ln for p in dfiles for ln in p.read_text().splitlines()], "", "between the first and the last search"),
+            ("a Run row that counts the two gap-fill steps as rounds 6 and 7", history_lines(dfiles), drow.replace("in 5 rounds", "in 7 rounds"), "the history shows"),
+            ("the second setup call with no skip line of its own", dl(dmain[:q2 - 1] + dmain[q2:]), drow, "no line of the reply before it"),
+            ("a search before the popup's answer", dl(dmain[:q2 + 1] + [early] + dmain[q2 + 1:]), drow, "kept working after asking")):
+        f, _ = battery(lines, "deep", row)
+        if not any(want in x for x in f):
+            print(f"FAIL C21/C22 must trip on {name} (want '{want}'):", f); ok = False
+        else:
+            print(f"tripped: {'C22' if 'skip' in name or 'popup' in name else 'C21'} by {name}")
     row = "| [{n}] | Fact | [{h}]({u}) | Measured | Oct 1, 2026 |\n"
     read = (row.format(n=1, h="aldergrey.example", u="https://www.aldergrey.example/team/#jane")
             + row.format(n=2, h="linkedin.com, search result", u="https://www.linkedin.com/in/jane-doe-example")
@@ -2073,6 +2096,36 @@ def find_history(host=None, cwd=None, home=None):
     return [main] + sorted((main.parent / main.stem / "subagents").glob("*.jsonl"), key=lambda p: p.stat().st_mtime)
 
 
+def history_lines(files):
+    """The lines of a run's history files, read as one history. Claude Code and Claude desktop keep a subagent's transcript in its own
+    file (<session>/subagents/*.jsonl) and its searches ran while the main thread waited, so the lines of every file are merged by
+    their timestamps (a line with none keeps its place after the line before it). Read one file after the other, a search the main
+    thread made after the job came back sits before all of the job's searches and every reply after it reads as 'between searches'
+    (Oct 17). A Codex rollout or an app export is read as given."""
+    texts = [pathlib.Path(t).read_text() for t in files]
+    def stamped(text):
+        try:
+            json.loads(text)
+            return False   # one JSON document: an app export
+        except ValueError:
+            pass
+        rows = [json.loads(ln) for ln in text.splitlines() if ln.strip().startswith("{")]
+        return any("timestamp" in r for r in rows) and not any(r.get("type") in ("session_meta", "response_item", "event_msg") for r in rows)
+    if len(texts) < 2 or not all(stamped(t) for t in texts):
+        return [ln for t in texts for ln in t.splitlines()]
+    keyed = []
+    for fi, text in enumerate(texts):
+        last = ""
+        for li, ln in enumerate(text.splitlines()):
+            try:
+                e = json.loads(ln)
+            except ValueError:
+                e = None
+            last = max(last, str(e.get("timestamp") or "")) if isinstance(e, dict) else last   # a file keeps its own order
+            keyed.append(((last, fi, li), ln))
+    return [ln for _, ln in sorted(keyed, key=lambda x: x[0])]
+
+
 def _content_words(t):
     return {w for w in re.findall(r"\b(?:ai|[a-z][a-z'-]{2,})\b", t.lower()) if w not in STOP}
 
@@ -2169,14 +2222,23 @@ def battery(lines, depth="standard", brief="", cited=None, profile=None, popup=N
     if first_s is not None and len(status) > 5:
         fails.append(f"C21 quiet: {len(status)} status messages in the reply; at most one per stage (five)")
     need, per, ops_min = battery_floor(depth, kind, scope)
+    req = base_families(depth, kind, scope)
     lined = any(v is not None for v in named.values())
+    later = []   # search steps after the last round (a gap fill, a check while writing): counted in N, never a round
     if lined:   # round lines name the rounds; the searches before the first one are the base pass
         base_steps = order[:next(i for i, s in enumerate(order) if named[s] is not None)]
-    else:       # no lines: the last batches, one per round, are the rounds; the batches before them are the base pass
-        base_steps = order[:max(0, len(order) - len(need))]
+    else:
+        # no lines: the base pass is the first steps that together carry every source type's template; the next batches, one per
+        # round, are the rounds, and any step after them is a later search. With no such prefix, the last batches are the rounds
+        # (a Claude desktop job, Oct 17: two gap-fill steps after round 5 were read as rounds 4 and 5, and round 1 as part of the base)
+        cover = next((i + 1 for i in range(len(order)) if all(family_sent(f, [q for s in order[:i + 1] for q in batches[s]]) for f in req)), None)
+        if cover is None or not req:
+            base_steps = order[:max(0, len(order) - len(need))]
+        else:
+            base_steps, later = order[:cover], order[cover + len(need):]
     base = [q for s in base_steps for q in batches[s]]
     rounds, steps, n = {}, {}, 0
-    for s in order[len(base_steps):]:
+    for s in order[len(base_steps):len(order) - len(later)]:
         qs = batches[s]
         if named[s] is not None:
             n = named[s]
@@ -2189,7 +2251,6 @@ def battery(lines, depth="standard", brief="", cited=None, profile=None, popup=N
     sent = [q for qs in rounds.values() for q in qs]
     done = [n for n in rounds if rounds[n]]
     ops = sum(1 for q in sent if q.get("filtered") or OPERATOR.search(q.get("query", "")))
-    req = base_families(depth, kind, scope)
     lacking = [f for f in req if not family_sent(f, base)]
     if not base:
         fails.append(f"C21 base: no base pass before the rounds; send each source type's query template first ({len(req)} for a {depth} run, S2-9)")
@@ -2216,7 +2277,9 @@ def battery(lines, depth="standard", brief="", cited=None, profile=None, popup=N
         fails.append("C21 battery: round 1 sent no LinkedIn query")
     elif li and not any("linkedin.com" in " ".join(q.get("domains") or []) for q in li):
         fails.append("C21 battery: round 1's LinkedIn query typed site: into a search that ignores it; use the domain filter (allowed_domains)")
-    total = len(sent) + len(base)
+    after = [q for s in later for q in batches[s]]
+    total = len(sent) + len(base) + len(after)
+    tail = f" and {len(after)} later search{'es' * (len(after) != 1)} in {len(later)} step{'s' * (len(later) != 1)}" if later else ""
     if brief:
         said = RUN_COUNTS.search(re.sub(r"\s+", " ", brief))
         runday = re.search(r"\*\*Run\*\*\s*\|\s*([A-Z][a-z]{2} \d{1,2}, \d{4})", brief)
@@ -2226,7 +2289,7 @@ def battery(lines, depth="standard", brief="", cited=None, profile=None, popup=N
         elif need_base and said.group(2) is None:
             fails.append("C21 battery: the Run row gives no base count; it says 'N searches (B base) in M rounds'")
         elif (int(said.group(1)), int(said.group(3))) != (total, len(done)) or (said.group(2) is not None and int(said.group(2)) != len(base)):
-            fails.append(f"C21 battery: the Run row says {said.group(0)}; the history shows {total} searches ({len(base)} base) in {len(done)} rounds")
+            fails.append(f"C21 battery: the Run row says {said.group(0)}; the history shows {total} searches ({len(base)} base) in {len(done)} rounds{tail}")
     fails += ask_check(ev, profile, popup)
     replies = [e["text"] for e in ev if e["kind"] == "result"] or [next((e["text"] for e in reversed(ev) if e["kind"] == "text"), "")]
     for i, reply in enumerate(replies, 1):   # a session file has no result line: its last text is the reply
@@ -2239,7 +2302,8 @@ def battery(lines, depth="standard", brief="", cited=None, profile=None, popup=N
     if unread:
         fails.append(f"C21 battery: the ledger cites {len(unread)} page{'s' * (len(unread) != 1)} the run never opened "
                      f"({', '.join(unread[:3])}{' ...' if len(unread) > 3 else ''}): open the page behind a result before citing it, or drop its fact")
-    return fails, f"{host}: {total} searches ({len(base)} base) in {len(done)} rounds {done}, {ops} round queries with an operator or a domain filter"
+    return fails, (f"{host}: {total} searches ({len(base)} base) in {len(done)} rounds {done}{tail}, {ops} round queries with an operator or a domain filter; "
+                   f"per round {[len(rounds[n]) for n in done]}")
 
 
 TYPED_LIST = re.compile(r"one number per line|reply with (?:the |a |one )?(?:option )?numbers?\b|answer with (?:the )?numbers?|such as \d, ?\d", re.I)
@@ -2255,18 +2319,25 @@ def ask_check(ev, profile=None, popup=None):
     if popup is None:   # not told: the session's own tool list, else assume the host has a question tool
         popup = any(ASK_TOOL.search(n) for n in tools) if tools is not None else True
     results = {e["id"]: e["text"] for e in ev if e["kind"] == "tool_result"}
+    result_at = {e["id"]: i for i, e in enumerate(ev) if e["kind"] == "tool_result"}
+    ask_ids = {e.get("id") for e in ev if e["kind"] == "ask" and e.get("id")}
     first_s = next((i for i, x in enumerate(ev) if x["kind"] == "search"), len(ev))
     empty_at = []
     for i, e in enumerate(ev):
         if e["kind"] != "ask":
             continue
-        said = " ".join(x["text"] for x in ev[max(0, i - 4):i] if x["kind"] == "text")
+        win = ev[max(0, i - 4):i]   # each question call has its own line: one written before an earlier call or its answer does not count
+        cut = max((j + 1 for j, x in enumerate(win) if x["kind"] == "ask" or (x["kind"] == "tool_result" and x.get("id") in ask_ids)), default=0)
+        said = " ".join(x["text"] for x in win[cut:] if x["kind"] == "text")
         if not re.search(r"\bskip\b", said, re.I):
-            fails.append(f"C22 ask: the question tool '{e['name']}' was called with no line of the reply before it saying what skip does "
-                         "('Two quick questions: answer in the popup, or skip and I'll use the recommended answers.')")
+            fails.append(f"C22 ask: the question tool '{e['name']}' ('{(e['questions'] or [''])[0][:40]}') was called with no line of the reply "
+                         "before it saying what skip does, its own line after any earlier question ('Two quick questions: answer in the popup, or skip and I'll use the recommended answers.')")
         later = next((j for j in range(i + 1, len(ev)) if ev[j]["kind"] == "user"), len(ev))
         body = results.get(e.get("id"))
-        if body is not None and NOT_ANSWERED.search(body.strip()) and not re.search(r"answered|selected|\w=\w|\"=\"", body):
+        empty = body is not None and bool(NOT_ANSWERED.search(body.strip())) and not re.search(r"answered|selected|\w=\w|\"=\"", body)
+        if body is not None and not empty:   # a popup's answer comes back as its own tool result: the wait ends there
+            later = min(later, result_at[e["id"]])
+        if empty:
             empty_at.append(i)
             retyped = any(x["kind"] == "text" and "?" in x["text"] and len(_content_words(" ".join(e["questions"])) & _content_words(x["text"])) >= 2 for x in ev[i + 1:later])
             if not retyped:
@@ -3988,7 +4059,7 @@ def main():
             import yaml
             pr = yaml.safe_load(pathlib.Path(a.profile).read_text()) or {}
             saved = str(((pr.get("profiles") or {}).get(next(iter(pr.get("profiles") or {}), ""), {}).get("answers", {}).get("Q8", {}) or {}).get("value", ""))
-        f, summary = battery([ln for t in files for ln in open(t)], a.depth, text, cited, saved, False if a.no_popup else None, a.kind, a.scope)
+        f, summary = battery(history_lines(files), a.depth, text, cited, saved, False if a.no_popup else None, a.kind, a.scope)
         print(f"history: {summary}", *[" - " + x for x in f], f"{len(f)} failures", sep="\n")
         sys.exit(1 if f else 0)
     if a.cmd == "assemble":
