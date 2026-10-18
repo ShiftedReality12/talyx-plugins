@@ -1,0 +1,194 @@
+{
+ "target": {
+  "name": "Andy Sieg",
+  "org": "Citi",
+  "role_since": "Head of Wealth, since 2023"
+ },
+ "meeting": "First intro: 30 minutes on Zoom, next Tuesday",
+ "prepared": "Oct 17, 2026",
+ "b1": {
+  "take": "Andy Sieg left Merrill in 2023 [c2] and now leads Citi Wealth [c1]; he says fragmented data held the business back [c41].",
+  "evidence": "[c1] [c2] [c41].",
+  "action": "say upfront you know he is at Citi; open on fragmented data [c41].",
+  "avoid": "treating him as Merrill's; Citi already picked Advyzon [c32]."
+ },
+ "b2": [
+  {
+   "q": "Citi picked Advyzon for rebalancing [c32]; what does it leave out?",
+   "decides": "Citi's room beside Advyzon",
+   "ask": "Andy Sieg"
+  },
+  {
+   "q": "You said fragmented data held Citi back [c41]; where does rebalancing sit in your platform?",
+   "decides": "Citi's tool entry point",
+   "ask": "Andy Sieg"
+  },
+  {
+   "q": "Dipendra Malhotra leads Wealth Technology [c31]; who else owns advisor tooling?",
+   "decides": "who at Citi hosts the demo",
+   "ask": "Andy Sieg"
+  },
+  {
+   "q": "Your rule is no hobbies [c39]; what must a new tool prove, and to whom?",
+   "decides": "Citi's gate and approver",
+   "ask": "Andy Sieg or Alex Kokolis"
+  }
+ ],
+ "b3": {
+  "role": "Head of Wealth, Citi, since September 2023 [c1]; LinkedIn agrees [c63].",
+  "path": "Merrill president 2017 to 2023 [c2]; Penn State [c3].",
+  "organization": "global private bank; 2,300 advisors [c38].",
+  "changed": [
+   "Kokolis hired from MSCI (Oct 13) [c14]",
+   "Advyzon chosen for UMA (Apr 21) [c32]"
+  ],
+  "wins": [
+   "Q3 net income $585M, up 93% (Oct 13) [c28]"
+  ]
+ },
+ "b4": {
+  "quotes": [
+   {
+    "label": "On data, Investor Day, May 7, 2026",
+    "quote": "Fragmented data held this business back for too long.",
+    "cite": "[c41]"
+   },
+   {
+    "label": "On initiatives, Investor Day, May 7, 2026",
+    "quote": "no hobbies",
+    "cite": "[c39]"
+   },
+   {
+    "label": "On Citi Sky, Apr 22, 2026",
+    "quote": "it makes them more powerful",
+    "cite": "[c59]"
+   }
+  ]
+ },
+ "b5": [
+  {
+   "observable": "He says advisors struggle across many Citi platforms [c50]",
+   "action": "Fewer steps per advisor is his priority; show yours cuts steps."
+  },
+  {
+   "observable": "Your platform cuts rebalancing time ~70% in your pilots [c82]",
+   "action": "Hours back for advisors; the figure is yours, not Citi's."
+  },
+  {
+   "observable": "Advyzon UMA first rollout is due Q4 2026 [c32]",
+   "action": "Vendor choices are set now; ask where gaps remain."
+  }
+ ],
+ "b6": {
+  "dominance": "weekly 90-minute assets meeting [c51]",
+  "information_appetite": "cites flows, returns, efficiency [c45]",
+  "risk_tolerance": "AI \"doesn't replace\" advisors [c59]",
+  "competitive_drive": "8% growth \"among the best\" [c46]"
+ },
+ "b7": {
+  "gate": "a competitive search chose Advyzon, so expect one [c33]."
+ },
+ "b8": {
+  "against": [
+   {
+    "against": "Citi picked Advyzon [c32].",
+    "reverses_if": "Sieg names a gap."
+   }
+  ],
+  "hypotheses": [
+   {
+    "hypothesis": "Net new assets proof [c51]",
+    "test": "Sieg; disproved if UMA closes [c32]"
+   },
+   {
+    "hypothesis": "Courtesy call, then hand-off [c31]",
+    "test": "Sieg; disproved by questions"
+   }
+  ]
+ },
+ "b9": {
+  "frame": "how Citi advisors rebalance across platforms [c50]; not a pitch.",
+  "lands": "his no hobbies rule [c39]: one narrow proof.",
+  "repels": "ignoring the Advyzon program [c32].",
+  "bring": "one-page comparison; the 70% is your pilot data [c82].",
+  "ask": "30 minutes with Citi's head of advisor technology, via Sieg [c31]",
+  "fallback": "15 minutes with Alex Kokolis [c14].",
+  "stop_if": "he says Advyzon covers rebalancing and tax.",
+  "meeting_two": "a demo for Malhotra's Wealth Technology team [c31].",
+  "meeting_three": "a pilot on one coverage model [c38].",
+  "capture": "who runs vendor approval; Advyzon's gaps."
+ },
+ "still_open": [
+  {
+   "label": "Decision maker",
+   "question": "Who approves advisor-tool vendors?"
+  },
+  {
+   "label": "Relationship holder",
+   "question": "Who at Citi knows your introducer?"
+  }
+ ],
+ "p1": {
+  "hook": "I know you joined Citi from Merrill in 2023 [c1]. You said fragmented data held the business back [c41], and that is why I asked for this call.",
+  "credibility": "My platform cuts advisor rebalancing time; pilots show about 70% [c82].",
+  "insight": "You said advisors struggle across many platforms [c50]; fewer steps per rebalance is what I offer.",
+  "rule": "ask one question, then stop; he leads with outcomes, so keep the opener to one sentence [c51]."
+ },
+ "p2": {
+  "beats": [
+   "open on his Merrill move and fragmented data [c41]",
+   "credibility in one line [c82]",
+   "the many-platforms insight [c50]",
+   "ask for the demo with his technology owner [c31]"
+  ],
+  "order": {
+   "story": 1,
+   "process": 2,
+   "gate": 4,
+   "history": 1,
+   "commitment": 3
+  }
+ },
+ "p3": [
+  {
+   "objection": "We already chose Advyzon.",
+   "answer": "Advyzon powers the UMA program [c32]; which advisor tasks sit outside it?"
+  },
+  {
+   "objection": "No new initiatives: no hobbies.",
+   "answer": "Your rule [c39]; I ask for one 30-minute look, tied to net new assets [c51]."
+  },
+  {
+   "objection": "A bank this size is slow to add vendors.",
+   "answer": "Citi ran a competitive search for Advyzon [c33]; what would a fair look at us need?"
+  }
+ ],
+ "p4": {
+  "restate": "ask what would make a 30-minute demo an easy yes, then say it back in his words.",
+  "deadline": "the Advyzon UMA first rollout in Q4 2026 [c32]; ask for a slot before it.",
+  "followup": "send the one-page time comparison within one day [c82]."
+ },
+ "p5": {
+  "fast": "lead with the outcome in one sentence [c51].",
+  "data": "bring the numbers and the sources; allow silence after a question [c45].",
+  "people": "no read; ask who else weighs in.",
+  "ideas": "pair the upside with the safeguard in the same sentence [c59]."
+ },
+ "p6": {
+  "authority": "quote his own Investor Day figures back to him [c45].",
+  "commitment": "his no hobbies rule [c39]: ask for one small, bounded step.",
+  "scarcity": "the Q4 2026 rollout of the Advyzon UMA program is a real window [c32]."
+ },
+ "p7": {
+  "moves": [
+   "ask which advisor tasks sit outside the Advyzon program [c32]",
+   "return to the many-platforms point [c50] and offer the one-page comparison"
+  ]
+ },
+ "p8": {
+  "rule": "in the US, promise no results; the 70% is your pilot data, not Citi's; claim only what the public record shows."
+ },
+ "p9": {
+  "next_step": "send the one-page comparison and the demo request by Oct 21, 2026 [c82]."
+ }
+}

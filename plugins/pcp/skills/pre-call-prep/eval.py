@@ -180,6 +180,23 @@ def _words(t):
     return len(WORD.findall(CITE.sub(" ", t.replace("*", ""))))
 
 
+def exclusion_hits(text):
+    """C9's matches in a text: each 2.1.0 keyword from the start of a word (`*` any ending, else a whole word), then each listed compound
+    as an exact whole word. Returns (the words matched, topic, compound?) in the registry's order, the first match of each."""
+    out, ex = [], R["exclusions"]
+    for topic, words in ex["keywords"].items():
+        for w in words:
+            stem = w.endswith("*")
+            m = re.search(r"\b(?:" + re.escape(w.rstrip("*")) + (r"\w*" if stem else "") + r")" + ("" if stem else r"\b"), text, re.I)
+            if m:
+                out.append((m.group(0), topic, False))
+        for c in ex["compounds"].get(topic, []):
+            m = re.search(r"\b" + re.escape(c) + r"\b", text, re.I)
+            if m:
+                out.append((m.group(0), topic, True))
+    return out
+
+
 def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None, authority=None):
     """experience: the profile's Q9 answer (new|experienced|top); C15 runs only when it is given."""
     md = brief_md + "\n" + script_md
@@ -262,18 +279,9 @@ def checks(brief_md, script_md="", which="all", target_nouns=(), experience=None
                 if v.lower() in secs.get(blk, "").lower():
                     fails.append(f"C8 outcome: method verb '{v}' in {blk}")
     if want("exclusions"):   # C9: pcp.yaml exclusions.keywords (from the start of a word; `*` any ending) and exclusions.compounds (exact whole words)
-        ex = R["exclusions"]
         body = "\n".join(v for k, v in secs.items() if k not in (LEDGER, "P8"))
-        for topic, words in ex["keywords"].items():
-            for w in words:
-                stem = w.endswith("*")
-                m = re.search(r"\b(?:" + re.escape(w.rstrip("*")) + (r"\w*" if stem else "") + r")" + ("" if stem else r"\b"), body, re.I)
-                if m:
-                    fails.append(f"C9 exclusions: '{m.group(0)}' ({topic}) in body")
-            for c in ex["compounds"].get(topic, []):
-                m = re.search(r"\b" + re.escape(c) + r"\b", body, re.I)
-                if m:
-                    fails.append(f"C9 exclusions: '{m.group(0)}' ({topic}, a compound) in body")
+        for hit, topic, compound in exclusion_hits(body):
+            fails.append(f"C9 exclusions: '{hit}' ({topic}{', a compound' if compound else ''}) in body")
     if want("plain"):
         for h in plain_hits(md):
             fails.append(f"C11 plain: '{h}' outside quoted words")
@@ -1290,26 +1298,124 @@ def self_test(require_pdf=False):
     else:
         print("passes: target kind and social scope steer the base pass (company drops F2 F5 F6 F7 and round 2; scope none drops F6)")
     # ---- kept facts (C24): a fit pass cuts wording, never cited facts
+    dead = lambda urls: [(u, 404, "dead") for u in urls]   # link checks, offline: the page is gone / it answers
+    alive = lambda urls: [(u, 200, "ok") for u in urls]
     cut = re.sub(r"^\| \[12\].*\n", "", c12, flags=re.M).replace(" [12]", "").replace("12 facts cited", "11 facts cited").replace("12 cited", "11 cited")
     shorter = c12.replace("Introduction to the custodian offered", "Custodian introduction offered").replace("Sets agendas on panels", "Sets panel agendas")
-    for case, final, allow, trips in (("a cited fact cut to fit the page", cut, (), True),
-                                      ("the same fact cut, named as a dead link", cut, ("https://example.org/12",), False),
-                                      ("shorter wording, every fact kept", shorter, (), False),
-                                      ("one of three facts from the same page and day cut", None, (), True)):
-        if final is None:   # rows 3 and 4 cite one page on one day: dropping one of them must still be seen
-            same = c12.replace("https://example.org/4", "https://example.org/3")
-            final = re.sub(r"^\| \[4\].*\n", "", same, flags=re.M).replace(" [4]", "")
-            f = kept_check(same, final, allow)
-            if bool(f) != trips:
-                print(f"FAIL C24 on {case}: expected a failure, got {f}"); ok = False
-            else:
-                print(f"tripped: C24 on {case}")
-            continue
-        f = kept_check(c12, final, allow)
-        if bool(f) != trips:
-            print(f"FAIL C24 on {case}: expected {'a failure' if trips else 'a pass'}, got {f}"); ok = False
+    same = c12.replace("https://example.org/4", "https://example.org/3")   # rows 3 and 4 cite one page on one day
+    cut4 = re.sub(r"^\| \[4\].*\n", "", same, flags=re.M).replace(" [4]", "")
+    for case, draft, final, allow, status, want in (
+            ("a cited fact cut to fit the page", c12, cut, (), dead, "are gone"),
+            ("the same fact cut, named by its number as a dead link (404)", c12, cut, ("12=dead",), dead, None),
+            ("the same fact excused by its page's URL (the Oct 17 bypass)", c12, cut, ("https://example.org/12",), dead, "excuses nothing"),
+            ("the same fact excused for fit", c12, cut, ("12=fit",), dead, "excuses nothing"),
+            ("the same fact named dead while its page answers (200)", c12, cut, ("12=dead",), alive, "answers"),
+            ("the same fact named excluded with no excluded topic", c12, cut, ("12=excluded",), dead, "touches no excluded topic"),
+            ("shorter wording, every fact kept", c12, shorter, (), dead, None),
+            ("one of three facts from the same page and day cut", same, cut4, (), dead, "are gone"),
+            ("that fact named dead while its page is still cited", same, cut4, ("4=dead",), dead, "still cited")):
+        f = kept_check(draft, final, allow, status=status)
+        if (want is None and f) or (want and not any(want in x for x in f)):
+            print(f"FAIL C24 on {case}: expected {'a pass' if want is None else repr(want)}, got {f}"); ok = False
         else:
-            print(f"{'tripped' if trips else 'passes'}: C24 on {case}")
+            print(f"{'passes' if want is None else 'tripped'}: C24 on {case}")
+    # the real run (Claude desktop, Oct 17, Andy Sieg at Citi, recovered from its transcript and records): the first draft cited 27 facts, the
+    # PDF 18; eval.py kept passed only because every cut was excused with --allow <page>
+    ko = fx / "kept_oct17"
+    kprof = _y.safe_load((ko / "profile.yaml").read_text())
+    d27, s27 = (ko / "brief.draft.md").read_text(), (ko / "script.draft.md").read_text()
+    f18, sc18 = (ko / "brief.final.md").read_text(), (ko / "script.final.md").read_text()
+    oct17_allow = ["https://www.efinancialcareers.com/news/andy-sieg-citi-wealth", "https://www.citigroup.com/global/about-us/leadership/andy-sieg",
+                   "https://www.citigroup.com/global/news/press-release/2026/citi-wealth-unveils-citi-sky-ai-powered-member-google-cloud-deepmind-technologies",
+                   "https://www.citigroup.com/rcs/citigpa/storage/public/investor-day/citi-ID26-wealth-presentation-transcript.pdf",
+                   "https://www.bankingdive.com/news/citi-andy-sieg-strategy-wealth-business/718852/",
+                   "https://citigroup.com/rcs/citigpa/storage/public/b-of-a-2025-conference-transcript.pdf", "your message (intake)"]
+    gone = {6, 10, 29, 42, 43, 47, 53, 56, 61, 81}   # the ten claims the fit passes cut (claim 63 was added)
+    with tempfile.TemporaryDirectory() as tk:
+        tk = pathlib.Path(tk)
+        for x in ("claims.jsonl", "coverage.json", "read.json", "fields.json"):
+            shutil.copy(ko / x, tk / x)
+        print_line = record_draft(tk, d27, s27, json.loads((ko / "draft.facts.json").read_text()), "deep")
+        bk, sk, pk, ok18 = assemble(tk, kprof, "deep", want_order=True)
+        (tk / "brief.md").write_text(bk); (tk / "script.md").write_text(sk)
+        cases = [("the Oct 17 fit passes (27 cited facts to 18)", (), dead, ["10 of the draft's 27"] + [f"(claim {c})" for c in sorted(gone)]),
+                 ("the same with the run's own --allow pages", oct17_allow, dead, ["excuses nothing", "10 of the draft's 27"]),
+                 ("a cut fact named dead while its page answers (efinancialcareers, 200 on Oct 17)", ("9=dead",), alive, ["answers", "10 of the draft's 27"]),
+                 ("a cut fact named dead while its page is still cited (the Investor Day transcript)", ("5=dead",), dead, ["still cited", "10 of the draft's 27"])]
+        draft_ids = json.loads((ko / "draft.facts.json").read_text())
+        if draft_ids.index(10) + 1 != 9 or draft_ids.index(42) + 1 != 5:
+            print("FAIL kept_oct17: the draft's ledger numbers moved (claim 10 is [9], claim 42 [5])"); ok = False
+        for case, allow, status, wants in cases:
+            f, summ = kept_folder(tk, allow, kprof, status)
+            if all(any(w in x for x in f) for w in wants):
+                print(f"tripped: C24 by {case} ({summ})")
+            else:
+                print(f"FAIL C24 must trip on {case} (want {wants}):", f); ok = False
+        (tk / "brief.draft.md").write_text(bk)   # a 'draft' copied after the cuts
+        f, _ = kept_folder(tk, (), kprof, dead)
+        if any("not the draft eval.py assemble recorded" in x for x in f):
+            print("tripped: C24 by a draft copy taken after the cuts (its sha256 is not the one assemble recorded)")
+        else:
+            print("FAIL C24 must refuse a draft copied after the cuts:", f); ok = False
+        (tk / "draft.lock.json").unlink()
+        f, _ = kept_folder(tk, (), kprof, dead)
+        if not any("no draft.lock.json" in x for x in f):
+            print("FAIL C24 must fail a folder with no recorded draft:", f); ok = False
+        else:
+            print("tripped: C24 by a folder with no recorded draft")
+    f = kept_check(d27, f18, oct17_allow, s27, sc18, status=dead)
+    if not (any("excuses nothing" in x for x in f) and any("are gone" in x for x in f)):
+        print("FAIL C24 (two files) must trip on the Oct 17 draft and final with its --allow pages:", f); ok = False
+    else:
+        print("tripped: C24 by the Oct 17 draft and PDF brief as two files, with the run's --allow pages")
+    f = kept_check(d27, (ko / "brief.kept.md").read_text(), (), s27, s27, status=dead)
+    if f:
+        print("FAIL C24 must pass the Oct 17 draft's 27 facts kept with shorter wording:", f); ok = False
+    else:
+        print(f"passes: C24 on the Oct 17 draft's {count_facts(d27)} cited facts all kept, wording cut in the S4-4 order (brief.kept.md)")
+    with tempfile.TemporaryDirectory() as tk:   # the ledger sizes the draft: 27 facts do not fit, so the first build refuses them
+        tk = pathlib.Path(tk)
+        for x in ("claims.jsonl", "coverage.json", "read.json"):
+            shutil.copy(ko / x, tk / x)
+        fj = json.loads((ko / "fields.json").read_text())
+        (tk / "fields.json").write_text(json.dumps(fj))
+        b18, s18x, p18, o18 = assemble(tk, kprof, "deep", want_order=True)
+        record_draft(tk, b18, s18x, o18, "deep")
+        fj["b9"]["frame"] = "Citi advisors rebalance across platforms [c50]; not a pitch."   # wording only, every fact kept
+        fj["b9"]["capture"] = "who approves vendors; Advyzon's gaps."
+        (tk / "fields.json").write_text(json.dumps(fj))
+        bk, sk, pk = assemble(tk, kprof, "deep")
+        (tk / "brief.md").write_text(bk); (tk / "script.md").write_text(sk)
+        f, summ = kept_folder(tk, (), kprof, dead)
+        if f or p18 or pk:
+            print("FAIL C24 must pass the Oct 17 final as a draft, reworded with every fact kept:", f, p18, pk); ok = False
+        else:
+            print(f"passes: C24 on a run folder whose fit pass cut only wording ({summ})")
+    with tempfile.TemporaryDirectory() as tk:   # the page sizes the draft: the first build is rendered once and recorded only if it fits
+        tk = pathlib.Path(tk)
+        for x in ("claims.jsonl", "coverage.json", "read.json"):
+            shutil.copy(ko / x, tk / x)
+        b27f = json.loads((ko / "fields.json").read_text())
+        nine = ["Citi Sky unveiled (Apr 22) [c29]", "net flows his test [c56]", "four-layer plan [c42]", "Advyzon this fall [c43]", "credits Moore and Glenfield [c47]",
+                "best-in-class [c53]", "$38B net new [c61]", "US retail bank [c10]", "Merrill since 1992 [c6]"]
+        b27f["b3"]["changed"] = b27f["b3"]["changed"] + nine   # the run's 27 facts, the nine extra as short cited mentions
+        (tk / "fields.json").write_text(json.dumps(b27f))
+        if trial_fit(*assemble(tk, kprof, "deep")[:2], b27f) is None:
+            print(("FAIL" if require_pdf else "skipped:") + " C26 first-build fit: no browser engine to render the first build"); ok = ok and not require_pdf
+        else:
+            out, code = build(tk, kprof, "deep")
+            wanted = json.loads((tk / "draft.wanted.json").read_text()) if (tk / "draft.wanted.json").exists() else []
+            if code == 1 and not (tk / "draft.lock.json").exists() and not (tk / "brief.md").exists() and len(wanted) == 27:
+                print("tripped: C26 assemble by a first build citing the run's 27 facts, more than its page holds (rendered once: nothing written, no draft recorded, the 27 kept in draft.wanted.json)")
+            else:
+                print("FAIL a first build that does not fit must write nothing and record no draft:", out, wanted); ok = False
+            (tk / "fields.json").write_text((ko / "fields.json").read_text())   # the strongest 18, as the run printed them
+            out, code = build(tk, kprof, "deep")
+            f, summ = kept_folder(tk, (), kprof, dead)
+            if code or f or "could not hold 9 more" not in summ:
+                print("FAIL the 18-fact build must be recorded as the draft and name the 9 the page could not hold:", out, f, summ); ok = False
+            else:
+                print(f"passes: C24 on the 18 facts the page holds, recorded as the draft; kept names the 9 left out for the user ({summ[:90]}...)")
     late = c12.replace("| Sep 20, 2026 · standard", "| Oct 15, 2026 · standard")
     for case, md, trips in (("a Run row from before Oct 15 without counts (frozen targets)", c12, False),
                             ("a Run row from Oct 15 without counts", late, True),
@@ -2548,24 +2654,71 @@ def count_facts(md):
     return sum(len(v) for v in ledger_facts(md).values())
 
 
-def kept_check(draft_md, final_md, allow=(), draft_script="", final_script=""):
-    """C24: a fit pass cuts wording, never cited facts (the Codex run, Oct 16: 23 cited facts cut to 18 to fit 3 pages). Every ledger row of the
-    first complete draft is still a ledger row of the final brief (counted per page and date), and still cited in a sentence there, unless
-    the user is told why (--allow <page>: a dead link, an excluded topic). Returns the failures."""
+ALLOW = re.compile(r"^\s*(\d+)\s*=\s*(dead|excluded)\s*$")   # --allow N=dead | N=excluded: one fact of the draft's ledger, one reason
+DRAFT_LOCK = "draft.lock.json"
+
+
+def _row_url(md, n):
+    """The full link of ledger row [n], or '' (your request, your file)."""
+    for m in SRC_ROW.finditer(md):
+        if int(m.group(1)) == n:
+            u = re.search(r"\]\((https?://[^)\s]+)", m.group(3)) or re.search(r"(https?://[^\s|)]+)", m.group(3))
+            return u.group(1) if u else ""
+    return ""
+
+
+def _allowed(allow, facts, final_pages, status=None, excluded=None):
+    """Read --allow N=dead|excluded against the draft's facts {n: (page, url, text)}. dead: the page is cited nowhere in the final and
+    does not answer (eval.py links: 404, 410, 5xx or no answer; a page that answers, or refuses bots, keeps its fact, S2-8); excluded:
+    the fact trips an exclusion keyword (C9) or its claim carries exclusion_hit. Anything else -- a page, a URL, a reason such as fit --
+    excuses nothing. Returns (allowed {n: reason}, failures)."""
+    ok, fails = {}, []
+    status = status or link_status
+    for x in allow:
+        m = ALLOW.match(str(x))
+        if not m:
+            fails.append(f"C24 kept: --allow '{str(x)[:70]}' excuses nothing: name one fact of the draft and why it was dropped, "
+                         "--allow N=dead or N=excluded (N its number in the draft's ledger); a page, a URL or fit is never a reason (S4-4)")
+            continue
+        n, why = int(m.group(1)), m.group(2)
+        if n not in facts:
+            fails.append(f"C24 kept: --allow {n}={why}: the draft's ledger has no fact [{n}]"); continue
+        page, url, text = facts[n]
+        if why == "dead":
+            if not url:
+                fails.append(f"C24 kept: --allow {n}=dead: [{n}] '{text[:40]}' has no link to go dead (your request or your file)"); continue
+            if page in final_pages:
+                fails.append(f"C24 kept: --allow {n}=dead: [{n}] '{text[:40]}': its page {page} is still cited in the final brief, so it is not dead"); continue
+            u, code, kind = status([url])[0]
+            if kind != "dead":
+                fails.append(f"C24 kept: --allow {n}=dead: [{n}] '{text[:40]}': {page} answers ({code}, {kind}); a page that answers or "
+                             "refuses bots keeps its fact (S2-8)"); continue
+        elif not (exclusion_hits(text) or (excluded and excluded(n))):
+            fails.append(f"C24 kept: --allow {n}=excluded: [{n}] '{text[:40]}' touches no excluded topic (C9) and its claim has no exclusion_hit"); continue
+        ok[n] = why
+    return ok, fails
+
+
+def kept_check(draft_md, final_md, allow=(), draft_script="", final_script="", status=None, told=None):
+    """C24: a fit pass cuts wording, never cited facts (the Codex run, Oct 16: 23 cited facts cut to 18 to fit 3 pages; the Claude desktop
+    run, Oct 17: 27 cut to 18, every cut excused with --allow <page>). Every ledger row of the first complete draft is still a ledger
+    row of the final brief (counted per page and date) and still cited in a sentence there. --allow N=dead|excluded names one draft fact
+    dropped for that reason (checked, see _allowed) and told to the user; nothing else excuses a cut. Returns the failures."""
     a, b = ledger_facts(draft_md), ledger_facts(final_md)
-    ok = {_page(x) if x.startswith("http") else x.lower() for x in allow}
+    facts = {r["n"]: (k[0], _row_url(draft_md, r["n"]), r["what"]) for k, rows in a.items() for r in rows}
+    ok, fails = _allowed(allow, facts, {k[0] for k in b}, status)
+    if told is not None:
+        told += [f"[{n}] {facts[n][2][:40]} ({why})" for n, why in sorted(ok.items())]
     lost = []
     for k, rows in a.items():
-        if k[0] in ok:
-            continue
-        gone = len(rows) - len(b.get(k, []))
+        gone = len(rows) - len(b.get(k, [])) - sum(1 for r in rows if r["n"] in ok)
         if gone > 0:
-            lost += [(k, r) for r in rows[len(rows) - gone:]]
-    fails = []
+            lost += [(k, r) for r in [r for r in rows if r["n"] not in ok][-gone:]]
     if lost:
         fails.append(f"C24 kept: {len(lost)} of the draft's {count_facts(draft_md)} cited facts are gone from the final brief ({count_facts(final_md)} remain): "
                      + "; ".join(f"[{v['n']}] {v['what'][:40]} ({k[0]})" for k, v in lost[:4])
-                     + (" ..." if len(lost) > 4 else "") + " -- cut wording, never facts (S4-4)")
+                     + (" ..." if len(lost) > 4 else "") + " -- cut wording, never facts; a fact that will not fit keeps its ledger row and a "
+                     "short cited mention (S4-4); redo the fit")
     def cited_in(brief, script):
         secs, cited = _sections(brief + "\n" + script), set()
         for k in _body_ids(secs):
@@ -2576,6 +2729,118 @@ def kept_check(draft_md, final_md, allow=(), draft_script="", final_script=""):
     if silent:
         fails.append(f"C24 kept: facts {silent} are still in the ledger but no sentence cites them any more; the fact was cut, not the wording")
     return fails
+
+
+def record_draft(folder, brief, script, order, depth):
+    """The first complete draft, taken by eval.py assemble the first time it builds the brief -- so it is always taken before any fit
+    pass, whatever order the run works in: brief.draft.md, script.draft.md and draft.lock.json (their sha256, the time, the depth and
+    the ledger's claim ids). Never rewritten: a later build is held to it by eval.py kept <folder>. Returns a line for the run's log."""
+    import hashlib
+    d = pathlib.Path(folder)
+    lock = d / DRAFT_LOCK
+    if lock.exists():
+        j = json.loads(lock.read_text())
+        return f"first draft: {len(j.get('facts', []))} cited facts (recorded {j.get('taken')}); this build: {len(order)}; eval.py kept {folder} compares them"
+    (d / "brief.draft.md").write_text(brief); (d / "script.draft.md").write_text(script)
+    sha = lambda t: hashlib.sha256(t.encode()).hexdigest()
+    w = d / "draft.wanted.json"
+    wanted = [c for c in (json.loads(w.read_text()) if w.exists() else []) if c not in order]   # cited by a first build that did not fit
+    lock.write_text(json.dumps({"taken": dt.datetime.now().isoformat(timespec="seconds"), "depth": depth, "facts": list(order), "not_held": wanted,
+                                "brief_sha256": sha(brief), "script_sha256": sha(script)}, indent=1) + "\n")
+    return f"first complete draft recorded: {len(order)} cited facts ({DRAFT_LOCK}, brief.draft.md, script.draft.md); every later build is held to it (eval.py kept {folder})"
+
+
+def trial_fit(brief, script, fj):
+    """The first build rendered once, as the run renders it (format/talyx_pdf.py --style brief, 2 + 1 pages): the renderer's report
+    ({'ok': ..., 'longest_sections': ...}), or None where it cannot render (no browser engine: the in-chat path, S4-10)."""
+    tool = HERE / "format" / "talyx_pdf.py"
+    if not tool.exists():
+        return None
+    pb, t = R["page_budget"], fj.get("target") or {}
+    with tempfile.TemporaryDirectory() as td:
+        b, sc = pathlib.Path(td, "brief.md"), pathlib.Path(td, "script.md")
+        b.write_text(brief); sc.write_text(script)
+        try:
+            r = subprocess.run([sys.executable, str(tool), "--style", "brief", "--brief", str(b), "--script", str(sc), "--columns", pb["columns"],
+                                "--classification", R["names"]["classification"], "--footer", f"{R['names']['deliverable']} · {t.get('name', '')}, {t.get('org', '')}",
+                                "--brief-pages", str(pb["brief_pages"]), "--max-pages", str(pb["total_pages"]), "--out", str(pathlib.Path(td, "trial.pdf"))],
+                               capture_output=True, text=True, timeout=300)
+            return json.loads(r.stdout.strip().splitlines()[-1])
+        except (subprocess.SubprocessError, ValueError, IndexError):
+            return None
+
+
+def build(folder, profile=None, depth=None, render=True):
+    """`eval.py assemble <folder>`: build brief.md and script.md from fields.json and the records. The first build of a folder is its
+    first complete draft (record_draft): it is rendered once first, and only a build whose 3 pages fit is recorded, because nothing in it
+    may be cut afterwards. A first build that does not fit writes nothing; the facts it cited are kept in draft.wanted.json, so the run can
+    name the ones the page could not hold. Returns (lines to print, exit code)."""
+    d = pathlib.Path(folder)
+    brief, script, probs, order = assemble(d, profile, depth, want_order=True)
+    if probs:
+        return [f"assemble {folder}: {len(probs)} problems; fix fields.json, then run again", *[" - " + x for x in probs]], 1
+    depth = depth or _answers(profile).get("Q5") or "standard"
+    if not (d / DRAFT_LOCK).exists() and render:
+        fit = trial_fit(brief, script, _load_json(d / "fields.json")[0] or {})
+        if fit is not None and fit.get("ok") is False:
+            w = d / "draft.wanted.json"
+            wanted = list(dict.fromkeys((json.loads(w.read_text()) if w.exists() else []) + list(order)))
+            w.write_text(json.dumps(wanted) + "\n")
+            return [f"assemble {folder}: the first build does not fit the {R['page_budget']['total_pages']} pages ({fit.get('reason', '')}; longest: "
+                    + ", ".join(f"{n} {w_} words" for w_, n in (fit.get("longest_sections") or [])[:4]) + "); nothing written, no draft recorded",
+                    f" - cut wording first, in the S4-4 order; if the ledger (one line per fact, {len(order)} now) still overflows, cite fewer facts, "
+                    "the strongest first, and name the ones left out to the user (kept in draft.wanted.json): every fact of the recorded draft stays to the end"], 1
+    (d / "brief.md").write_text(brief); (d / "script.md").write_text(script)
+    f = schema_check(brief, script) + grading_check(brief)
+    out = [f"assembled {folder}/brief.md and script.md; schema and grading: {len(f)} failures", *[" - " + x for x in f], record_draft(d, brief, script, order, depth)]
+    return out, 1 if f else 0
+
+
+def kept_folder(folder, allow=(), profile=None, status=None):
+    """C24 on a run folder: the draft eval.py assemble recorded (draft.lock.json, its files unchanged) against the brief fields.json
+    builds now, fact by fact (claim ids, so renumbering or a reworded 'What it says' cell hides nothing). Returns (failures, summary)."""
+    import hashlib
+    d = pathlib.Path(folder)
+    lock = d / DRAFT_LOCK
+    if not lock.exists():
+        return [f"C24 kept: {folder} has no {DRAFT_LOCK}: eval.py assemble records the first complete draft the first time it builds the "
+                "brief; it cannot be recorded later, so this run cannot show that no fact was cut"], "no recorded draft"
+    j = json.loads(lock.read_text())
+    sha = lambda t: hashlib.sha256(t.encode()).hexdigest()
+    fails = []
+    draft_md = (d / "brief.draft.md").read_text() if (d / "brief.draft.md").exists() else ""
+    draft_sc = (d / "script.draft.md").read_text() if (d / "script.draft.md").exists() else ""
+    if sha(draft_md) != j.get("brief_sha256") or sha(draft_sc) != j.get("script_sha256"):
+        fails.append(f"C24 kept: brief.draft.md or script.draft.md is not the draft eval.py assemble recorded at {j.get('taken')} (changed or replaced)")
+    brief, script, probs, order = assemble(d, profile, j.get("depth"), want_order=True)
+    if probs:
+        return fails + [f"C24 kept: fields.json does not assemble ({probs[0]})"], "no final"
+    on_disk = ((d / "brief.md").read_text() if (d / "brief.md").exists() else "", (d / "script.md").read_text() if (d / "script.md").exists() else "")
+    if on_disk != (brief, script):
+        fails.append("C24 kept: brief.md and script.md are not what eval.py assemble builds from fields.json now (C26): assemble, then run kept")
+    claims = {}
+    for ln in (d / R["records"]["claims"]["file"]).read_text().splitlines():
+        if ln.strip():
+            c = json.loads(ln); claims[c["id"]] = c
+    draft = list(j.get("facts", []))
+    url = lambda cid: str(claims.get(cid, {}).get("url", ""))
+    facts = {i: (_page(url(cid)) if url(cid).startswith("http") else url(cid).lower(), url(cid) if url(cid).startswith("http") else "",
+                 f"{claims.get(cid, {}).get('says', '')} {claims.get(cid, {}).get('claim', '')}") for i, cid in enumerate(draft, 1)}
+    final_pages = {_page(url(cid)) for cid in order if url(cid).startswith("http")}
+    ok, af = _allowed(allow, facts, final_pages, status, excluded=lambda n: bool(claims.get(draft[n - 1], {}).get("exclusion_hit")))
+    fails += af
+    lost = [(i, cid) for i, cid in enumerate(draft, 1) if cid not in order and i not in ok]
+    if lost:
+        fails.append(f"C24 kept: {len(lost)} of the draft's {len(draft)} cited facts are gone from the final brief ({len(order)} cited now): "
+                     + "; ".join(f"[{i}] {claims.get(cid, {}).get('says', '')[:40]} (claim {cid})" for i, cid in lost[:10])
+                     + (" ..." if len(lost) > 10 else "") + " -- cut wording, never facts; a fact that will not fit keeps its ledger row and "
+                     "a short cited mention (S4-4); redo the fit")
+    kept = sum(1 for cid in draft if cid in order)
+    told = "; ".join(f"[{n}] {facts[n][2].strip()[:40]} ({why})" for n, why in sorted(ok.items()))
+    held = [claims.get(c, {}).get("says", f"claim {c}") for c in j.get("not_held", [])]
+    return fails, (f"draft {len(draft)} cited facts (recorded {j.get('taken')}), final {len(order)}; {kept} of {len(draft)} kept"
+                   + (f"; dropped with a reason the user is told: {told}" if told else "")
+                   + (f"; the page could not hold {len(held)} more, named to the user: {'; '.join(held)}" if held else ""))
 
 
 def effective_conf(c):
@@ -2622,15 +2887,16 @@ def _label_of(qid, value):
     return re.sub(r"\s*\(Recommended\)", "", o["label"]) if o else str(value or "")
 
 
-def assemble(folder, profile=None, depth=None):
-    """Build brief.md and script.md in `folder` from fields.json + the three records + the profile. Returns (brief, script, problems).
+def assemble(folder, profile=None, depth=None, want_order=False):
+    """Build brief.md and script.md in `folder` from fields.json + the three records + the profile. Returns (brief, script, problems),
+    and with want_order the ledger's claim ids in order (C24 compares facts by claim, so renumbering or a reworded cell hides nothing).
     Problems are missing fields, unknown claim ids and uncited text where a form demands a citation: the run fixes fields.json, never
     the output."""
     d, F = pathlib.Path(folder), R["forms"]
     probs = []
     fj, err = _load_json(d / "fields.json")
     if err:
-        return "", "", [f"C26 assemble: {err}"]
+        return ("", "", [f"C26 assemble: {err}"]) + (([],) if want_order else ())
     claims = {}
     for ln in (d / R["records"]["claims"]["file"]).read_text().splitlines():
         if ln.strip():
@@ -2844,8 +3110,15 @@ def assemble(folder, profile=None, depth=None):
     sc = R["script"]
     script = (f"# {fill_names(sc['title'])}\n*{sc['subtitle']} · {t.get('name', '')}, {t.get('org', '')} · Prepared {day}*\n\n"
               + "\n\n".join(f"## {b['id']} {fill_names(b['title'])}\n{S[b['id']]}" for b in sc["blocks"] if S.get(b["id"]).strip()) + "\n")
+    # the ledger is one line per cited fact, so its length is set by how many facts the brief cites: over its budget (C6, +15%), the page
+    # cannot hold them and a fit pass would have to cut facts. Choose the strongest facts before the first build (S4-4); nothing is cut after it.
+    b10 = next(x for x in R["brief"]["sections"] if x["id"] == LEDGER)["words"]
+    lw = len(WORD.findall(LINK_URL.sub("]", _sections(brief + "\n" + script).get(LEDGER, ""))))   # exactly as C6 counts it
+    if order and lw > b10 * 1.15:
+        probs.append(f"C26 assemble: the evidence ledger is {lw} words for {len(order)} cited facts, over its budget of {b10} (+15%): cite fewer facts in "
+                     "fields.json before the first build, the strongest first -- every fact of the first build stays to the end (S4-4)")
     # the page's [n] numbers came from the text above: any block assembled before a later one numbered them in this order
-    return brief, script, probs
+    return (brief, script, probs, list(order)) if want_order else (brief, script, probs)
 
 
 def fill_names(s):
@@ -3922,10 +4195,12 @@ def main():
     bt.add_argument("--profile", help="the saved profile (~/.pcp/profile.yaml): a saved offer that conflicts with the request needs a question first")
     rcd = sub.add_parser("records", help="C23: claims.jsonl, coverage.json and read.json are complete and agree, before the run is called done")
     rcd.add_argument("folder"); rcd.add_argument("--depth", default="standard", choices=["fast", "standard", "deep"]); rcd.add_argument("--brief")
-    kp = sub.add_parser("kept", help="C24: the final brief holds every cited fact of the first complete draft (cut wording, never facts)")
-    kp.add_argument("draft"); kp.add_argument("final"); kp.add_argument("--draft-script", default=""); kp.add_argument("--final-script", default="")
-    kp.add_argument("--allow", action="append", default=[], metavar="PAGE",
-                    help="a page whose fact was dropped for a reason the user is told (dead link, excluded topic)")
+    kp = sub.add_parser("kept", help="C24: the final brief holds every cited fact of the first complete draft (cut wording, never facts); "
+                        "give the run folder: the draft is the one eval.py assemble recorded")
+    kp.add_argument("draft", metavar="FOLDER | DRAFT"); kp.add_argument("final", nargs="?"); kp.add_argument("--draft-script", default=""); kp.add_argument("--final-script", default="")
+    kp.add_argument("--allow", action="append", default=[], metavar="N=dead|excluded",
+                    help="one fact of the draft's ledger, [N], dropped because its page is dead or it touches an excluded topic (checked; told to the user); never fit")
+    kp.add_argument("--profile", default=str(pathlib.Path.home() / ".pcp/profile.yaml"))
     oc = sub.add_parser("offer-conflict", help="C22: does the request name a different business than the saved offer?")
     oc.add_argument("--saved", required=True); oc.add_argument("--request", required=True)
     ch = sub.add_parser("chat"); ch.add_argument("reply"); ch.add_argument("--target-nouns", default="")
@@ -4071,22 +4346,33 @@ def main():
             f = assembled_matches(a.folder, prof, a.depth)
             print(f"assemble --check {a.folder}: {len(f)} failures", *[" - " + x for x in f], sep="\n")
             sys.exit(1 if f else 0)
-        brief, script, probs = assemble(a.folder, prof, a.depth)
-        if probs:
-            print(f"assemble {a.folder}: {len(probs)} problems; fix fields.json, then run again", *[" - " + x for x in probs], sep="\n")
-            sys.exit(1)
-        pathlib.Path(a.folder, "brief.md").write_text(brief); pathlib.Path(a.folder, "script.md").write_text(script)
-        f = schema_check(brief, script) + grading_check(brief)
-        print(f"assembled {a.folder}/brief.md and script.md; schema and grading: {len(f)} failures", *[" - " + x for x in f], sep="\n")
+        out, code = build(a.folder, prof, a.depth)
+        print(*out, sep="\n")
+        sys.exit(code)
         sys.exit(1 if f else 0)
     if a.cmd == "records":
         f = records_check(a.folder, a.depth, pathlib.Path(a.brief).read_text() if a.brief else "")
         print(f"records {a.folder}: {len(f)} failures", *[" - " + x for x in f], sep="\n")
         sys.exit(1 if f else 0)
     if a.cmd == "kept":
+        if a.final is None:
+            if not pathlib.Path(a.draft).is_dir():
+                sys.exit("kept: give the run folder (eval.py kept <folder>), or two files (eval.py kept <draft brief.md> <final brief.md>)")
+            prof = None
+            if pathlib.Path(a.profile).exists():
+                import yaml
+                prof = yaml.safe_load(pathlib.Path(a.profile).read_text())
+            f, summary = kept_folder(a.draft, a.allow, prof)
+            print(f"kept {a.draft}: {summary}; {len(f)} failures", *[" - " + x for x in f], sep="\n")
+            sys.exit(1 if f else 0)
+        import hashlib
         rd = lambda x: pathlib.Path(x).read_text() if x else ""
-        f = kept_check(rd(a.draft), rd(a.final), a.allow, rd(a.draft_script), rd(a.final_script))
-        print(f"kept: draft {count_facts(pathlib.Path(a.draft).read_text())} cited facts, final {count_facts(pathlib.Path(a.final).read_text())}; {len(f)} failures",
+        f, told, lockp = [], [], pathlib.Path(a.draft).resolve().parent / DRAFT_LOCK
+        if lockp.exists() and hashlib.sha256(rd(a.draft).encode()).hexdigest() != json.loads(lockp.read_text()).get("brief_sha256"):
+            f.append(f"C24 kept: {a.draft} is not the draft eval.py assemble recorded in {lockp.parent} (a copy taken later, or changed): run eval.py kept {lockp.parent}")
+        f += kept_check(rd(a.draft), rd(a.final), a.allow, rd(a.draft_script), rd(a.final_script), told=told)
+        print(f"kept: draft {count_facts(rd(a.draft))} cited facts, final {count_facts(rd(a.final))}"
+              + (f"; dropped with a reason the user is told: {'; '.join(told)}" if told else "") + f"; {len(f)} failures",
               *[" - " + x for x in f], sep="\n")
         sys.exit(1 if f else 0)
     if a.cmd == "offer-conflict":

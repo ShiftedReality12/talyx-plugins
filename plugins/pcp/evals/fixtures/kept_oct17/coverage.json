@@ -1,0 +1,221 @@
+{
+ "base": {
+  "F1": [
+   "\"Andy Sieg\" \"Merrill\" President Merrill Wealth Management Bank of America"
+  ],
+  "F2": [
+   "\"Andy Sieg\" Merrill career OR joined OR appointed OR promoted"
+  ],
+  "F3": [
+   "\"Merrill\" news OR announces OR partnership OR acquisition OR raises 2026"
+  ],
+  "F4": [
+   "about OR mission Merrill Wealth Management [allowed_domains: ml.com]"
+  ],
+  "F5": [
+   "\"Andy Sieg\" interview OR podcast OR panel OR quoted OR keynote"
+  ],
+  "F6": [
+   "\"Andy Sieg\" [allowed_domains: linkedin.com]",
+   "\"Andy Sieg\" [allowed_domains: youtube.com]"
+  ],
+  "F7": [
+   "\"Andy Sieg\" board OR trustee OR advisory OR member OR association OR alumni"
+  ],
+  "F8": [
+   "\"Andy Sieg\" author OR paper OR patent OR whitepaper OR book"
+  ],
+  "F9": [
+   "\"Andrew Sieg\" OR \"Andy Sieg\" [allowed_domains: brokercheck.finra.org]",
+   "\"Andrew Sieg\" OR \"Andy Sieg\" adviser [allowed_domains: adviserinfo.sec.gov]",
+   "\"Andrew M. Sieg\" OR \"Andy Sieg\" Merrill Lynch OR Citigroup [allowed_domains: sec.gov]"
+  ],
+  "F10": [
+   "\"Andy Sieg\" OR \"Merrill\" conference OR summit OR webinar 2026"
+  ],
+  "F12": [
+   "\"Merrill\" lawsuit OR layoffs OR departure OR decline OR criticism"
+  ]
+ },
+ "rounds": [
+  {
+   "round": 1,
+   "name": "identity lock",
+   "queries": [
+    "\"Andy Sieg\" \"Merrill\" [allowed_domains: linkedin.com]",
+    "\"Andy Sieg\" [allowed_domains: ml.com, newsroom.bankofamerica.com, bankofamerica.com]",
+    "\"Andy Sieg\" \"Merrill\" President",
+    "\"Andy Sieg\" Head of Wealth -\"Merrill\" -Lynch",
+    "\"Andrew Sieg\" Citigroup Head of Citi Wealth executive officer [allowed_domains: sec.gov]",
+    "\"Andy Sieg\" Citi Head of Wealth 2026"
+   ],
+   "ignored_operators": [
+    "exclusion -\"Merrill\" -Lynch not applied (every result still named Merrill)",
+    "typed site: not used (domain filter instead)"
+   ]
+  },
+  {
+   "round": 2,
+   "name": "role and history",
+   "queries": [
+    "\"Andy Sieg\" (intitle:bio OR inurl:bio OR inurl:leadership OR inurl:speakers OR inurl:team)",
+    "\"Andy Sieg\" appointed OR joined OR named OR promoted Citi OR Merrill",
+    "\"Andy Sieg\" Citigroup [allowed_domains: linkedin.com]",
+    "\"Andy Sieg\" board OR trustee OR advisory \"Notre-Dame\" OR \"Stanford Center on Longevity\" OR ReadWorks OR \"Penn State\"",
+    "\"Andy Sieg\" \"Penn State\" OR \"Harvard Kennedy School\" OR \"Citigroup\" 2005",
+    "Merrill Wealth Management president OR \"co-head\" OR \"head of\" appointed OR named 2025 OR 2026 Bank of America Lindsay Hans Eric Schimpf",
+    "\"Andy Sieg\" Merrill \"Global Wealth and Retirement Solutions\" OR Thiel appointed head of Wealth Management 2016"
+   ],
+   "ignored_operators": [
+    "intitle:/inurl: honoured only in part (results not limited to bio URLs)",
+    "tool simplified one query to plain keywords (quotes/OR dropped)"
+   ]
+  },
+  {
+   "round": 3,
+   "name": "last 90 days",
+   "queries": [
+    "\"Andy Sieg\" OR \"Citi Wealth\" announces OR appointed OR launches September 2026 OR August 2026 OR October 2026",
+    "\"Andy Sieg\" wealth news press [allowed_domains: citigroup.com, citi.com, privatebank.citibank.com]",
+    "Bank of America third quarter 2026 results Global Wealth and Investment Management Merrill advisors client balances",
+    "\"Andy Sieg\" conference OR summit OR keynote OR fireside 2026",
+    "Merrill advisor technology platform AI tools advisors announcement 2026 Bank of America Merrill Edge OR \"Merrill Lynch\" wealth",
+    "\"Citi Sky\" OR Advyzon OR Palantir Citi Wealth advisors 2026 Sieg",
+    "Merrill Wealth Management advisors client balances 2026 results [allowed_domains: bankofamerica.com, newsroom.bankofamerica.com, investor.bankofamerica.com]"
+   ],
+   "ignored_operators": [
+    "after:{date_90_days_ago} not used by the tool; replaced with month+year text and results filtered by date by hand"
+   ]
+  },
+  {
+   "round": 4,
+   "name": "their own words",
+   "queries": [
+    "\"Andy Sieg\" interview OR podcast OR keynote OR panel Citi wealth AI advisors",
+    "filetype:pdf \"Andy Sieg\" Citi wealth remarks",
+    "\"Andy Sieg\" Citi wealth interview OR talk OR video [allowed_domains: youtube.com, linkedin.com]",
+    "\"Andy Sieg\" \"no hobbies\" OR \"North Star\" OR \"Citi speed\" OR \"net new investment assets\"",
+    "intitle:\"Andy Sieg\" transcript OR remarks OR memo OR conversation",
+    "\"Andy Sieg\" Merrill technology advisors \"Thundering Herd\" interview platform OR digital OR AI"
+   ],
+   "ignored_operators": [
+    "filetype:pdf not applied as a filter (only some results were PDFs)",
+    "intitle: honoured only in part"
+   ]
+  },
+  {
+   "round": 5,
+   "name": "gaps and counter-evidence",
+   "queries": [
+    "\"Andy Sieg\" OR \"Citi Wealth\" vendor OR partner OR approves OR \"request for proposal\" OR \"competitive search\" wealth technology 2026",
+    "Merrill Bank of America financial advisors departures OR attrition OR \"team leaves\" OR defections 2026",
+    "Merrill Wealth Management \"head of\" advisor technology OR \"advisor platforms\" OR \"Wealth Management Technology\" OR \"chief technology officer\" Bank of America GWIM executive",
+    "supplier third-party risk management vendor onboarding requirements technology suppliers [allowed_domains: bankofamerica.com, about.bankofamerica.com, supplier.bankofamerica.com]",
+    "Citi wealth \"tougher targets\" OR attrition OR \"private bankers\" Sieg skeptic OR criticism OR doubts 2026",
+    "Merrill Wealth Management fintech partnership OR \"third-party\" advisor tools OR integration vendor 2025 OR 2026 Bank of America advisors platform"
+   ],
+   "ignored_operators": [
+    "tool simplified one query to plain keywords (quotes/OR dropped)"
+   ]
+  },
+  {
+   "round": 6,
+   "name": "gap fill: advisor-technology owner",
+   "queries": [
+    "\"Nitesh Kadakia\" Merrill",
+    "\"Casey Franz\" Merrill platforms capabilities",
+    "Merrill \"Nitesh Kadakia\" OR \"Casey Franz\" OR \"Patricio Diaz\" advisor technology platform 2026",
+    "Citi Wealth \"Joe Bonanno\" OR \"Wealth Technology\" head advisor platform Client 360 2026"
+   ],
+   "ignored_operators": []
+  },
+  {
+   "round": 7,
+   "name": "gap fill: last 90 days and 2026 status",
+   "queries": [
+    "Citigroup third quarter 2026 results Wealth segment revenue net new investment assets Sieg",
+    "Merrill Lynch advisors news October 2026 Merrill Wealth Management Hans Schimpf",
+    "Merrill advisors AI \"ask Merrill\" OR \"Meeting Journey\" OR \"Salesforce\" OR \"CEW\" advisor workstation 2026 Merrill innovation head",
+    "Citi Sky rollout Citigold clients launch summer 2026 advisors Dipendra Malhotra Wealth Technology"
+   ],
+   "ignored_operators": []
+  }
+ ],
+ "searches": 54,
+ "attempted": [
+  "F1",
+  "F2",
+  "F3",
+  "F4",
+  "F5",
+  "F6",
+  "F7",
+  "F8",
+  "F9",
+  "F10",
+  "F11",
+  "F12"
+ ],
+ "families_attempted": 12,
+ "families_total": 12,
+ "hits_by_family": {
+  "F1": 5,
+  "F2": 9,
+  "F3": 19,
+  "F4": 5,
+  "F5": 25,
+  "F6": 3,
+  "F7": 3,
+  "F8": 1,
+  "F9": 4,
+  "F10": 6,
+  "F11": 8,
+  "F12": 5
+ },
+ "c1c2_by_family": {
+  "F1": 4,
+  "F2": 9,
+  "F3": 16,
+  "F4": 5,
+  "F5": 25,
+  "F6": 1,
+  "F7": 3,
+  "F8": 0,
+  "F9": 4,
+  "F10": 6,
+  "F11": 0,
+  "F12": 5
+ },
+ "failed_urls": [
+  {
+   "url": "https://newsroom.bankofamerica.com/content/newsroom/executive-bios/andy-sieg.html",
+   "status": "404 (bio removed; fact dropped)"
+  },
+  {
+   "url": "https://thinkadvisor.com/2016/10/06/john-thiel-head-of-merrill-lynch-to-step-down",
+   "status": "403 (not opened; fact dropped)"
+  },
+  {
+   "url": "https://www.youtube.com/watch?v=9mPmRZ4LHOs",
+   "status": "page returned no transcript or description (not opened in full; fact dropped)"
+  },
+  {
+   "url": "https://careers.bankofamerica.com/en-us/job-detail/26015354/third-party-cyber-assurance-assessor-multiple-locations",
+   "status": "404 (fact dropped)"
+  }
+ ],
+ "excluded": 2,
+ "dropped": 5,
+ "linkedin": "read from search results",
+ "status": "FULL",
+ "notes": [
+  "Identity: one Andy Sieg. He is Head of Wealth at Citi since Sept 2023 and left Merrill in March 2023; the intake's Merrill premise is wrong.",
+  "FULL status rests on F6 (a Citi-hosted podcast transcript, per the podcasts scope) and F8 (a Citi-published conference transcript); without those two the C1/C2 families are 9 of 12 (LIMITED).",
+  "BrokerCheck search returned only namesakes (no Sieg record); IAPD record found (CRD 4218535).",
+  "No public evidence found that Merrill is consolidating advisor tools; found expansion instead (Meeting Journey Mar 2026, MAA $1T Jul 2026).",
+  "No public Merrill vendor-approval process found beyond BofA's Global Third Party Program procurement page; Kadakia's 'selective partnerships' line is a single secondary source.",
+  "Merrill's current advisor-technology owner not confirmed: Nitesh Kadakia (Head of Innovation and Advisor Platforms) is named in Feb 2025 and an undated SIFMA profile; his 2026 status is unverified.",
+  "No upcoming (Oct-Dec 2026) Sieg events found.",
+  "Search tool ignored or only partly honoured: exclusion (-), intitle:, inurl:, filetype:, and after:/before: (replaced with month+year text)."
+ ]
+}

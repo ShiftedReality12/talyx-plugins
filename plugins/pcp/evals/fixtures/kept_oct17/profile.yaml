@@ -1,0 +1,38 @@
+pcp_profile_format: 1
+profiles:
+  default:
+    answers:
+      Q1:
+        value: principal
+        defaulted: false
+      Q2:
+        value: wealth
+        defaulted: false
+      Q3:
+        value: person
+        defaulted: false
+      Q4:
+        value: intro
+        defaulted: false
+      Q5:
+        value: deep
+        defaulted: false
+      Q6:
+        value: professional
+        defaulted: false
+      Q7:
+        value: us
+        defaulted: false
+      Q9:
+        value: experienced
+        defaulted: false
+      Q8:
+        value: We sell a portfolio rebalancing and tax-loss harvesting platform to
+          RIAs and wirehouse advisor teams; it cuts rebalancing time by about 70%.
+          A win is a 30-minute demo with their head of advisor technology.
+        defaulted: false
+    updated: '2026-10-17'
+    context:
+      files: []
+      summary: Caller-stated offer only (the 70% rebalancing-time cut is the caller's
+        own claim, not independently verified); no files supplied.

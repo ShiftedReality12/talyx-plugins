@@ -9,7 +9,7 @@ description: >
   before a meeting, talking points, or shares an intake list. Do not use for general research unrelated
   to a meeting, or for notes on a meeting that has already happened.
 ---
-<!-- GENERATED from pcp.yaml (sha256:a18c120a8ff1) by render_skill.py -- edit pcp.yaml, never this file -->
+<!-- GENERATED from pcp.yaml (sha256:28d15cfc0130) by render_skill.py -- edit pcp.yaml, never this file -->
 
 # Pre-call prep (v3.1.1)
 
@@ -148,7 +148,7 @@ and `linkedin` when set) and continue.
 - **S4-11** Spend words on facts, not framing: count the distinct cited facts before rendering and replace filler with a cited fact. Full rule: `references/brief.md`.
 - **S4-12** Compose from the three records alone, then run `python3 eval.py records <folder> --depth <depth> --brief brief.md` before you say the run is done. Full rule: `references/brief.md`.
 - **S4-10** No shell, no python3 or no browser engine: deliver the full brief in the chat, never a summary, exactly as references/in-chat.md says. Full rule: `references/in-chat.md`.
-- **S4-4** An overflow fails the run with the section word counts; fix it only by cutting words in the sections the renderer names, never a cited fact, a ledger row or a source, never the page settings. Full rule: `references/brief.md`.
+- **S4-4** The folder's first build that fits its 3 pages is the draft, and every cited fact in it stays: a fit pass cuts wording in the S4-4 order, never a fact, a ledger row, a source or the page settings; then `python3 eval.py kept <folder>` must pass. Full rule: `references/brief.md`.
 - **S4-5** The masthead's meta line carries meeting, prepared for, depth, sources, status and date; the ledger's Run row carries the run details; the footer carries only the Intelligence Brief, the person and the page numbers. The identity line is organization | role, since year | city: the city only when a source confirms it; anything unconfirmed or unknown is left out, never printed as '(not confirmed)', 'not published' or 'Not determined'.
 - **S4-6** A block or line prints only as its Prints when says: a line PCP cannot fill from evidence is left out, or reads Not determined where its row says so. Never filler.
 - **S4-7** Every Not determined -- a **Label:** line or a table cell -- and every No read in B6 is a gap; the ledger's Still open row asks at most 4 of them, highest value first, as 'Label: question?', as references/socratic-questions.md says.
@@ -160,8 +160,8 @@ and `linkedin` when set) and continue.
 **Load:** `references/checks.md` (every check with its command, the test that makes each rule fail, the metric and the eval.py commands).
 
 Run `python3 eval.py checks brief.md script.md --target-nouns "<Full Name>,<surname>,<Organization>,<their key programmes>" --experience <Q9: experienced, new, top> --authority <caller.authority_level: high, medium>`
-and `python3 eval.py duf brief.md script.md`; rewrite until both are clean. Before the first fit pass, copy the draft to
-`brief.draft.md` (and the script to `script.draft.md`); after the last, run `python3 eval.py kept brief.draft.md brief.md --draft-script script.draft.md --final-script script.md` (C24: cut wording, never cited facts).
+and `python3 eval.py duf brief.md script.md`; fix fields.json until both are clean. Every cited fact of the draft (the folder's first build
+that fits, recorded by `eval.py assemble`) stays: after the last fit pass, run `python3 eval.py kept <folder>` (C24; S4-4 gives the cut order).
 Then run `python3 eval.py battery --latest --depth <depth> --brief brief.md --profile ~/.pcp/profile.yaml`: it reads this
 session's own history on Claude Code, Codex, and from the ChatGPT or Claude app export (`python3 eval.py battery conversations.json ...`),
 so no host is "unavailable". Fix what it reports: open a cited page you never opened or drop its fact, correct the Run row,

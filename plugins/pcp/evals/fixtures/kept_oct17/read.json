@@ -1,0 +1,59 @@
+[
+ {
+  "dimension": "dominance",
+  "band": "high",
+  "evidence_tier": "high",
+  "observation_ids": [
+   51,
+   39,
+   54
+  ],
+  "meeting_meaning": "Lead with the outcome in one sentence; they decide fast and dislike preamble."
+ },
+ {
+  "dimension": "status_sensitivity",
+  "band": "no read",
+  "evidence_tier": "low",
+  "observation_ids": [],
+  "meeting_meaning": "No read"
+ },
+ {
+  "dimension": "information_appetite",
+  "band": "high",
+  "evidence_tier": "high",
+  "observation_ids": [
+   45,
+   52,
+   61
+  ],
+  "meeting_meaning": "Bring the numbers and the sources; allow silence after a question."
+ },
+ {
+  "dimension": "risk_tolerance",
+  "band": "mid",
+  "evidence_tier": "medium",
+  "observation_ids": [
+   48,
+   59
+  ],
+  "meeting_meaning": "Pair the upside with the safeguard in the same sentence."
+ },
+ {
+  "dimension": "ego_vulnerability",
+  "band": "no read",
+  "evidence_tier": "low",
+  "observation_ids": [],
+  "meeting_meaning": "No read"
+ },
+ {
+  "dimension": "competitive_drive",
+  "band": "high",
+  "evidence_tier": "high",
+  "observation_ids": [
+   46,
+   53,
+   56
+  ],
+  "meeting_meaning": "Name what peers are doing; they will want to be ahead of it."
+ }
+]
