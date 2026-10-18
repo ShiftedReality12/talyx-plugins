@@ -39,7 +39,7 @@ Branch `restore-2026-10-16`, tag `pcp-v3.1.2`.
 ### Leaner
 - The test behind each rule and the in-chat worked examples moved to `evals/rule-tests.md`, which nothing loads at run time. Repeated rules have one
   home and pointers. Ten contradictions found by the Oct 17 audit are fixed. Words a run reads: SKILL.md 3,232 -> 3,142; with its references,
-  15,239 -> 14,279 (PDF host) and 16,132 -> 15,018 (in chat); the chat apps' knowledge file 11,297 -> 10,631 (`wc -w`, 7ee48fb -> the tag).
+  15,239 -> 14,318 (PDF host) and 16,132 -> 15,057 (in chat); the chat apps' knowledge file 11,297 -> 10,631 (`wc -w`, 7ee48fb -> the tag).
 - goodfest.westfield.com left the never-cite list (added without a reason). thefabulous.co stays on the weak list, with its reason. The rubric's
   "2.0.0-public" is explained as the rubric's own label.
 
